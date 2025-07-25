@@ -1,0 +1,29 @@
+App Blueprint
+Guided Input — Step-by-step digital form to guide users through the acceptance protocol.
+Data Conversion — Convert entered data to Excel template.
+PDF Generation — Generate a PDF document from the populated Excel template.
+Email Sending — Enable sending the generated PDF via email.
+Cloud Storage — Enable saving the generated PDF to cloud storage (e.g., Google Drive).
+AI Assistance
+ — AI-powered "tool" to suggest appropriate responses based on the question and previous answers.
+Language Selection — Language selection at start: Hungarian or German
+Question-Answer Interface — Question-answer interface based on the paper template, covering all necessary check points and parameters
+Data Recording — Answers, comments, measurements, observations
+Fill in Excel Template — Fill in Excel template automatically into the appropriate cells
+PDF Generation — Based on the filled-in data, an attractive PDF
+Save and Share — Locally and shared (Drive, e-mail, etc.)
+Field Types — The system can handle the following field types: Yes/No/Not applicable, Number (e.g. measurement data), Text (e.g. comments)
+UI and Dynamic Loading — The language can be selected on the main screen. The question-answer form is loaded dynamically based on JSON. The answers can be saved temporarily.
+Image Attachment — Image(s) can be attached to each question or specific questions (e.g. to document an error). Images are saved linked to the completed report. For PDFs, images can optionally be attached to the end of the document or to specific sections.
+Date Picker — You specify the date of receipt using a clearly visible date picker. This date is automatically entered into the corresponding cell in Excel (if available) and also appears in the PDF.
+Data Entry and Validation — The entered data is entered into the corresponding cells of the Excel template. The app recognizes if an answer has not been entered and warns you.
+Signature — At the end of the filling, a drawing field appears where you can sign with your finger or stylus. The signature: is added to the end of the PDF in a separate "Signature" field is saved together with the date Optional: possibility to enter the name by typing (if necessary, the printed name)
+Color
+Layout
+Use a clear, single-column layout to guide the user through the form. Utilize distinct sections for each part of the protocol to avoid overwhelming the user.
+Typography
+'Inter' sans-serif font provides a clean, modern and readable appearance, ideal for form-based applications.
+Iconography
+Use minimalist icons to represent form fields, actions, and document types. Ensure they are consistent and easily understandable.
+Animation
+Provide subtle animations for transitions between form steps and feedback on actions to improve usability.
