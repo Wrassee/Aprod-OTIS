@@ -68,6 +68,27 @@ export interface Translation {
   loading: string;
   error: string;
   success: string;
+  
+  // Admin Interface
+  admin: string;
+  settings: string;
+  templates: string;
+  uploadTemplate: string;
+  templateName: string;
+  templateType: string;
+  questionsTemplate: string;
+  protocolTemplate: string;
+  activate: string;
+  active: string;
+  inactive: string;
+  upload: string;
+  preview: string;
+  configure: string;
+  cellReference: string;
+  sheetName: string;
+  questionConfiguration: string;
+  uploadExcelFile: string;
+  selectExcelFile: string;
 }
 
 export const translations: Record<string, Translation> = {
@@ -141,6 +162,27 @@ export const translations: Record<string, Translation> = {
     loading: "Betöltés...",
     error: "Hiba történt",
     success: "Sikeres művelet",
+    
+    // Admin Interface
+    admin: "Adminisztráció",
+    settings: "Beállítások",
+    templates: "Sablonok",
+    uploadTemplate: "Sablon feltöltése",
+    templateName: "Sablon neve",
+    templateType: "Sablon típusa",
+    questionsTemplate: "Kérdések sablona",
+    protocolTemplate: "Protokoll sablon",
+    activate: "Aktiválás",
+    active: "Aktív",
+    inactive: "Inaktív",
+    upload: "Feltöltés",
+    preview: "Előnézet",
+    configure: "Konfigurálás",
+    cellReference: "Cella hivatkozás",
+    sheetName: "Munkalap neve",
+    questionConfiguration: "Kérdés konfiguráció",
+    uploadExcelFile: "Excel fájl feltöltése",
+    selectExcelFile: "Excel fájl kiválasztása",
   },
   de: {
     // Start Screen
@@ -212,5 +254,26 @@ export const translations: Record<string, Translation> = {
     loading: "Laden...",
     error: "Ein Fehler ist aufgetreten",
     success: "Erfolgreiche Operation",
+    
+    // Admin Interface
+    admin: "Administration",
+    settings: "Einstellungen",
+    templates: "Vorlagen",
+    uploadTemplate: "Vorlage hochladen",
+    templateName: "Vorlagenname",
+    templateType: "Vorlagentyp",
+    questionsTemplate: "Fragen-Vorlage",
+    protocolTemplate: "Protokoll-Vorlage",
+    activate: "Aktivieren",
+    active: "Aktiv",
+    inactive: "Inaktiv",
+    upload: "Hochladen",
+    preview: "Vorschau",
+    configure: "Konfigurieren",
+    cellReference: "Zellreferenz",
+    sheetName: "Arbeitsblattname",
+    questionConfiguration: "Fragenkonfiguration",
+    uploadExcelFile: "Excel-Datei hochladen",
+    selectExcelFile: "Excel-Datei auswählen",
   },
 };

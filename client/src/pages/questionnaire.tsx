@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Question, AnswerValue, ProtocolError } from '@shared/schema';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { QuestionBlock } from '@/components/question-block';
 import { ErrorList } from '@/components/error-list';
 import { useLanguageContext } from '@/components/language-provider';
-import { ArrowLeft, ArrowRight, Save } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Save, Settings } from 'lucide-react';
 
 interface QuestionnaireProps {
   receptionDate: string;
@@ -18,6 +18,8 @@ interface QuestionnaireProps {
   onErrorsChange: (errors: ProtocolError[]) => void;
   onNext: () => void;
   onSave: () => void;
+  language: 'hu' | 'de';
+  onAdminAccess?: () => void;
 }
 
 export function Questionnaire({
@@ -33,61 +35,60 @@ export function Questionnaire({
   const { t } = useLanguageContext();
   const [currentPage, setCurrentPage] = useState(0);
 
-  // Sample questions - in a real app, these would come from the backend
-  const allQuestions: Question[] = useMemo(() => [
-    {
-      id: 'q1',
-      title: 'Elevator installation complete?',
-      type: 'yes_no_na',
-      required: true,
-    },
-    {
-      id: 'q2',
-      title: 'Safety systems operational?',
-      type: 'yes_no_na',
-      required: true,
-    },
-    {
-      id: 'q3',
-      title: 'Load capacity (kg)',
-      type: 'number',
-      required: true,
-      placeholder: 'Enter load capacity',
-    },
-    {
-      id: 'q4',
-      title: 'Additional comments',
-      type: 'text',
-      required: false,
-      placeholder: 'Enter any additional comments or observations',
-    },
-    {
-      id: 'q5',
-      title: 'Emergency communication system tested?',
-      type: 'yes_no_na',
-      required: true,
-    },
-    {
-      id: 'q6',
-      title: 'Door operation smooth?',
-      type: 'yes_no_na',
-      required: true,
-    },
-    {
-      id: 'q7',
-      title: 'Floor level accuracy (mm)',
-      type: 'number',
-      required: true,
-      placeholder: 'Enter accuracy measurement',
-    },
-    {
-      id: 'q8',
-      title: 'Installation notes',
-      type: 'text',
-      required: false,
-      placeholder: 'Any specific installation observations',
-    },
-  ], []);
+  const [allQuestions, setAllQuestions] = useState<Question[]>([]);
+  const [questionsLoading, setQuestionsLoading] = useState(true);
+
+  // Load questions from API
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        setQuestionsLoading(true);
+        const response = await fetch(`/api/questions/${language}`);
+        if (response.ok) {
+          const questions = await response.json();
+          setAllQuestions(questions);
+        } else {
+          // Fallback to hardcoded questions if no template is configured
+          setAllQuestions([
+            {
+              id: 'q1',
+              title: t.language === 'hu' ? 'Lift telepítés kész?' : t.language === 'de' ? 'Aufzuginstallation abgeschlossen?' : 'Elevator installation complete?',
+              type: 'yes_no_na',
+              required: true,
+            },
+            {
+              id: 'q2',
+              title: t.language === 'hu' ? 'Biztonsági rendszerek működnek?' : t.language === 'de' ? 'Sicherheitssysteme funktionsfähig?' : 'Safety systems operational?',
+              type: 'yes_no_na',
+              required: true,
+            },
+            {
+              id: 'q3',
+              title: t.language === 'hu' ? 'Teherbírás (kg)' : t.language === 'de' ? 'Tragfähigkeit (kg)' : 'Load capacity (kg)',
+              type: 'number',
+              required: true,
+              placeholder: 'Enter load capacity',
+            },
+            {
+              id: 'q4',
+              title: t.language === 'hu' ? 'További megjegyzések' : t.language === 'de' ? 'Zusätzliche Kommentare' : 'Additional comments',
+              type: 'text',
+              required: false,
+              placeholder: 'Enter any additional comments or observations',
+            },
+          ]);
+        }
+      } catch (error) {
+        console.error('Error fetching questions:', error);
+        // Use fallback questions on error
+        setAllQuestions([]);
+      } finally {
+        setQuestionsLoading(false);
+      }
+    };
+
+    fetchQuestions();
+  }, [language, t]);
 
   // Group questions into pages of 4 (2x2 grid)
   const questionsPerPage = 4;
@@ -140,7 +141,7 @@ export function Questionnaire({
               <span className="text-lg font-medium text-gray-800">{t.title}</span>
             </div>
             
-            {/* Date Picker */}
+            {/* Date Picker and Admin */}
             <div className="flex items-center space-x-4">
               <Label className="text-sm font-medium text-gray-600">{t.receptionDate}</Label>
               <Input
@@ -149,6 +150,17 @@ export function Questionnaire({
                 onChange={(e) => onReceptionDateChange(e.target.value)}
                 className="w-auto"
               />
+              {onAdminAccess && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onAdminAccess}
+                  className="text-gray-600 hover:text-gray-800"
+                  title={t.admin}
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </div>
           

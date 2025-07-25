@@ -52,5 +52,51 @@ export const Question = z.object({
   type: QuestionType,
   required: z.boolean().default(true),
   placeholder: z.string().optional(),
+  cellReference: z.string().optional(), // Excel cell reference like "B5"
+  sheetName: z.string().optional(), // Sheet name in Excel file
 });
 export type Question = z.infer<typeof Question>;
+
+// Template management
+export const templates = pgTable("templates", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  type: text("type").notNull(), // "questions" or "protocol"
+  fileName: text("file_name").notNull(),
+  filePath: text("file_path").notNull(),
+  language: text("language").notNull(),
+  uploadedAt: timestamp("uploaded_at").notNull().default(sql`now()`),
+  isActive: boolean("is_active").notNull().default(false),
+});
+
+export const insertTemplateSchema = createInsertSchema(templates).omit({
+  id: true,
+  uploadedAt: true,
+});
+
+export type InsertTemplate = z.infer<typeof insertTemplateSchema>;
+export type Template = typeof templates.$inferSelect;
+
+// Question configuration from Excel
+export const questionConfigs = pgTable("question_configs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  templateId: varchar("template_id").notNull().references(() => templates.id),
+  questionId: text("question_id").notNull(),
+  title: text("title").notNull(),
+  titleHu: text("title_hu"),
+  titleDe: text("title_de"),
+  type: text("type").notNull(),
+  required: boolean("required").notNull().default(true),
+  placeholder: text("placeholder"),
+  cellReference: text("cell_reference"), // B5, C10, etc.
+  sheetName: text("sheet_name").default("Sheet1"),
+  createdAt: timestamp("created_at").notNull().default(sql`now()`),
+});
+
+export const insertQuestionConfigSchema = createInsertSchema(questionConfigs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertQuestionConfig = z.infer<typeof insertQuestionConfigSchema>;
+export type QuestionConfig = typeof questionConfigs.$inferSelect;

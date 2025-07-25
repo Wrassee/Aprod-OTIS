@@ -9,11 +9,12 @@ import { StartScreen } from "@/pages/start-screen";
 import { Questionnaire } from "@/pages/questionnaire";
 import { Signature } from "@/pages/signature";
 import { Completion } from "@/pages/completion";
+import { Admin } from "@/pages/admin";
 import { FormData } from "@/lib/types";
 import NotFound from "@/pages/not-found";
 
 function App() {
-  const [currentScreen, setCurrentScreen] = useState<'start' | 'questionnaire' | 'signature' | 'completion'>('start');
+  const [currentScreen, setCurrentScreen] = useState<'start' | 'questionnaire' | 'signature' | 'completion' | 'admin'>('start');
   const [language, setLanguage] = useState<'hu' | 'de'>('hu');
   const [formData, setFormData] = useState<FormData>({
     receptionDate: new Date().toISOString().split('T')[0],
@@ -183,6 +184,8 @@ function App() {
                   onErrorsChange={(errors) => setFormData(prev => ({ ...prev, errors }))}
                   onNext={handleQuestionnaireNext}
                   onSave={handleSaveProgress}
+                  language={language}
+                  onAdminAccess={() => setCurrentScreen('admin')}
                 />
               );
             case 'signature':
@@ -206,6 +209,8 @@ function App() {
                   onStartNew={handleStartNew}
                 />
               );
+            case 'admin':
+              return <Admin onBack={() => setCurrentScreen('questionnaire')} />;
             default:
               return <StartScreen onLanguageSelect={handleLanguageSelect} />;
           }
