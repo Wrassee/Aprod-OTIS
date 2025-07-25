@@ -6,7 +6,7 @@ This is a full-stack TypeScript application that digitizes the OTIS elevator acc
 
 ## User Preferences
 
-Preferred communication style: Simple, everyday language.
+Preferred communication style: Simple, everyday language (Hungarian preferred).
 
 ## System Architecture
 
@@ -39,8 +39,9 @@ Preferred communication style: Simple, everyday language.
 
 ### Data Layer
 - **Database**: PostgreSQL with Drizzle ORM for type-safe database operations
-- **Schema**: Protocol table with JSON fields for answers and errors
-- **Storage**: In-memory storage implementation with interface for easy database switching
+- **Schema**: Protocols, templates, and question_configs tables with proper relations
+- **Storage**: DatabaseStorage implementation with full persistence
+- **Template Management**: Excel file uploads with question configuration mapping
 
 ### Business Logic
 - **Protocol Management**: CRUD operations for acceptance protocols

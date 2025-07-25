@@ -31,8 +31,10 @@ export function Questionnaire({
   onErrorsChange,
   onNext,
   onSave,
+  language,
+  onAdminAccess,
 }: QuestionnaireProps) {
-  const { t } = useLanguageContext();
+  const { t, language: contextLanguage } = useLanguageContext();
   const [currentPage, setCurrentPage] = useState(0);
 
   const [allQuestions, setAllQuestions] = useState<Question[]>([]);
@@ -52,26 +54,26 @@ export function Questionnaire({
           setAllQuestions([
             {
               id: 'q1',
-              title: t.language === 'hu' ? 'Lift telepítés kész?' : t.language === 'de' ? 'Aufzuginstallation abgeschlossen?' : 'Elevator installation complete?',
+              title: language === 'hu' ? 'Lift telepítés kész?' : language === 'de' ? 'Aufzuginstallation abgeschlossen?' : 'Elevator installation complete?',
               type: 'yes_no_na',
               required: true,
             },
             {
               id: 'q2',
-              title: t.language === 'hu' ? 'Biztonsági rendszerek működnek?' : t.language === 'de' ? 'Sicherheitssysteme funktionsfähig?' : 'Safety systems operational?',
+              title: language === 'hu' ? 'Biztonsági rendszerek működnek?' : language === 'de' ? 'Sicherheitssysteme funktionsfähig?' : 'Safety systems operational?',
               type: 'yes_no_na',
               required: true,
             },
             {
               id: 'q3',
-              title: t.language === 'hu' ? 'Teherbírás (kg)' : t.language === 'de' ? 'Tragfähigkeit (kg)' : 'Load capacity (kg)',
+              title: language === 'hu' ? 'Teherbírás (kg)' : language === 'de' ? 'Tragfähigkeit (kg)' : 'Load capacity (kg)',
               type: 'number',
               required: true,
               placeholder: 'Enter load capacity',
             },
             {
               id: 'q4',
-              title: t.language === 'hu' ? 'További megjegyzések' : t.language === 'de' ? 'Zusätzliche Kommentare' : 'Additional comments',
+              title: language === 'hu' ? 'További megjegyzések' : language === 'de' ? 'Zusätzliche Kommentare' : 'Additional comments',
               type: 'text',
               required: false,
               placeholder: 'Enter any additional comments or observations',
