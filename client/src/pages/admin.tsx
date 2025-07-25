@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguageContext } from '@/components/language-provider';
-import { Upload, Settings, FileSpreadsheet, CheckCircle, XCircle, Eye, Edit } from 'lucide-react';
+import { Upload, Settings, FileSpreadsheet, CheckCircle, XCircle, Eye, Edit, Home } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Template {
@@ -22,9 +22,10 @@ interface Template {
 
 interface AdminProps {
   onBack: () => void;
+  onHome?: () => void;
 }
 
-export function Admin({ onBack }: AdminProps) {
+export function Admin({ onBack, onHome }: AdminProps) {
   const { t, language } = useLanguageContext();
   const { toast } = useToast();
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -159,6 +160,17 @@ export function Admin({ onBack }: AdminProps) {
               <div className="h-8 w-12 bg-otis-blue rounded flex items-center justify-center mr-4">
                 <span className="text-white font-bold text-sm">OTIS</span>
               </div>
+              {onHome && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onHome}
+                  className="text-gray-600 hover:text-gray-800 mr-4"
+                  title="Kezdőlap"
+                >
+                  <Home className="h-4 w-4" />
+                </Button>
+              )}
               <span className="text-lg font-medium text-gray-800">{t.admin}</span>
             </div>
             <Button variant="outline" onClick={onBack}>

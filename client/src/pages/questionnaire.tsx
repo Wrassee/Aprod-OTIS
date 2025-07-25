@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { QuestionBlock } from '@/components/question-block';
 import { ErrorList } from '@/components/error-list';
 import { useLanguageContext } from '@/components/language-provider';
-import { ArrowLeft, ArrowRight, Save, Settings } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Save, Settings, Home } from 'lucide-react';
 
 interface QuestionnaireProps {
   receptionDate: string;
@@ -20,6 +20,7 @@ interface QuestionnaireProps {
   onSave: () => void;
   language: 'hu' | 'de';
   onAdminAccess?: () => void;
+  onHome?: () => void;
 }
 
 export function Questionnaire({
@@ -33,6 +34,7 @@ export function Questionnaire({
   onSave,
   language,
   onAdminAccess,
+  onHome,
 }: QuestionnaireProps) {
   const { t, language: contextLanguage } = useLanguageContext();
   const [currentPage, setCurrentPage] = useState(0);
@@ -135,11 +137,22 @@ export function Questionnaire({
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            {/* Logo and Title */}
+            {/* Logo, Home and Title */}
             <div className="flex items-center">
               <div className="h-8 w-12 bg-otis-blue rounded flex items-center justify-center mr-4">
                 <span className="text-white font-bold text-sm">OTIS</span>
               </div>
+              {onHome && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onHome}
+                  className="text-gray-600 hover:text-gray-800 mr-4"
+                  title="Kezdőlap"
+                >
+                  <Home className="h-4 w-4" />
+                </Button>
+              )}
               <span className="text-lg font-medium text-gray-800">{t.title}</span>
             </div>
             

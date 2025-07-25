@@ -186,6 +186,7 @@ function App() {
                   onSave={handleSaveProgress}
                   language={language}
                   onAdminAccess={() => setCurrentScreen('admin')}
+                  onHome={() => setCurrentScreen('start')}
                 />
               );
             case 'signature':
@@ -210,7 +211,7 @@ function App() {
                 />
               );
             case 'admin':
-              return <Admin onBack={() => setCurrentScreen('questionnaire')} />;
+              return <Admin onBack={() => setCurrentScreen('questionnaire')} onHome={() => setCurrentScreen('start')} />;
             default:
               return <StartScreen onLanguageSelect={handleLanguageSelect} />;
           }
