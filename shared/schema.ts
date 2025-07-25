@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { sql, relations } from "drizzle-orm";
 import { pgTable, text, varchar, jsonb, timestamp, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -100,3 +100,15 @@ export const insertQuestionConfigSchema = createInsertSchema(questionConfigs).om
 
 export type InsertQuestionConfig = z.infer<typeof insertQuestionConfigSchema>;
 export type QuestionConfig = typeof questionConfigs.$inferSelect;
+
+// Relations
+export const templatesRelations = relations(templates, ({ many }) => ({
+  questionConfigs: many(questionConfigs),
+}));
+
+export const questionConfigsRelations = relations(questionConfigs, ({ one }) => ({
+  template: one(templates, {
+    fields: [questionConfigs.templateId],
+    references: [templates.id],
+  }),
+}));

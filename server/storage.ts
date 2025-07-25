@@ -1,5 +1,8 @@
 import { type Protocol, type InsertProtocol, type Template, type InsertTemplate, type QuestionConfig, type InsertQuestionConfig } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { db } from './db';
+import { eq, and, desc } from 'drizzle-orm';
+import { protocols, templates, questionConfigs } from '@shared/schema';
 
 export interface IStorage {
   // Protocols
@@ -24,131 +27,135 @@ export interface IStorage {
   getQuestionConfigsByTemplate(templateId: string): Promise<QuestionConfig[]>;
 }
 
-export class MemStorage implements IStorage {
-  private protocols: Map<string, Protocol>;
-  private templates: Map<string, Template>;
-  private questionConfigs: Map<string, QuestionConfig>;
-
-  constructor() {
-    this.protocols = new Map();
-    this.templates = new Map();
-    this.questionConfigs = new Map();
-  }
-
+export class DatabaseStorage implements IStorage {
+  // Protocol methods
   async getProtocol(id: string): Promise<Protocol | undefined> {
-    return this.protocols.get(id);
+    const [protocol] = await db.select().from(protocols).where(eq(protocols.id, id));
+    return protocol || undefined;
   }
 
   async createProtocol(insertProtocol: InsertProtocol): Promise<Protocol> {
-    const id = randomUUID();
-    const protocol: Protocol = { 
-      signature: insertProtocol.signature || null,
-      signatureName: insertProtocol.signatureName || null,
-      ...insertProtocol, 
-      id,
-      createdAt: new Date(),
-    };
-    this.protocols.set(id, protocol);
+    const [protocol] = await db
+      .insert(protocols)
+      .values(insertProtocol)
+      .returning();
     return protocol;
   }
 
   async updateProtocol(id: string, updates: Partial<Protocol>): Promise<Protocol | undefined> {
-    const existing = this.protocols.get(id);
-    if (!existing) return undefined;
-
-    const updated = { ...existing, ...updates };
-    this.protocols.set(id, updated);
-    return updated;
+    const [updated] = await db
+      .update(protocols)
+      .set(updates)
+      .where(eq(protocols.id, id))
+      .returning();
+    return updated || undefined;
   }
 
   async getAllProtocols(): Promise<Protocol[]> {
-    return Array.from(this.protocols.values());
+    return await db.select().from(protocols).orderBy(desc(protocols.createdAt));
   }
 
   // Template methods
   async getTemplate(id: string): Promise<Template | undefined> {
-    return this.templates.get(id);
+    const [template] = await db.select().from(templates).where(eq(templates.id, id));
+    return template || undefined;
   }
 
   async createTemplate(insertTemplate: InsertTemplate): Promise<Template> {
-    const id = randomUUID();
-    const template: Template = { 
-      ...insertTemplate,
-      id,
-      uploadedAt: new Date(),
-    };
-    this.templates.set(id, template);
+    const [template] = await db
+      .insert(templates)
+      .values(insertTemplate)
+      .returning();
     return template;
   }
 
   async updateTemplate(id: string, updates: Partial<Template>): Promise<Template | undefined> {
-    const existing = this.templates.get(id);
-    if (!existing) return undefined;
-
-    const updated = { ...existing, ...updates };
-    this.templates.set(id, updated);
-    return updated;
+    const [updated] = await db
+      .update(templates)
+      .set(updates)
+      .where(eq(templates.id, id))
+      .returning();
+    return updated || undefined;
   }
 
   async getAllTemplates(): Promise<Template[]> {
-    return Array.from(this.templates.values());
+    return await db.select().from(templates).orderBy(desc(templates.uploadedAt));
   }
 
   async getActiveTemplate(type: string, language: string): Promise<Template | undefined> {
-    return Array.from(this.templates.values()).find(
-      template => template.type === type && template.language === language && template.isActive
-    );
+    const [template] = await db
+      .select()
+      .from(templates)
+      .where(
+        and(
+          eq(templates.type, type),
+          eq(templates.language, language),
+          eq(templates.isActive, true)
+        )
+      );
+    return template || undefined;
   }
 
   async setActiveTemplate(id: string): Promise<void> {
-    const template = this.templates.get(id);
+    const template = await this.getTemplate(id);
     if (!template) throw new Error('Template not found');
 
     // Deactivate other templates of the same type and language
-    Array.from(this.templates.values()).forEach(t => {
-      if (t.type === template.type && t.language === template.language) {
-        this.templates.set(t.id, { ...t, isActive: false });
-      }
-    });
+    await db
+      .update(templates)
+      .set({ isActive: false })
+      .where(
+        and(
+          eq(templates.type, template.type),
+          eq(templates.language, template.language)
+        )
+      );
 
     // Activate the specified template
-    this.templates.set(id, { ...template, isActive: true });
+    await db
+      .update(templates)
+      .set({ isActive: true })
+      .where(eq(templates.id, id));
   }
 
   // Question Config methods
   async getQuestionConfig(id: string): Promise<QuestionConfig | undefined> {
-    return this.questionConfigs.get(id);
+    const [config] = await db.select().from(questionConfigs).where(eq(questionConfigs.id, id));
+    return config || undefined;
   }
 
   async createQuestionConfig(insertConfig: InsertQuestionConfig): Promise<QuestionConfig> {
-    const id = randomUUID();
-    const config: QuestionConfig = { 
-      ...insertConfig,
-      id,
-      createdAt: new Date(),
-    };
-    this.questionConfigs.set(id, config);
+    const [config] = await db
+      .insert(questionConfigs)
+      .values(insertConfig)
+      .returning();
     return config;
   }
 
   async updateQuestionConfig(id: string, updates: Partial<QuestionConfig>): Promise<QuestionConfig | undefined> {
-    const existing = this.questionConfigs.get(id);
-    if (!existing) return undefined;
-
-    const updated = { ...existing, ...updates };
-    this.questionConfigs.set(id, updated);
-    return updated;
+    const [updated] = await db
+      .update(questionConfigs)
+      .set(updates)
+      .where(eq(questionConfigs.id, id))
+      .returning();
+    return updated || undefined;
   }
 
   async deleteQuestionConfig(id: string): Promise<boolean> {
-    return this.questionConfigs.delete(id);
+    const result = await db
+      .delete(questionConfigs)
+      .where(eq(questionConfigs.id, id))
+      .returning();
+    return result.length > 0;
   }
 
   async getQuestionConfigsByTemplate(templateId: string): Promise<QuestionConfig[]> {
-    return Array.from(this.questionConfigs.values()).filter(
-      config => config.templateId === templateId
-    );
+    return await db
+      .select()
+      .from(questionConfigs)
+      .where(eq(questionConfigs.templateId, templateId))
+      .orderBy(questionConfigs.createdAt);
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
