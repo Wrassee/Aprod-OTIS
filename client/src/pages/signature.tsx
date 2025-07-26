@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { SimpleSignatureCanvas } from '@/components/simple-signature-canvas';
 import { MegaStableInput } from '@/components/mega-stable-input';
@@ -24,8 +24,40 @@ export function Signature({
 }: SignatureProps) {
   const { t } = useLanguageContext();
   const currentDate = new Date().toLocaleDateString();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const canComplete = signature.length > 0;
+
+  // Setup direct DOM event listener to bypass React
+  useEffect(() => {
+    const input = inputRef.current;
+    if (!input) return;
+
+    // Set initial value
+    input.value = signatureName || '';
+
+    const handleInput = (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      const newValue = target.value;
+      console.log(`Signature name typing: ${newValue}`);
+      
+      // Store globally without React updates
+      (window as any).signatureNameValue = newValue;
+      
+      // Debounced parent callback
+      clearTimeout((window as any).signatureNameTimeout);
+      (window as any).signatureNameTimeout = setTimeout(() => {
+        onSignatureNameChange(newValue);
+      }, 500);
+    };
+
+    // Add native DOM event listener
+    input.addEventListener('input', handleInput);
+    
+    return () => {
+      input.removeEventListener('input', handleInput);
+    };
+  }, [onSignatureNameChange, signatureName]);
 
   return (
     <div className="min-h-screen bg-light-surface">
@@ -63,27 +95,9 @@ export function Signature({
             </label>
             <div className="relative">
               <input
-                key="signature-name-input"
+                ref={inputRef}
                 type="text"
                 placeholder="Teljes név"
-                defaultValue={signatureName || ''}
-                onInput={(e) => {
-                  const target = e.target as HTMLInputElement;
-                  const newValue = target.value;
-                  console.log(`Signature name typing: ${newValue}`);
-                  
-                  // Store value globally without React state updates
-                  if (!(window as any).signatureNameValue) {
-                    (window as any).signatureNameValue = '';
-                  }
-                  (window as any).signatureNameValue = newValue;
-                  
-                  // Debounced callback to parent
-                  clearTimeout((window as any).signatureNameTimeout);
-                  (window as any).signatureNameTimeout = setTimeout(() => {
-                    onSignatureNameChange(newValue);
-                  }, 300);
-                }}
                 className="w-full h-12 px-4 text-lg border-2 border-gray-300 rounded-lg focus:border-otis-blue focus:outline-none bg-white"
                 style={{ 
                   fontSize: '18px',

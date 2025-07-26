@@ -1,4 +1,4 @@
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useRef, useEffect } from 'react';
 import { Question, AnswerValue } from '@shared/schema';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -49,50 +49,20 @@ const IsolatedQuestionComponent = memo(({
         );
 
       case 'number':
-        return (
-          <input
-            key={`input-${question.id}`}
-            type="number"
-            placeholder={question.placeholder || "Enter number"}
-            defaultValue={value?.toString() || ''}
-            onInput={(e) => {
-              const target = e.target as HTMLInputElement;
-              const newValue = target.value;
-              console.log(`Number input typing: ${question.id} = ${newValue}`);
-              
-              // Store value globally without React state updates
-              if (!(window as any).inputValues) {
-                (window as any).inputValues = {};
-              }
-              (window as any).inputValues[question.id] = newValue;
-            }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-transparent"
-            style={{ fontSize: '16px' }}
-          />
-        );
+        return <StableNativeInput 
+          questionId={question.id}
+          type="number"
+          placeholder={question.placeholder || "Enter number"}
+          initialValue={value?.toString() || ''}
+        />;
 
       case 'text':
-        return (
-          <input
-            key={`input-${question.id}`}
-            type="text"
-            placeholder={question.placeholder || "Enter text"}
-            defaultValue={value?.toString() || ''}
-            onInput={(e) => {
-              const target = e.target as HTMLInputElement;
-              const newValue = target.value;
-              console.log(`Text input typing: ${question.id} = ${newValue}`);
-              
-              // Store value globally without React state updates
-              if (!(window as any).inputValues) {
-                (window as any).inputValues = {};
-              }
-              (window as any).inputValues[question.id] = newValue;
-            }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-transparent"
-            style={{ fontSize: '16px' }}
-          />
-        );
+        return <StableNativeInput 
+          questionId={question.id}
+          type="text" 
+          placeholder={question.placeholder || "Enter text"}
+          initialValue={value?.toString() || ''}
+        />;
 
       default:
         return null;
@@ -146,5 +116,52 @@ const IsolatedQuestionComponent = memo(({
 });
 
 IsolatedQuestionComponent.displayName = 'IsolatedQuestion';
+
+// Stable input component that uses refs and native DOM events
+function StableNativeInput({ questionId, type, placeholder, initialValue }: {
+  questionId: string;
+  type: string;
+  placeholder: string;
+  initialValue: string;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const input = inputRef.current;
+    if (!input) return;
+
+    // Set initial value
+    input.value = initialValue;
+
+    const handleInput = (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      const newValue = target.value;
+      console.log(`${type} input typing: ${questionId} = ${newValue}`);
+      
+      // Store globally without React updates
+      if (!(window as any).inputValues) {
+        (window as any).inputValues = {};
+      }
+      (window as any).inputValues[questionId] = newValue;
+    };
+
+    // Add native DOM event listener
+    input.addEventListener('input', handleInput);
+    
+    return () => {
+      input.removeEventListener('input', handleInput);
+    };
+  }, [questionId, type, initialValue]);
+
+  return (
+    <input
+      ref={inputRef}
+      type={type}
+      placeholder={placeholder}
+      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-transparent"
+      style={{ fontSize: '16px' }}
+    />
+  );
+}
 
 export { IsolatedQuestionComponent as IsolatedQuestion };
