@@ -46,15 +46,15 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Logo Fix**: ✅ COMPLETED - Moved logo to client/public/ for proper static serving, increased size (start: h-48 w-48, header: h-12 w-12)
 - **Component Isolation**: Multiple attempts to isolate radio state from parent updates
 
-### Current Status (January 27, 2025 - 14:44)
+### Current Status (January 27, 2025 - 14:48)
 - **RADIO BUTTON ISSUE**: ✅ RESOLVED - CacheRadio with global Map cache prevents parent updates
-- **INPUT FIELD ISSUE**: ✅ RESOLVED - All text/number inputs converted to native HTML elements with onInput events
-- **SIGNATURE NAME INPUT**: ✅ RESOLVED - Signature name field also converted to native HTML input with global storage
+- **INPUT FIELD ISSUE**: ✅ RESOLVED - All questionnaire text/number inputs use ref-based native DOM events
+- **SIGNATURE NAME INPUT**: 🔄 IN PROGRESS - Cursor still jumping, implementing single-mount ref solution with data-initialized attribute
 - **PAGE NAVIGATION**: ✅ RESOLVED - "Tovább" button works with proper validation and localStorage persistence
-- **SIGNATURE CANVAS**: ✅ RESOLVED - Drawing functionality working with signature name input stable
+- **SIGNATURE CANVAS**: ✅ RESOLVED - Drawing functionality working properly
 - **PROTOCOL PREVIEW**: ✅ RESOLVED - Added /api/protocols/preview endpoint with mock data fallback
-- **Cache Strategy**: All inputs use direct DOM manipulation - radio buttons via global Map cache, text inputs via window.inputValues storage
-- **Event System**: Custom events for radio buttons, onInput for all text fields with no React state updates to prevent cursor jumping
+- **Cache Strategy**: Questionnaire inputs use StableNativeInput with refs, signature name uses single-mount ref with data-initialized check
+- **Event System**: Native DOM addEventListener for all text inputs, completely bypassing React event system
 
 ## System Architecture
 

@@ -28,13 +28,16 @@ export function Signature({
 
   const canComplete = signature.length > 0;
 
-  // Setup direct DOM event listener to bypass React
+  // Setup direct DOM event listener to bypass React - only run once
   useEffect(() => {
     const input = inputRef.current;
     if (!input) return;
 
-    // Set initial value
-    input.value = signatureName || '';
+    // Only set initial value on first mount
+    if (!input.hasAttribute('data-initialized')) {
+      input.value = signatureName || '';
+      input.setAttribute('data-initialized', 'true');
+    }
 
     const handleInput = (e: Event) => {
       const target = e.target as HTMLInputElement;
@@ -48,7 +51,7 @@ export function Signature({
       clearTimeout((window as any).signatureNameTimeout);
       (window as any).signatureNameTimeout = setTimeout(() => {
         onSignatureNameChange(newValue);
-      }, 500);
+      }, 1000);
     };
 
     // Add native DOM event listener
@@ -57,7 +60,7 @@ export function Signature({
     return () => {
       input.removeEventListener('input', handleInput);
     };
-  }, [onSignatureNameChange, signatureName]);
+  }, []); // Empty deps array - only run once
 
   return (
     <div className="min-h-screen bg-light-surface">
@@ -98,6 +101,7 @@ export function Signature({
                 ref={inputRef}
                 type="text"
                 placeholder="Teljes név"
+                key="signature-name-stable"
                 className="w-full h-12 px-4 text-lg border-2 border-gray-300 rounded-lg focus:border-otis-blue focus:outline-none bg-white"
                 style={{ 
                   fontSize: '18px',
