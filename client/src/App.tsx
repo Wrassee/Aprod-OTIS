@@ -10,12 +10,13 @@ import { Questionnaire } from "@/pages/questionnaire";
 import { Signature } from "@/pages/signature";
 import { Completion } from "@/pages/completion";
 import { Admin } from "@/pages/admin";
+import { ProtocolPreview } from "@/pages/protocol-preview";
 import { FormData } from "@/lib/types";
 import { AnswerValue, ProtocolError } from "@shared/schema";
 import NotFound from "@/pages/not-found";
 
 function App() {
-  const [currentScreen, setCurrentScreen] = useState<'start' | 'questionnaire' | 'signature' | 'completion' | 'admin'>('start');
+  const [currentScreen, setCurrentScreen] = useState<'start' | 'questionnaire' | 'signature' | 'completion' | 'admin' | 'protocol-preview'>('start');
   const [language, setLanguage] = useState<'hu' | 'de'>('hu');
   const [formData, setFormData] = useState<FormData>({
     receptionDate: new Date().toISOString().split('T')[0],
@@ -163,8 +164,7 @@ function App() {
   };
 
   const handleViewProtocol = () => {
-    // Open PDF in new tab for preview
-    window.open('/api/protocols/preview', '_blank');
+    setCurrentScreen('protocol-preview');
   };
 
   const handleStartNew = () => {
@@ -241,6 +241,8 @@ function App() {
               );
             case 'admin':
               return <Admin onBack={() => setCurrentScreen('questionnaire')} onHome={() => setCurrentScreen('start')} />;
+            case 'protocol-preview':
+              return <ProtocolPreview onBack={() => setCurrentScreen('completion')} />;
             default:
               return <StartScreen onLanguageSelect={handleLanguageSelect} />;
           }
