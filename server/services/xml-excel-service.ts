@@ -121,10 +121,10 @@ class XmlExcelService {
   private createCellMappings(formData: FormData, questionConfigs: any[], language: string) {
     const mappings = [];
     
-    console.log(`FormData answers:`, JSON.stringify(formData.answers));
-    console.log(`Question configs count: ${questionConfigs.length}`);
+    console.log(`=== DEBUG: FormData answers ===`, JSON.stringify(formData.answers));
+    console.log(`=== DEBUG: Question configs count ===: ${questionConfigs.length}`);
     questionConfigs.forEach(config => {
-      console.log(`Config: ${config.questionId} - type: ${config.type}`);
+      console.log(`=== DEBUG: Config ===: ${config.questionId} - type: ${config.type} - cellRef: ${config.cellReference}`);
     });
     
     // Add answers based on question configs
