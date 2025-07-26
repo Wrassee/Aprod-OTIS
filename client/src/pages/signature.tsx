@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { SignatureCanvas } from '@/components/signature-canvas';
+import { SimpleSignatureCanvas } from '@/components/simple-signature-canvas';
 import { useLanguageContext } from '@/components/language-provider';
 import { ArrowLeft, Check, Calendar } from 'lucide-react';
 
@@ -51,34 +49,27 @@ export function Signature({
           
           {/* Signature Canvas */}
           <div className="mb-6">
-            <SignatureCanvas onSignatureChange={onSignatureChange} />
+            <SimpleSignatureCanvas onSignatureChange={onSignatureChange} />
           </div>
           
           {/* Optional Name Input */}
           <div className="mb-6">
-            <Label className="block text-sm font-medium text-gray-700 mb-2">
-              {t.printedName}
-            </Label>
-            <input
-              type="text"
-              placeholder="Enter your full name"
-              value={signatureName || ''}
-              onChange={(e) => {
-                console.log('Name input changed:', e.target.value);
-                onSignatureNameChange(e.target.value);
-              }}
-              onFocus={() => console.log('Input focused')}
-              onClick={() => console.log('Input clicked')}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-otis-blue bg-white"
-              style={{ 
-                fontSize: '16px',
-                WebkitAppearance: 'none',
-                zIndex: 10,
-                position: 'relative'
-              }}
-              autoComplete="name"
-              data-testid="signature-name-input"
-            />
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Nyomtatott név (opcionális):
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Teljes név"
+                value={signatureName}
+                onChange={(e) => onSignatureNameChange(e.target.value)}
+                className="w-full h-12 px-4 text-lg border-2 border-gray-300 rounded-lg focus:border-otis-blue focus:outline-none bg-white"
+                style={{ 
+                  fontSize: '18px',
+                  minHeight: '48px'
+                }}
+              />
+            </div>
           </div>
           
           {/* Date Stamp */}
