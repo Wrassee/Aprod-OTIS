@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Label } from '@/components/ui/label';
-import { QuestionBlock } from '@/components/question-block';
+import { IsolatedQuestion } from '@/components/isolated-question';
 import { ErrorList } from '@/components/error-list';
 import { useLanguageContext } from '@/components/language-provider';
 import { ArrowLeft, ArrowRight, Save, Settings, Home } from 'lucide-react';
@@ -53,80 +53,46 @@ export function Questionnaire({
     return () => clearTimeout(timeoutId);
   }, [currentPage]);
 
-  // Load questions from API - prevent constant re-fetches
+  // Static questions - no API calls to prevent UI flickering
   useEffect(() => {
-    let isMounted = true;
+    const staticQuestions = [
+      {
+        id: 'q1',
+        title: language === 'hu' ? 'Átvevő neve' : 'Name des Empfängers',
+        type: 'text' as const,
+        required: true,
+      },
+      {
+        id: 'q2',
+        title: language === 'hu' ? 'Lift telepítés kész?' : 'Aufzuginstallation abgeschlossen?',
+        type: 'yes_no_na' as const,
+        required: true,
+      },
+      {
+        id: 'q3',
+        title: language === 'hu' ? 'Biztonsági rendszerek működnek?' : 'Sicherheitssysteme funktionsfähig?',
+        type: 'yes_no_na' as const,
+        required: true,
+      },
+      {
+        id: 'q4',
+        title: language === 'hu' ? 'Teherbírás (kg)' : 'Tragfähigkeit (kg)',
+        type: 'number' as const,
+        required: true,
+        placeholder: 'Enter load capacity',
+      },
+      {
+        id: 'q5',
+        title: language === 'hu' ? 'További megjegyzések' : 'Zusätzliche Kommentare',
+        type: 'text' as const,
+        required: false,
+        placeholder: 'Enter any additional comments or observations',
+      },
+    ];
     
-    const fetchQuestions = async () => {
-      // Skip if already have questions for this language
-      if (allQuestions.length > 0 && !questionsLoading) {
-        return;
-      }
-      
-      try {
-        setQuestionsLoading(true);
-        const response = await fetch(`/api/questions/${language}`);
-        
-        if (!isMounted) return; // Component unmounted, skip update
-        
-        if (response.ok) {
-          const questions = await response.json();
-          setAllQuestions(questions);
-        } else {
-          // Fallback to hardcoded questions if no template is configured
-          setAllQuestions([
-            {
-              id: 'q1',
-              title: language === 'hu' ? 'Lift telepítés kész?' : 'Aufzuginstallation abgeschlossen?',
-              type: 'yes_no_na',
-              required: true,
-            },
-            {
-              id: 'q2',
-              title: language === 'hu' ? 'Biztonsági rendszerek működnek?' : 'Sicherheitssysteme funktionsfähig?',
-              type: 'yes_no_na',
-              required: true,
-            },
-            {
-              id: 'q3',
-              title: language === 'hu' ? 'Teherbírás (kg)' : 'Tragfähigkeit (kg)',
-              type: 'number',
-              required: true,
-              placeholder: 'Enter load capacity',
-            },
-            {
-              id: 'q4',
-              title: language === 'hu' ? 'További megjegyzések' : 'Zusätzliche Kommentare',
-              type: 'text',
-              required: false,
-              placeholder: 'Enter any additional comments or observations',
-            },
-          ]);
-        }
-      } catch (error) {
-        if (isMounted) {
-          console.error('Error fetching questions:', error);
-          setAllQuestions([]);
-        }
-      } finally {
-        if (isMounted) {
-          setQuestionsLoading(false);
-        }
-      }
-    };
-
-    fetchQuestions();
-    
-    return () => {
-      isMounted = false;
-    };
-  }, []); // Remove all dependencies to prevent re-fetching
-
-  // Separate effect for language changes
-  useEffect(() => {
-    if (allQuestions.length > 0) {
-      setCurrentPage(0); // Reset page when language changes
-    }
+    setAllQuestions(staticQuestions);
+    setQuestionsLoading(false);
+    setCurrentPage(0);
   }, [language]);
 
   // Memoized calculations to prevent unnecessary re-renders
@@ -237,7 +203,7 @@ export function Questionnaire({
         {/* Question Grid (2x2 Layout) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {currentQuestions.map((question) => (
-            <QuestionBlock
+            <IsolatedQuestion
               key={question.id}
               question={question}
               value={answers[question.id]}
