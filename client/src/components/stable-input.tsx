@@ -27,10 +27,11 @@ export function StableInput({
 
   // Update local value when external value changes (but not when focused)
   useEffect(() => {
-    if (!isFocused) {
-      setLocalValue(value?.toString() || '');
+    const newValue = value?.toString() || '';
+    if (!isFocused && newValue !== localValue) {
+      setLocalValue(newValue);
     }
-  }, [value, isFocused]);
+  }, [value, isFocused, localValue]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const newValue = e.target.value;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Question, AnswerValue, ProtocolError } from '@shared/schema';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,12 +45,15 @@ export function Questionnaire({
   const [allQuestions, setAllQuestions] = useState<Question[]>([]);
   const [questionsLoading, setQuestionsLoading] = useState(true);
 
-  // Save current page to localStorage
+  // Save current page to localStorage - debounced
   useEffect(() => {
-    localStorage.setItem('questionnaire-current-page', currentPage.toString());
+    const timeoutId = setTimeout(() => {
+      localStorage.setItem('questionnaire-current-page', currentPage.toString());
+    }, 500);
+    return () => clearTimeout(timeoutId);
   }, [currentPage]);
 
-  // Load questions from API
+  // Load questions from API - stabilized
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
@@ -99,40 +102,47 @@ export function Questionnaire({
       }
     };
 
-    fetchQuestions();
-    // Reset to first page when language changes
-    setCurrentPage(0);
-  }, [language, t]);
+    // Only fetch if we don't have questions yet or language changed
+    if (allQuestions.length === 0 || questionsLoading) {
+      fetchQuestions();
+      setCurrentPage(0);
+    }
+  }, [language]); // Minimal dependencies
 
-  // Group questions into pages of 4 (2x2 grid)
+  // Memoized calculations to prevent unnecessary re-renders
   const questionsPerPage = 4;
-  const totalPages = Math.ceil(allQuestions.length / questionsPerPage);
-  const currentQuestions = allQuestions.slice(
-    currentPage * questionsPerPage,
-    (currentPage + 1) * questionsPerPage
-  );
+  
+  const { totalPages, currentQuestions, progress } = useMemo(() => {
+    const total = Math.ceil(allQuestions.length / questionsPerPage);
+    const current = allQuestions.slice(
+      currentPage * questionsPerPage,
+      (currentPage + 1) * questionsPerPage
+    );
+    const prog = ((currentPage + 1) / total) * 100;
+    
+    return { totalPages: total, currentQuestions: current, progress: prog };
+  }, [allQuestions, currentPage]);
 
-  const progress = ((currentPage + 1) / totalPages) * 100;
-
-  const handleAddError = (error: Omit<ProtocolError, 'id'>) => {
+  // Memoized error handlers to prevent function recreation
+  const handleAddError = useCallback((error: Omit<ProtocolError, 'id'>) => {
     const newError: ProtocolError = {
       ...error,
       id: Date.now().toString(),
     };
     onErrorsChange([...errors, newError]);
-  };
+  }, [errors, onErrorsChange]);
 
-  const handleEditError = (id: string, updatedError: Omit<ProtocolError, 'id'>) => {
+  const handleEditError = useCallback((id: string, updatedError: Omit<ProtocolError, 'id'>) => {
     onErrorsChange(
       errors.map((error) =>
         error.id === id ? { ...updatedError, id } : error
       )
     );
-  };
+  }, [errors, onErrorsChange]);
 
-  const handleDeleteError = (id: string) => {
+  const handleDeleteError = useCallback((id: string) => {
     onErrorsChange(errors.filter((error) => error.id !== id));
-  };
+  }, [errors, onErrorsChange]);
 
   const canProceed = () => {
     const requiredQuestions = currentQuestions.filter(q => q.required);

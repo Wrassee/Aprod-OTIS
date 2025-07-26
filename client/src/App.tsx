@@ -24,18 +24,24 @@ function App() {
     signatureName: '',
   });
 
-  // Auto-save form data to localStorage with debouncing
+  // Auto-save form data to localStorage with debouncing - only save on real changes
   useEffect(() => {
     if (currentScreen === 'start') return;
     
     const timeoutId = setTimeout(() => {
       try {
-        localStorage.setItem('otis-protocol-form-data', JSON.stringify(formData));
-        console.log('Form data saved to localStorage');
+        const currentSaved = localStorage.getItem('otis-protocol-form-data');
+        const newData = JSON.stringify(formData);
+        
+        // Only save if data actually changed
+        if (currentSaved !== newData) {
+          localStorage.setItem('otis-protocol-form-data', newData);
+          console.log('Form data saved to localStorage');
+        }
       } catch (error) {
         console.error('Error saving to localStorage:', error);
       }
-    }, 2000); // Increased to 2 seconds to reduce frequent saves
+    }, 3000); // Further increased to 3 seconds
 
     return () => clearTimeout(timeoutId);
   }, [formData, currentScreen]);

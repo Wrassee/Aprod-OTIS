@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Question, AnswerValue, QuestionType } from '@shared/schema';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,13 +16,13 @@ interface QuestionBlockProps {
   images?: string[];
 }
 
-export function QuestionBlock({ 
+const QuestionBlockComponent = ({ 
   question, 
   value, 
   onChange, 
   onImageUpload,
   images = [] 
-}: QuestionBlockProps) {
+}: QuestionBlockProps) => {
   const { t } = useLanguageContext();
   const [showImagePreview, setShowImagePreview] = useState(false);
 
@@ -143,4 +143,6 @@ export function QuestionBlock({
       </CardContent>
     </Card>
   );
-}
+};
+
+export const QuestionBlock = memo(QuestionBlockComponent);
