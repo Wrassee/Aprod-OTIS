@@ -19,6 +19,12 @@ interface Protocol {
   updatedAt: string;
 }
 
+interface Question {
+  id: string;
+  title: string;
+  type: string;
+}
+
 interface ProtocolPreviewProps {
   onBack: () => void;
 }
@@ -26,18 +32,31 @@ interface ProtocolPreviewProps {
 export function ProtocolPreview({ onBack }: ProtocolPreviewProps) {
   const { t } = useLanguageContext();
   const [protocol, setProtocol] = useState<Protocol | null>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchProtocol = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/protocols/preview');
-        if (!response.ok) {
+        // Fetch both protocol and questions in parallel
+        const [protocolResponse, questionsResponse] = await Promise.all([
+          fetch('/api/protocols/preview'),
+          fetch('/api/questions/hu') // Default to Hungarian
+        ]);
+
+        if (!protocolResponse.ok) {
           throw new Error('Failed to fetch protocol');
         }
-        const data = await response.json();
-        setProtocol(data);
+        if (!questionsResponse.ok) {
+          throw new Error('Failed to fetch questions');
+        }
+
+        const protocolData = await protocolResponse.json();
+        const questionsData = await questionsResponse.json();
+        
+        setProtocol(protocolData);
+        setQuestions(questionsData);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
@@ -45,7 +64,7 @@ export function ProtocolPreview({ onBack }: ProtocolPreviewProps) {
       }
     };
 
-    fetchProtocol();
+    fetchData();
   }, []);
 
   if (loading) {
@@ -131,17 +150,32 @@ export function ProtocolPreview({ onBack }: ProtocolPreviewProps) {
           <div className="p-6 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Válaszok</h3>
             <div className="grid gap-4">
-              {Object.entries(protocol.answers).map(([questionId, answer]) => (
-                <div key={questionId} className="flex">
-                  <div className="w-20 text-sm font-medium text-gray-500 flex-shrink-0">
-                    {questionId}.
+              {Object.entries(protocol.answers).map(([questionId, answer]) => {
+                const question = questions.find(q => q.id === questionId);
+                const questionTitle = question ? question.title : `Kérdés ${questionId}`;
+                
+                return (
+                  <div key={questionId} className="bg-gray-50 rounded-lg p-4">
+                    <div className="text-sm font-medium text-gray-600 mb-2">
+                      {questionTitle}
+                    </div>
+                    <div className="text-gray-800 font-medium">
+                      {typeof answer === 'string' ? answer : 
+                       typeof answer === 'number' ? answer.toString() :
+                       typeof answer === 'boolean' ? (answer ? 'Igen' : 'Nem') :
+                       JSON.stringify(answer)}
+                    </div>
                   </div>
-                  <div className="text-gray-800">
-                    {typeof answer === 'string' ? answer : JSON.stringify(answer)}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
+            
+            {Object.keys(protocol.answers).length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p>Nincsenek rögzített válaszok</p>
+              </div>
+            )}
           </div>
 
           {/* Errors Section */}
