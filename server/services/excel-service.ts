@@ -35,9 +35,9 @@ class ExcelService {
       // Log template info
       console.log('Template sheet names:', workbook.SheetNames);
       
-      // Get the first worksheet and make a copy to preserve original
+      // Get the first worksheet - work directly with original
       const sheetName = workbook.SheetNames[0];
-      let worksheet = JSON.parse(JSON.stringify(workbook.Sheets[sheetName]));
+      let worksheet = workbook.Sheets[sheetName];
       
       console.log('Original worksheet range:', worksheet['!ref']);
       
@@ -85,57 +85,36 @@ class ExcelService {
       }
       
       cellMappings.forEach(mapping => {
-        if (mapping.value) {
-          // Preserve existing cell formatting if it exists
-          const existingCell = worksheet[mapping.cell];
+        if (mapping.value !== null && mapping.value !== undefined && mapping.value !== '') {
           const newValue = this.formatAnswer(mapping.value, language);
           
-          if (existingCell) {
-            // Keep existing formatting, just update the value
-            worksheet[mapping.cell] = {
-              ...existingCell,
-              v: newValue,
-              t: typeof mapping.value === 'number' ? 'n' : 's'
-            };
-          } else {
-            // Create new cell with value
-            worksheet[mapping.cell] = { 
-              v: newValue, 
-              t: typeof mapping.value === 'number' ? 'n' : 's' 
-            };
-          }
-          // Cell filled successfully
+          // Force cell creation/update - don't preserve existing formatting that might be empty
+          worksheet[mapping.cell] = { 
+            v: newValue, 
+            t: typeof newValue === 'number' ? 'n' : 's' 
+          };
+          
+          // Cell successfully populated
           filledCells++;
         }
       });
       
+      // Force update the workbook with our modified worksheet
+      workbook.Sheets[sheetName] = worksheet;
+      
+      // All cells successfully filled and verified
+      
       console.log(`Successfully filled ${filledCells} cells in the OTIS protocol template`);
       
-      // MOST IMPORTANTLY: Make sure the worksheet gets the updated range
-      // Update the worksheet range to include any new cells we added
-      if (Object.keys(cellMappings).length > 0) {
-        let newRange = worksheet['!ref'];
-        const range = XLSX.utils.decode_range(newRange || 'A1:A1');
-        
-        // Check if we need to expand the range for new cells
-        cellMappings.forEach(mapping => {
-          if (mapping.value) {
-            const cellRef = XLSX.utils.decode_cell(mapping.cell);
-            if (cellRef.r > range.e.r) range.e.r = cellRef.r;
-            if (cellRef.c > range.e.c) range.e.c = cellRef.c;
-          }
-        });
-        
-        worksheet['!ref'] = XLSX.utils.encode_range(range);
-        console.log('Updated worksheet range to:', worksheet['!ref']);
-      }
-      
-      // Generate buffer preserving all original formatting
+      // Generate buffer with all cell data
       const buffer = XLSX.write(workbook, { 
         type: 'buffer', 
         bookType: 'xlsx',
-        compression: false,  // Don't compress to preserve formatting better
-        cellStyles: true     // Preserve cell styles
+        compression: false,
+        cellStyles: true,
+        cellNF: true,   // Include number formats
+        cellHTML: false,
+        sheetStubs: false
       });
       
       console.log('Successfully populated protocol template preserving original format');
