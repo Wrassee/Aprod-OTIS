@@ -6,7 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/components/language-provider";
 import { StartScreen } from "@/pages/start-screen";
-import { Questionnaire } from "@/pages/questionnaire";
+import { StableQuestionnaire } from "@/components/stable-questionnaire";
 import { Signature } from "@/pages/signature";
 import { Completion } from "@/pages/completion";
 import { Admin } from "@/pages/admin";
@@ -204,7 +204,7 @@ function App() {
               return <StartScreen onLanguageSelect={handleLanguageSelect} />;
             case 'questionnaire':
               return (
-                <Questionnaire
+                <StableQuestionnaire
                   receptionDate={formData.receptionDate}
                   onReceptionDateChange={handleReceptionDateChange}
                   answers={formData.answers}
