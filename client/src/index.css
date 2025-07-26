@@ -54,6 +54,19 @@
   --radius: 0.5rem;
 }
 
+/* Remove focus outline from radio buttons to prevent blue square */
+input[type="radio"]:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Remove any other unwanted focus styles */
+input[type="radio"]:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 2px #3B82F6 !important;
+  border-radius: 50% !important;
+}
+
 @layer base {
   * {
     @apply border-border;

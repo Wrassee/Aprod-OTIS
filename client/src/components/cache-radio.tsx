@@ -51,7 +51,7 @@ export const CacheRadio = memo(({ questionId, initialValue, options }: CacheRadi
                   handleChange(option.value);
                 }
               }}
-              className="w-5 h-5 text-otis-blue bg-gray-100 border-gray-300 focus:ring-otis-blue focus:ring-2"
+              className="w-5 h-5 text-otis-blue bg-gray-100 border-gray-300 focus:ring-otis-blue focus:ring-2 focus:outline-none"
             />
             <label 
               htmlFor={inputId}
