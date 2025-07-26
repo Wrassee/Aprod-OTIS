@@ -46,7 +46,7 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Logo Fix**: ✅ COMPLETED - Moved logo to client/public/ for proper static serving, increased size (start: h-48 w-48, header: h-12 w-12)
 - **Component Isolation**: Multiple attempts to isolate radio state from parent updates
 
-### Current Status (January 27, 2025 - 19:12) - XML FORMATTING PRESERVATION PERFECTED ✅
+### Current Status (January 27, 2025 - 19:51) - Q13 CELL ISSUE RESOLVED ✅
 - **RADIO BUTTON ISSUE**: ✅ RESOLVED - CacheRadio with global Map cache prevents parent updates
 - **INPUT FIELD ISSUE**: ✅ RESOLVED - All questionnaire text/number inputs use ref-based native DOM events with StableNativeInput component
 - **SIGNATURE NAME INPUT**: ✅ RESOLVED - Single-mount ref solution with data-initialized attribute prevents cursor jumping
@@ -71,7 +71,10 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **XML-Based Data Population**: ✅ PERFECTED - All 9 questions correctly populate Excel cells via direct XML manipulation
 - **Unicode Character Support**: ✅ COMPLETE - Hungarian characters (ű,ő,á,é,í,ó,ü) display perfectly in Excel output
 - **Template Structure Integrity**: ✅ MAINTAINED - Complete 2417-cell template structure preserved during data insertion
+- **Q13 Cell Display Issue**: ✅ RESOLVED - 4th question (city name) now correctly appears in Q13 cell
+- **XML Pattern Matching**: ✅ IMPROVED - Better handling of different cell content types in template
 - **Production Functionality**: ✅ VERIFIED - End-to-end questionnaire to Excel workflow fully operational
+- **User Issue Resolution**: ✅ COMPLETE - Q13 "Lüfasz" visibility problem solved
 - **Production Ready**: ✅ CONFIRMED - All 9 questions mapped correctly, Hungarian translations working, template integrity maintained
 
 ## System Architecture

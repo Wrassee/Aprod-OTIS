@@ -86,26 +86,65 @@ class SimpleXmlExcelService {
         
         // Replace existing cell content while preserving attributes
         if (cellPattern.test(worksheetXml)) {
+          // Reset regex before use
+          cellPattern.lastIndex = 0;
           worksheetXml = worksheetXml.replace(cellPattern, `$1<is><t>${this.escapeXml(value)}</t></is>$3`);
           modifiedCount++;
-          console.log(`XML: Replaced ${cell} = "${value}" (formatting preserved)`);
+          console.log(`XML: Replaced ${cell} = "${value}" (existing content replaced)`);
+        }
+        // Handle cells with existing content (like Q25, A68 with existing data)
+        else {
+          // Try to find any existing cell pattern for this cell
+          const anyPattern = new RegExp(`<c r="${cell}"[^>]*>.*?</c>`, 'g');
+          const anyMatch = worksheetXml.match(anyPattern);
+          
+          if (anyMatch && anyMatch[0]) {
+            // Extract style if present
+            const styleMatch = anyMatch[0].match(/s="([^"]+)"/);
+            const styleAttr = styleMatch ? ` s="${styleMatch[1]}"` : '';
+            
+            // Replace the entire cell with new content
+            const replacement = `<c r="${cell}"${styleAttr} t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`;
+            worksheetXml = worksheetXml.replace(anyMatch[0], replacement);
+            modifiedCount++;
+            console.log(`XML: Replaced ${cell} = "${value}" (any existing content replaced${styleAttr})`);
+          } else {
+            // Insert new cell if row exists
+            const rowNumber = cell.match(/\d+/)?.[0];
+            if (rowNumber) {
+              const rowPattern = new RegExp(`(<row r="${rowNumber}"[^>]*>)(.*?)(</row>)`, 'g');
+              if (rowPattern.test(worksheetXml)) {
+                const defaultStyle = this.inferCellStyle(cell, rowNumber);
+                worksheetXml = worksheetXml.replace(rowPattern, 
+                  `$1$2<c r="${cell}"${defaultStyle} t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>$3`);
+                modifiedCount++;
+                console.log(`XML: Inserted ${cell} = "${value}" (new cell created)`);
+              }
+            }
+          }
         } 
-        // Replace self-closing empty cells with exact style preservation
-        else if (worksheetXml.includes(`<c r="${cell}" s="`)) {
+        
+        // Check for fallback patterns (this code block was moved above, keeping for safety)
+        if (!modifiedCount && worksheetXml.includes(`<c r="${cell}" s="`)) {
           // Find the exact style value manually
           const styleMatch = worksheetXml.match(new RegExp(`<c r="${cell}" s="([^"]+)"/>`));
           if (styleMatch) {
             const styleValue = styleMatch[1];
-            worksheetXml = worksheetXml.replace(
-              new RegExp(`<c r="${cell}" s="${styleValue}"/>`), 
-              `<c r="${cell}" s="${styleValue}" t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`
-            );
-            modifiedCount++;
-            console.log(`XML: Added ${cell} = "${value}" (exact style preserved: s="${styleValue}")`);
+            const replacePattern = `<c r="${cell}" s="${styleValue}"/>`;
+            const replacement = `<c r="${cell}" s="${styleValue}" t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`;
+            
+            if (worksheetXml.includes(replacePattern)) {
+              worksheetXml = worksheetXml.replace(replacePattern, replacement);
+              modifiedCount++;
+              console.log(`XML: Added ${cell} = "${value}" (exact style preserved: s="${styleValue}")`);
+            } else {
+              console.log(`XML: Warning - Could not find exact pattern for ${cell}`);
+            }
           }
         }
-        // Fallback for any other empty pattern
-        else if (emptyPattern.test(worksheetXml)) {
+        
+        // Final fallback for any remaining empty patterns
+        if (!modifiedCount && emptyPattern.test(worksheetXml)) {
           const rowNum = cell.match(/\d+/)?.[0];
           const defaultStyle = this.inferCellStyle(cell, rowNum);
           
