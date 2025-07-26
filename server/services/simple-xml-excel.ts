@@ -67,92 +67,45 @@ class SimpleXmlExcelService {
       let worksheetXml = await zip.file(sheetFile)!.async('text');
       
       // Perform direct text replacements for cell values while preserving formatting
-      let modifiedCount = 0;
+      let totalModified = 0;
       cellMappings.forEach(mapping => {
         const { cell, value } = mapping;
+        let cellModified = false;
         
-        // Look for existing cell patterns - preserve all attributes including style
-        const cellPattern = new RegExp(`(<c r="${cell}"[^>]*>)([^<]*)(</c>)`, 'g');
-        const emptyPattern = new RegExp(`<c r="${cell}"([^>]*?)/>`, 'g');
-        const emptyPatternExact = new RegExp(`<c r="${cell}" s="([^"]+)"/>`, 'g');
+        // Find any existing cell pattern for this cell - ONE SHOT approach
+        const anyPattern = new RegExp(`<c r="${cell}"[^>]*>.*?</c>`);
+        const anyMatch = worksheetXml.match(anyPattern);
         
-        // Debug: Check what patterns exist for this cell
-        const cellExists = worksheetXml.includes(`r="${cell}"`);
-        if (cellExists) {
-          // Find the exact cell pattern in XML
-          const cellMatch = worksheetXml.match(new RegExp(`<c r="${cell}"[^>]*>`));
-          console.log(`XML Debug: ${cell} pattern:`, cellMatch ? cellMatch[0] : 'NOT_FOUND');
-        }
-        
-        // Replace existing cell content while preserving attributes
-        if (cellPattern.test(worksheetXml)) {
-          // Reset regex before use
-          cellPattern.lastIndex = 0;
-          worksheetXml = worksheetXml.replace(cellPattern, `$1<is><t>${this.escapeXml(value)}</t></is>$3`);
-          modifiedCount++;
-          console.log(`XML: Replaced ${cell} = "${value}" (existing content replaced)`);
-        }
-        // Handle cells with existing content (like Q25, A68 with existing data)
-        else {
-          // Try to find any existing cell pattern for this cell
-          const anyPattern = new RegExp(`<c r="${cell}"[^>]*>.*?</c>`, 'g');
-          const anyMatch = worksheetXml.match(anyPattern);
+        if (anyMatch && anyMatch[0]) {
+          // Extract existing style if present
+          const styleMatch = anyMatch[0].match(/s="([^"]+)"/);
+          const styleAttr = styleMatch ? ` s="${styleMatch[1]}"` : '';
           
-          if (anyMatch && anyMatch[0]) {
-            // Extract style if present
-            const styleMatch = anyMatch[0].match(/s="([^"]+)"/);
-            const styleAttr = styleMatch ? ` s="${styleMatch[1]}"` : '';
-            
-            // Replace the entire cell with new content
-            const replacement = `<c r="${cell}"${styleAttr} t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`;
-            worksheetXml = worksheetXml.replace(anyMatch[0], replacement);
-            modifiedCount++;
-            console.log(`XML: Replaced ${cell} = "${value}" (any existing content replaced${styleAttr})`);
-          } else {
-            // Insert new cell if row exists
-            const rowNumber = cell.match(/\d+/)?.[0];
-            if (rowNumber) {
-              const rowPattern = new RegExp(`(<row r="${rowNumber}"[^>]*>)(.*?)(</row>)`, 'g');
-              if (rowPattern.test(worksheetXml)) {
-                const defaultStyle = this.inferCellStyle(cell, rowNumber);
-                worksheetXml = worksheetXml.replace(rowPattern, 
-                  `$1$2<c r="${cell}"${defaultStyle} t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>$3`);
-                modifiedCount++;
-                console.log(`XML: Inserted ${cell} = "${value}" (new cell created)`);
-              }
-            }
-          }
+          // Replace the entire cell with new content - SINGLE replacement
+          const replacement = `<c r="${cell}"${styleAttr} t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`;
+          worksheetXml = worksheetXml.replace(anyMatch[0], replacement);
+          cellModified = true;
+          console.log(`XML: Updated ${cell} = "${value}"${styleAttr ? ' (style preserved)' : ''}`);
         } 
-        
-        // Check for fallback patterns (this code block was moved above, keeping for safety)
-        if (!modifiedCount && worksheetXml.includes(`<c r="${cell}" s="`)) {
-          // Find the exact style value manually
-          const styleMatch = worksheetXml.match(new RegExp(`<c r="${cell}" s="([^"]+)"/>`));
-          if (styleMatch) {
-            const styleValue = styleMatch[1];
-            const replacePattern = `<c r="${cell}" s="${styleValue}"/>`;
+        // Only check for empty pattern if no existing cell found
+        else if (worksheetXml.includes(`<c r="${cell}" s="`)) {
+          const emptyPattern = new RegExp(`<c r="${cell}" s="([^"]+)"/>`);
+          const emptyMatch = worksheetXml.match(emptyPattern);
+          if (emptyMatch) {
+            const styleValue = emptyMatch[1];
             const replacement = `<c r="${cell}" s="${styleValue}" t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`;
-            
-            if (worksheetXml.includes(replacePattern)) {
-              worksheetXml = worksheetXml.replace(replacePattern, replacement);
-              modifiedCount++;
-              console.log(`XML: Added ${cell} = "${value}" (exact style preserved: s="${styleValue}")`);
-            } else {
-              console.log(`XML: Warning - Could not find exact pattern for ${cell}`);
-            }
+            worksheetXml = worksheetXml.replace(emptyMatch[0], replacement);
+            cellModified = true;
+            console.log(`XML: Filled empty ${cell} = "${value}" (s="${styleValue}")`);
           }
         }
         
-        // Final fallback for any remaining empty patterns
-        if (!modifiedCount && emptyPattern.test(worksheetXml)) {
-          const rowNum = cell.match(/\d+/)?.[0];
-          const defaultStyle = this.inferCellStyle(cell, rowNum);
-          
-          worksheetXml = worksheetXml.replace(emptyPattern, 
-            `<c r="${cell}"$1${defaultStyle} t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`);
-          modifiedCount++;
-          console.log(`XML: Added ${cell} = "${value}" (with inferred style)`);
+        if (cellModified) {
+          totalModified++;
+        } else {
+          console.log(`XML: Warning - Could not modify ${cell}`);
         }
+      });
         // Insert new cell if row exists
         else {
           const rowNumber = cell.match(/\d+/)?.[0];
@@ -169,7 +122,7 @@ class SimpleXmlExcelService {
         }
       });
       
-      console.log(`XML: Modified ${modifiedCount} cells`);
+      console.log(`XML: Modified ${totalModified} cells`);
       
       // Update the ZIP with modified worksheet
       zip.file(sheetFile, worksheetXml);
@@ -183,7 +136,7 @@ class SimpleXmlExcelService {
         platform: 'UNIX'
       });
       
-      console.log(`XML Excel generation successful with ${modifiedCount} modifications`);
+      console.log(`XML Excel generation successful with ${totalModified} modifications`);
       return result;
       
     } catch (error) {
