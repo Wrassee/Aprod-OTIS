@@ -11,11 +11,25 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 ## Recent Changes
 
 ### January 26, 2025 - UI Stability Improvements
-- **Text Input Stabilization**: Implemented MegaStableInput component with 1.2-second debouncing and enhanced focus management to eliminate cursor jumping and UI flickering during text entry
-- **Radio Button Stabilization**: Created UltraStableRadio component with 50ms delay and memo optimization to prevent UI flickering during selection changes
-- **Admin File Management**: Added template deletion functionality with physical file removal, allowing cleanup of old uploaded Excel files
-- **Database Integration**: Full PostgreSQL integration with Neon serverless configuration completed
-- **Component Architecture**: Isolated question components with full memoization to prevent unnecessary re-renders
+- **Text Input Stabilization**: ✅ COMPLETED - MegaStableInput component with 1.5-second debouncing eliminates cursor jumping and UI flickering during text entry
+- **Radio Button Issue**: ❌ ONGOING PROBLEM - Radio button selection still causes page navigation despite multiple attempts with UltraStableRadio, InstantRadio components
+- **Excel Question Loading**: ✅ COMPLETED - Questions now load from uploaded Excel files (9 questions loading successfully)
+- **Admin File Management**: ✅ COMPLETED - Template deletion functionality with physical file removal working properly
+- **Database Integration**: ✅ COMPLETED - Full PostgreSQL integration with Neon serverless configuration
+- **Component Architecture**: ✅ COMPLETED - Isolated question components with full memoization
+
+### Current Issues (January 26, 2025)
+- **Radio Button Page Switching**: Radio button selections trigger unwanted page navigation. Attempted solutions:
+  - UltraStableRadio with 800ms debounce
+  - InstantRadio with immediate response 
+  - Multiple event propagation prevention methods
+  - Focus/blur handling improvements
+  - None have resolved the core issue
+
+### Next Steps
+- Investigate root cause of radio button page switching behavior
+- Consider alternative radio button implementation approaches
+- Review questionnaire navigation logic for conflicts
 
 ## System Architecture
 
