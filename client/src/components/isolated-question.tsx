@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { CacheRadio } from './cache-radio';
 import { Camera, Image } from 'lucide-react';
 import { useLanguageContext } from './language-provider';
-import { MegaStableInput } from './mega-stable-input';
+import { CacheInput } from './cache-input';
 
 interface IsolatedQuestionProps {
   question: Question;
@@ -50,26 +50,21 @@ const IsolatedQuestionComponent = memo(({
 
       case 'number':
         return (
-          <MegaStableInput
+          <CacheInput
+            questionId={question.id}
+            initialValue={value?.toString() || ''}
             type="number"
             placeholder={question.placeholder || "Enter number"}
-            value={value || ''}
-            onChange={onChange}
-            className="w-full text-lg py-3 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-otis-blue"
-            style={{ fontSize: '16px' }}
           />
         );
 
       case 'text':
         return (
-          <MegaStableInput
+          <CacheInput
+            questionId={question.id}
+            initialValue={value?.toString() || ''}
+            type="text"
             placeholder={question.placeholder || "Enter text"}
-            value={value || ''}
-            onChange={onChange}
-            multiline={true}
-            className="w-full resize-none px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-otis-blue"
-            style={{ fontSize: '16px' }}
-            rows={4}
           />
         );
 

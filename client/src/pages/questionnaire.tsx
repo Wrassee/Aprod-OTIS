@@ -9,6 +9,7 @@ import { ErrorList } from '@/components/error-list';
 import { useLanguageContext } from '@/components/language-provider';
 import { ArrowLeft, ArrowRight, Save, Settings, Home } from 'lucide-react';
 import { getAllCachedValues } from '@/components/cache-radio';
+import { getAllCachedInputValues } from '@/components/cache-input';
 
 interface QuestionnaireProps {
   receptionDate: string;
@@ -261,11 +262,17 @@ export function Questionnaire({
             <Button
               variant="outline"
               onClick={() => {
-                // Sync cached radio values to parent
-                const cachedValues = getAllCachedValues();
-                Object.entries(cachedValues).forEach(([questionId, value]) => {
+                // Sync all cached values to parent
+                const cachedRadioValues = getAllCachedValues();
+                const cachedInputValues = getAllCachedInputValues();
+                
+                Object.entries(cachedRadioValues).forEach(([questionId, value]) => {
                   onAnswerChange(questionId, value);
                 });
+                Object.entries(cachedInputValues).forEach(([questionId, value]) => {
+                  onAnswerChange(questionId, value);
+                });
+                
                 onSave();
               }}
               className="flex items-center"

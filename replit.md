@@ -41,14 +41,16 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **StableQuestionnaire**: Created completely new component with useRef for local state storage
 - **Debounced Updates**: 100ms delay between local updates and parent notifications  
 - **Direct HTML Radio**: Replaced complex radio components with simple HTML inputs
-- **FinalRadio**: Local state + 1000ms debounced parent updates with full event propagation prevention
+- **CacheRadio**: Global Map cache + zero parent updates until Save button
+- **CacheInput**: Text/number input cache preventing UI refreshes during typing
 - **Logo Fix**: ✅ COMPLETED - Moved logo to client/public/ for proper static serving, increased size (start: h-48 w-48, header: h-12 w-12)
 - **Component Isolation**: Multiple attempts to isolate radio state from parent updates
 
-### Current Status
-- **CRITICAL**: Radio button navigation issue persists - questions still load 3x on every interaction
-- **Root Cause**: setFormData calls in App.tsx trigger complete component remounts
-- **Strategy**: Long debounce (500ms) with defaultChecked instead of checked prop
+### Current Status (January 27, 2025 - 10:51)
+- **RADIO BUTTON ISSUE**: ✅ RESOLVED - CacheRadio with global Map cache prevents parent updates
+- **INPUT FIELD ISSUE**: ✅ RESOLVED - CacheInput prevents UI refreshes during typing
+- **Cache Strategy**: Both radio and input values stored locally, synced only on Save button click
+- **Event System**: Custom events for tracking changes without triggering parent re-renders
 
 ## System Architecture
 
