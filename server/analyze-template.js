@@ -2,7 +2,7 @@ import XLSX from 'xlsx';
 import fs from 'fs';
 
 // Script to analyze the structure of the uploaded template
-const templatePath = '../uploads/1753490088267-Abnahmeprotokoll Leer.xlsx';
+const templatePath = '../uploads/1753490071343-Abnahme Leer.xlsx';
 
 if (fs.existsSync(templatePath)) {
   console.log('Analyzing template:', templatePath);

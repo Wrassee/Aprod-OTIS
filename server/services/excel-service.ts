@@ -53,46 +53,35 @@ class ExcelService {
         console.log('Could not load question configs:', error);
       }
       
-      // PRECISE TEMPLATE FILLING - Based on actual template analysis
-      // Fill specific known cells in the OTIS template
+      // CELL MAPPING FROM QUESTIONS TEMPLATE
+      // Use question configs to get the exact cell references for each answer
       
-      console.log('Filling OTIS template with specific cell mappings...');
+      console.log('Using question configs for precise cell mapping...');
       let filledCells = 0;
       
-      // Based on template analysis, we know the exact locations:
-      // Row 9, Col K: "Name des Monteur / Reparateur: " -> Fill cell L9
-      // Row 11, Col K: "Name des ST:" -> Fill cell L11  
-      // Row 13, Col F: "PLZ :" -> Fill cell G13
-      // Row 13, Col M: "Stadt :" -> Fill cell N13
-      // Row 14, Col F: "Strasse :" -> Fill cell G14
-      // Row 14, Col M: "N°" -> Fill cell N14
-      // Row 16, Col L: "Otis Anlage N° :" -> Fill cell M16
+      // Create cell mappings based on question configs
+      const cellMappings = [];
       
-      const cellMappings = [
-        // Monteur/Reparateur name (question 1: Átvevő neve)
-        { cell: 'L9', value: formData.answers['1'] || '', label: 'Monteur/Reparateur name' },
-        
-        // ST name (question 2: Szerelő neve) 
-        { cell: 'L11', value: formData.answers['2'] || '', label: 'ST name' },
-        
-        // PLZ (question 3: Irányítószám)
-        { cell: 'G13', value: formData.answers['3'] || '', label: 'PLZ' },
-        
-        // Stadt (question 4: Város)
-        { cell: 'N13', value: formData.answers['4'] || '', label: 'Stadt' },
-        
-        // Strasse (question 5: Utca)
-        { cell: 'G14', value: formData.answers['5'] || '', label: 'Strasse' },
-        
-        // House number (question 6: Házszám)
-        { cell: 'N14', value: formData.answers['6'] || '', label: 'House number' },
-        
-        // Otis Anlage Nr (question 7: Otis Lift-azonosító)
-        { cell: 'M16', value: formData.answers['7'] || '', label: 'Otis Anlage Nr' },
-        
-        // Add date if we can find a suitable place - try a few locations
-        { cell: 'T9', value: formData.receptionDate, label: 'Reception date' },
-      ];
+      // Add answers based on question configs
+      Object.entries(formData.answers).forEach(([questionId, answer]) => {
+        const config = questionConfigs.find(q => q.questionId === questionId);
+        if (config && config.cellReference) {
+          cellMappings.push({
+            cell: config.cellReference,
+            value: answer,
+            label: config.title || `Question ${questionId}`
+          });
+        }
+      });
+      
+      // Add date to a suitable location if not already mapped
+      if (!cellMappings.find(m => m.cell === 'F9')) {
+        cellMappings.push({
+          cell: 'F9', // Try the first available cell
+          value: formData.receptionDate,
+          label: 'Reception date'
+        });
+      }
       
       cellMappings.forEach(mapping => {
         if (mapping.value) {
