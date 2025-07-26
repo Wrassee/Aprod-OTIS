@@ -50,29 +50,47 @@ const IsolatedQuestionComponent = memo(({
 
       case 'number':
         return (
-          <StableInput
-            questionId={question.id}
+          <input
+            key={`input-${question.id}`}
             type="number"
             placeholder={question.placeholder || "Enter number"}
-            initialValue={value?.toString() || ''}
-            onValueChange={(newValue) => {
-              console.log(`Number input changed: ${question.id} = ${newValue}`);
-              onChange(newValue);
+            defaultValue={value?.toString() || ''}
+            onInput={(e) => {
+              const target = e.target as HTMLInputElement;
+              const newValue = target.value;
+              console.log(`Number input typing: ${question.id} = ${newValue}`);
+              
+              // Store value globally without React state updates
+              if (!(window as any).inputValues) {
+                (window as any).inputValues = {};
+              }
+              (window as any).inputValues[question.id] = newValue;
             }}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-transparent"
+            style={{ fontSize: '16px' }}
           />
         );
 
       case 'text':
         return (
-          <StableInput
-            questionId={question.id}
+          <input
+            key={`input-${question.id}`}
             type="text"
             placeholder={question.placeholder || "Enter text"}
-            initialValue={value?.toString() || ''}
-            onValueChange={(newValue) => {
-              console.log(`Text input changed: ${question.id} = ${newValue}`);
-              onChange(newValue);
+            defaultValue={value?.toString() || ''}
+            onInput={(e) => {
+              const target = e.target as HTMLInputElement;
+              const newValue = target.value;
+              console.log(`Text input typing: ${question.id} = ${newValue}`);
+              
+              // Store value globally without React state updates
+              if (!(window as any).inputValues) {
+                (window as any).inputValues = {};
+              }
+              (window as any).inputValues[question.id] = newValue;
             }}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-transparent"
+            style={{ fontSize: '16px' }}
           />
         );
 
