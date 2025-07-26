@@ -8,96 +8,28 @@ import fs from 'fs';
 class ExcelService {
   async generateExcel(formData: FormData, language: string): Promise<Buffer> {
     try {
-      // Use the fixed XML approach for perfect formatting preservation
-      console.log('Using fixed XML approach with corruption repairs');
+      // Try XML-based approach first for better formatting preservation
+      console.log('Using XML-based Excel manipulation for perfect formatting preservation');
       return await simpleXmlExcelService.generateExcelFromTemplate(formData, language);
-    } catch (error) {
-      console.error('Excel generation failed:', error);
-      return await this.createBasicExcel(formData, language);
-    }
-  }
-
-  private async populateProtocolTemplatePreserveFormat(templateBuffer: Buffer, formData: FormData, language: string): Promise<Buffer> {
-    try {
-      // Read with MINIMAL options to preserve as much formatting as possible
-      const workbook = XLSX.read(templateBuffer, { 
-        type: 'buffer',
-        cellStyles: true,
-        cellHTML: false,
-        sheetStubs: true
-      });
+    } catch (xmlError) {
+      console.error('XML-based approach failed, falling back to XLSX library:', xmlError);
       
-      // Get the first worksheet
-      const sheetName = workbook.SheetNames[0];
-      let worksheet = workbook.Sheets[sheetName];
-      
-      console.log('Template loaded, original range:', worksheet['!ref']);
-      
-      // Get question configs for precise cell mapping
-      let questionConfigs: any[] = [];
+      // Fallback to original XLSX approach
       try {
-        const questionsTemplate = await storage.getActiveTemplate('questions', language);
-        if (questionsTemplate) {
-          questionConfigs = await storage.getQuestionConfigsByTemplate(questionsTemplate.id);
-          console.log('Loaded question configs:', questionConfigs.length);
-        }
-      } catch (error) {
-        console.log('Could not load question configs:', error);
-      }
-      
-      // CAREFUL CELL POPULATION - only modify values, preserve everything else
-      let filledCells = 0;
-      
-      // Map answers to cells based on question configs
-      Object.entries(formData.answers).forEach(([questionId, answer]) => {
-        const config = questionConfigs.find(q => q.questionId === questionId);
+        const protocolTemplate = await storage.getActiveTemplate('protocol', language);
         
-        if (config && config.cellReference && answer !== '' && answer !== null && answer !== undefined) {
-          const cellRef = config.cellReference;
-          
-          // Get existing cell or create minimal one
-          let existingCell = worksheet[cellRef] || {};
-          
-          // Preserve ALL existing properties, only change value
-          const newCell = {
-            ...existingCell,
-            v: this.formatAnswer(answer, language),
-            t: 's' // string type
-          };
-          
-          worksheet[cellRef] = newCell;
-          filledCells++;
-          console.log(`Filled ${cellRef} = "${newCell.v}" (preserved format)`);
+        if (protocolTemplate) {
+          console.log(`Using XLSX fallback with template: ${protocolTemplate.name}`);
+          const templateBuffer = fs.readFileSync(protocolTemplate.filePath);
+          return await this.populateProtocolTemplate(templateBuffer, formData, language);
+        } else {
+          console.log('No protocol template found, using basic Excel creation');
+          return await this.createBasicExcel(formData, language);
         }
-      });
-      
-      // Add signature name if provided
-      if (formData.signatureName && !questionConfigs.find(q => q.cellReference === 'F9')) {
-        let existingCell = worksheet['F9'] || {};
-        worksheet['F9'] = {
-          ...existingCell,
-          v: formData.signatureName,
-          t: 's'
-        };
-        filledCells++;
-        console.log(`Added signature: F9 = "${formData.signatureName}"`);
+      } catch (fallbackError) {
+        console.error('Fallback also failed, using basic Excel:', fallbackError);
+        return await this.createBasicExcel(formData, language);
       }
-      
-      console.log(`Successfully filled ${filledCells} cells with format preservation`);
-      
-      // Write with format preservation options
-      const result = XLSX.write(workbook, { 
-        type: 'buffer',
-        bookType: 'xlsx',
-        cellStyles: true,
-        sheetStubs: true
-      });
-      
-      return result;
-      
-    } catch (error) {
-      console.error('Error in format-preserving template population:', error);
-      throw error;
     }
   }
 
@@ -107,8 +39,10 @@ class ExcelService {
       const workbook = XLSX.read(templateBuffer, { 
         type: 'buffer',
         cellStyles: true,
+        cellNF: true,
         cellHTML: false,
-        sheetStubs: true
+        sheetStubs: true,
+        bookSST: true
       });
       
       // Log template info
@@ -139,7 +73,7 @@ class ExcelService {
       let filledCells = 0;
       
       // Create cell mappings based on question configs
-      const cellMappings: Array<{cell: string, value: any, label: string}> = [];
+      const cellMappings = [];
       
       // Add answers based on question configs
       Object.entries(formData.answers).forEach(([questionId, answer]) => {

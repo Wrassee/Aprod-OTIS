@@ -67,51 +67,70 @@ class SimpleXmlExcelService {
       let worksheetXml = await zip.file(sheetFile)!.async('text');
       
       // Perform direct text replacements for cell values while preserving formatting
-      let totalModified = 0;
+      let modifiedCount = 0;
       cellMappings.forEach(mapping => {
         const { cell, value } = mapping;
-        let cellModified = false;
         
-        // Find any existing cell pattern for this cell - ONE SHOT approach
-        const anyPattern = new RegExp(`<c r="${cell}"[^>]*>.*?</c>`);
-        const anyMatch = worksheetXml.match(anyPattern);
+        // Look for existing cell patterns - preserve all attributes including style
+        const cellPattern = new RegExp(`(<c r="${cell}"[^>]*>)([^<]*)(</c>)`, 'g');
+        const emptyPattern = new RegExp(`<c r="${cell}"([^>]*?)/>`, 'g');
+        const emptyPatternExact = new RegExp(`<c r="${cell}" s="([^"]+)"/>`, 'g');
         
-        if (anyMatch && anyMatch[0]) {
-          // Extract existing style if present
-          const styleMatch = anyMatch[0].match(/s="([^"]+)"/);
-          const styleAttr = styleMatch ? ` s="${styleMatch[1]}"` : '';
-          
-          // Create safe replacement without regex escaping that can cause issues
-          const replacement = `<c r="${cell}"${styleAttr} t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`;
-          
-          // Use simple string replacement - safer than regex
-          worksheetXml = worksheetXml.replace(anyMatch[0], replacement);
-          cellModified = true;
-          console.log(`XML: Updated ${cell} = "${value}"${styleAttr ? ' (style preserved)' : ''}`);
-        } 
-        // Only check for empty pattern if no existing cell found
-        else if (worksheetXml.includes(`<c r="${cell}" s="`)) {
-          const emptyPattern = new RegExp(`<c r="${cell}" s="([^"]+)"/>`);
-          const emptyMatch = worksheetXml.match(emptyPattern);
-          if (emptyMatch) {
-            const styleValue = emptyMatch[1];
-            const replacement = `<c r="${cell}" s="${styleValue}" t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`;
-            
-            // Use simple string replacement to avoid corruption
-            worksheetXml = worksheetXml.replace(emptyMatch[0], replacement);
-            cellModified = true;
-            console.log(`XML: Filled empty ${cell} = "${value}" (s="${styleValue}")`);
-          }
+        // Debug: Check what patterns exist for this cell
+        const cellExists = worksheetXml.includes(`r="${cell}"`);
+        if (cellExists) {
+          // Find the exact cell pattern in XML
+          const cellMatch = worksheetXml.match(new RegExp(`<c r="${cell}"[^>]*>`));
+          console.log(`XML Debug: ${cell} pattern:`, cellMatch ? cellMatch[0] : 'NOT_FOUND');
         }
         
-        if (cellModified) {
-          totalModified++;
-        } else {
-          console.log(`XML: Warning - Could not modify ${cell}`);
+        // Replace existing cell content while preserving attributes
+        if (cellPattern.test(worksheetXml)) {
+          worksheetXml = worksheetXml.replace(cellPattern, `$1<is><t>${this.escapeXml(value)}</t></is>$3`);
+          modifiedCount++;
+          console.log(`XML: Replaced ${cell} = "${value}" (formatting preserved)`);
+        } 
+        // Replace self-closing empty cells with exact style preservation
+        else if (worksheetXml.includes(`<c r="${cell}" s="`)) {
+          // Find the exact style value manually
+          const styleMatch = worksheetXml.match(new RegExp(`<c r="${cell}" s="([^"]+)"/>`));
+          if (styleMatch) {
+            const styleValue = styleMatch[1];
+            worksheetXml = worksheetXml.replace(
+              new RegExp(`<c r="${cell}" s="${styleValue}"/>`), 
+              `<c r="${cell}" s="${styleValue}" t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`
+            );
+            modifiedCount++;
+            console.log(`XML: Added ${cell} = "${value}" (exact style preserved: s="${styleValue}")`);
+          }
+        }
+        // Fallback for any other empty pattern
+        else if (emptyPattern.test(worksheetXml)) {
+          const rowNum = cell.match(/\d+/)?.[0];
+          const defaultStyle = this.inferCellStyle(cell, rowNum);
+          
+          worksheetXml = worksheetXml.replace(emptyPattern, 
+            `<c r="${cell}"$1${defaultStyle} t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`);
+          modifiedCount++;
+          console.log(`XML: Added ${cell} = "${value}" (with inferred style)`);
+        }
+        // Insert new cell if row exists
+        else {
+          const rowNumber = cell.match(/\d+/)?.[0];
+          if (rowNumber) {
+            const rowPattern = new RegExp(`(<row r="${rowNumber}"[^>]*>)(.*?)(</row>)`, 'g');
+            if (rowPattern.test(worksheetXml)) {
+              const defaultStyle = this.inferCellStyle(cell, rowNumber);
+              worksheetXml = worksheetXml.replace(rowPattern, 
+                `$1$2<c r="${cell}"${defaultStyle} t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>$3`);
+              modifiedCount++;
+              console.log(`XML: Inserted ${cell} = "${value}" (with inferred style)`);
+            }
+          }
         }
       });
       
-      console.log(`XML: Modified ${totalModified} cells`);
+      console.log(`XML: Modified ${modifiedCount} cells`);
       
       // Update the ZIP with modified worksheet
       zip.file(sheetFile, worksheetXml);
@@ -122,10 +141,10 @@ class SimpleXmlExcelService {
         compression: 'DEFLATE',
         compressionOptions: { level: 6 },
         streamFiles: false,
-        platform: 'DOS' // Better Excel compatibility
+        platform: 'UNIX'
       });
       
-      console.log(`XML Excel generation successful with ${totalModified} modifications`);
+      console.log(`XML Excel generation successful with ${modifiedCount} modifications`);
       return result;
       
     } catch (error) {
@@ -201,9 +220,8 @@ class SimpleXmlExcelService {
   }
 
   private escapeXml(text: string): string {
-    if (!text) return '';
     // Proper XML escaping with Unicode preservation for Hungarian characters
-    return String(text)
+    return text
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
