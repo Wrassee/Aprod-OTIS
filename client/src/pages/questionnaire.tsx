@@ -132,10 +132,13 @@ export function Questionnaire({
     return { totalPages: total, currentQuestions: current, progress: prog };
   }, [allQuestions, currentPage]);
 
-  // Listen for cache changes to force re-render
+  // Listen for cache changes to update canProceed state
   useEffect(() => {
     const handleCacheChange = () => {
-      setForceUpdate(prev => prev + 1);
+      console.log('Cache change detected, checking can proceed...');
+      const newCanProceed = checkCanProceed();
+      console.log('Setting canProceedState to:', newCanProceed);
+      setCanProceedState(newCanProceed);
     };
 
     window.addEventListener('radio-change', handleCacheChange);
@@ -145,7 +148,7 @@ export function Questionnaire({
       window.removeEventListener('radio-change', handleCacheChange);
       window.removeEventListener('input-change', handleCacheChange);
     };
-  }, []);
+  }, [checkCanProceed]);
 
   // Ultra-stable error handlers with proper typing
   const handleAddError = useCallback((error: Omit<ProtocolError, 'id'>) => {
@@ -168,9 +171,9 @@ export function Questionnaire({
     onErrorsChange((prev: ProtocolError[]) => prev.filter((error: ProtocolError) => error.id !== id));
   }, [onErrorsChange]);
 
-  const [forceUpdate, setForceUpdate] = useState(0);
+  const [canProceedState, setCanProceedState] = useState(false);
   
-  const canProceed = () => {
+  const checkCanProceed = useCallback(() => {
     const requiredQuestions = currentQuestions.filter(q => q.required);
     
     if (requiredQuestions.length === 0) return true;
@@ -179,14 +182,23 @@ export function Questionnaire({
     const cachedRadioValues = getAllCachedValues();
     const cachedInputValues = getAllCachedInputValues();
     
-    return requiredQuestions.every(q => {
+    const result = requiredQuestions.every(q => {
       const hasAnswer = answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== '';
       const hasCachedRadio = cachedRadioValues[q.id] !== undefined && cachedRadioValues[q.id] !== '';
       const hasCachedInput = cachedInputValues[q.id] !== undefined && cachedInputValues[q.id] !== '';
       
       return hasAnswer || hasCachedRadio || hasCachedInput;
     });
-  };
+    
+    console.log('Can proceed check result:', result, 'Required questions:', requiredQuestions.length);
+    return result;
+  }, [currentQuestions, answers]);
+  
+  // Update canProceed state when dependencies change
+  useEffect(() => {
+    const newCanProceed = checkCanProceed();
+    setCanProceedState(newCanProceed);
+  }, [checkCanProceed]);
 
   const isLastPage = currentPage === totalPages - 1;
 
@@ -331,7 +343,7 @@ export function Questionnaire({
                     onNext();
                   }, 100);
                 }}
-                disabled={!canProceed()}
+                disabled={!canProceedState}
                 className="bg-otis-blue hover:bg-blue-700 text-white flex items-center"
               >
                 {t.complete}
@@ -353,7 +365,7 @@ export function Questionnaire({
                   
                   setCurrentPage(currentPage + 1);
                 }}
-                disabled={!canProceed()}
+                disabled={!canProceedState}
                 className="bg-otis-blue hover:bg-blue-700 text-white flex items-center"
               >
                 {t.next}
