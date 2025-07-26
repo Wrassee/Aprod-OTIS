@@ -13,6 +13,7 @@ interface CompletionProps {
   onEmailPDF: () => void;
   onSaveToCloud: () => void;
   onDownloadPDF: () => void;
+  onDownloadExcel: () => void;
   onViewProtocol: () => void;
   onStartNew: () => void;
 }
@@ -21,6 +22,7 @@ export function Completion({
   onEmailPDF,
   onSaveToCloud,
   onDownloadPDF,
+  onDownloadExcel,
   onViewProtocol,
   onStartNew,
 }: CompletionProps) {
@@ -54,7 +56,7 @@ export function Completion({
           </div>
           
           {/* Action Buttons */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             {/* Email PDF */}
             <Button
               onClick={onEmailPDF}
@@ -79,7 +81,16 @@ export function Completion({
               className="bg-gray-600 hover:bg-gray-700 text-white flex items-center justify-center py-4 h-auto"
             >
               <Download className="h-5 w-5 mr-3" />
-              {t.downloadPDF}
+              PDF letöltés
+            </Button>
+            
+            {/* Download Excel */}
+            <Button
+              onClick={onDownloadExcel}
+              className="bg-orange-600 hover:bg-orange-700 text-white flex items-center justify-center py-4 h-auto"
+            >
+              <Download className="h-5 w-5 mr-3" />
+              Excel letöltés
             </Button>
             
             {/* View Protocol */}

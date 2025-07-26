@@ -163,6 +163,30 @@ function App() {
     }
   };
 
+  const handleDownloadExcel = async () => {
+    try {
+      const response = await fetch('/api/protocols/download-excel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ formData, language }),
+      });
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'acceptance-protocol.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }
+    } catch (error) {
+      console.error('Error downloading Excel:', error);
+    }
+  };
+
   const handleViewProtocol = () => {
     setCurrentScreen('protocol-preview');
   };
@@ -235,6 +259,7 @@ function App() {
                   onEmailPDF={handleEmailPDF}
                   onSaveToCloud={handleSaveToCloud}
                   onDownloadPDF={handleDownloadPDF}
+                  onDownloadExcel={handleDownloadExcel}
                   onViewProtocol={handleViewProtocol}
                   onStartNew={handleStartNew}
                 />

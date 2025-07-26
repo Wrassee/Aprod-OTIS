@@ -146,6 +146,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Download Excel (for testing)
+  app.post("/api/protocols/download-excel", async (req, res) => {
+    try {
+      const { formData, language } = req.body;
+      
+      // Generate Excel from template
+      const excelBuffer = await excelService.generateExcel(formData, language);
+      
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', 'attachment; filename=acceptance-protocol.xlsx');
+      res.send(excelBuffer);
+    } catch (error) {
+      console.error("Error generating Excel download:", error);
+      res.status(500).json({ message: "Failed to generate Excel" });
+    }
+  });
+
   // Download PDF
   app.post("/api/protocols/download", async (req, res) => {
     try {
