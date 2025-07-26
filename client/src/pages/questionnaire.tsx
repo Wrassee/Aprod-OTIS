@@ -166,7 +166,7 @@ export function Questionnaire({
             {/* Logo, Home and Title */}
             <div className="flex items-center">
               <img 
-                src="/attached_assets/otis-elevators-seeklogo_1753525178175.png" 
+                src="/otis-elevators-seeklogo_1753525178175.png" 
                 alt="OTIS Logo" 
                 className="h-8 w-8 mr-4"
               />
