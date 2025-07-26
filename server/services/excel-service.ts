@@ -11,13 +11,13 @@ class ExcelService {
       const protocolTemplate = await storage.getActiveTemplate('protocol', language);
       
       if (protocolTemplate) {
-        // Use uploaded template
-        const templateBuffer = fs.readFileSync(protocolTemplate.filePath);
-        const questionConfigs = await storage.getQuestionConfigsByTemplate(protocolTemplate.id);
+        console.log(`Using protocol template: ${protocolTemplate.name} (${protocolTemplate.fileName})`);
         
-        // Populate the template with answers
-        return await excelParserService.populateTemplate(templateBuffer, formData.answers, questionConfigs);
+        // Use uploaded template directly - copy the template and add data to it
+        const templateBuffer = fs.readFileSync(protocolTemplate.filePath);
+        return await this.populateProtocolTemplate(templateBuffer, formData, language);
       } else {
+        console.log('No protocol template found, using basic Excel creation');
         // Fallback to creating a new Excel if no template is available
         return await this.createBasicExcel(formData, language);
       }
@@ -25,6 +25,100 @@ class ExcelService {
       console.error('Error generating Excel from template, falling back to basic Excel:', error);
       // Fallback to basic Excel creation
       return await this.createBasicExcel(formData, language);
+    }
+  }
+
+  private async populateProtocolTemplate(templateBuffer: Buffer, formData: FormData, language: string): Promise<Buffer> {
+    try {
+      const workbook = XLSX.read(templateBuffer, { type: 'buffer' });
+      
+      // Get the first worksheet
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      
+      // Try to get question titles from questions template
+      let questionConfigs: any[] = [];
+      try {
+        const questionsTemplate = await storage.getActiveTemplate('questions', language);
+        if (questionsTemplate) {
+          questionConfigs = await storage.getQuestionConfigsByTemplate(questionsTemplate.id);
+        }
+      } catch (error) {
+        console.log('Could not load question configs:', error);
+      }
+      
+      // Find empty cells or cells with placeholders and fill them with answers
+      const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1:Z100');
+      
+      // Add form data to the worksheet - try to find appropriate places
+      let currentRow = range.e.r + 2; // Start adding data after existing content
+      
+      // Add reception date
+      const dateCell = XLSX.utils.encode_cell({ r: currentRow, c: 0 });
+      worksheet[dateCell] = { v: 'Reception Date:', t: 's' };
+      worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 1 })] = { v: formData.receptionDate, t: 's' };
+      currentRow += 2;
+      
+      // Add answers section
+      worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 0 })] = { v: 'Questions and Answers:', t: 's' };
+      currentRow += 1;
+      
+      Object.entries(formData.answers).forEach(([questionId, answer]) => {
+        const config = questionConfigs.find(q => q.questionId === questionId);
+        const questionText = config ? 
+          (language === 'hu' && config.titleHu ? config.titleHu :
+           language === 'de' && config.titleDe ? config.titleDe :
+           config.title) :
+          `Question ${questionId}`;
+        
+        worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 0 })] = { v: questionText, t: 's' };
+        worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 1 })] = { 
+          v: this.formatAnswer(answer, language), 
+          t: typeof answer === 'number' ? 'n' : 's' 
+        };
+        currentRow += 1;
+      });
+      
+      // Add errors if any
+      if (formData.errors && formData.errors.length > 0) {
+        currentRow += 1;
+        worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 0 })] = { v: 'Errors:', t: 's' };
+        currentRow += 1;
+        
+        formData.errors.forEach((error, index) => {
+          worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 0 })] = { v: `Error ${index + 1}:`, t: 's' };
+          worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 1 })] = { v: error.title, t: 's' };
+          currentRow += 1;
+        });
+      }
+      
+      // Add signature
+      if (formData.signatureName) {
+        currentRow += 1;
+        worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 0 })] = { v: 'Signed by:', t: 's' };
+        worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 1 })] = { v: formData.signatureName, t: 's' };
+        currentRow += 1;
+      }
+      
+      // Update the range to include new data
+      const newRange = XLSX.utils.encode_range({
+        s: { r: 0, c: 0 },
+        e: { r: currentRow, c: Math.max(range.e.c, 1) }
+      });
+      worksheet['!ref'] = newRange;
+      
+      // Generate buffer
+      const buffer = XLSX.write(workbook, { 
+        type: 'buffer', 
+        bookType: 'xlsx',
+        compression: true 
+      });
+      
+      console.log('Successfully populated protocol template with form data');
+      return buffer;
+    } catch (error) {
+      console.error('Error populating protocol template:', error);
+      throw error;
     }
   }
 
