@@ -32,9 +32,14 @@ class ExcelService {
     try {
       const workbook = XLSX.read(templateBuffer, { type: 'buffer' });
       
+      // Log template info
+      console.log('Template sheet names:', workbook.SheetNames);
+      
       // Get the first worksheet
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
+      
+      console.log('Original worksheet range:', worksheet['!ref']);
       
       // Try to get question titles from questions template
       let questionConfigs: any[] = [];
@@ -42,26 +47,30 @@ class ExcelService {
         const questionsTemplate = await storage.getActiveTemplate('questions', language);
         if (questionsTemplate) {
           questionConfigs = await storage.getQuestionConfigsByTemplate(questionsTemplate.id);
+          console.log('Loaded question configs:', questionConfigs.length);
         }
       } catch (error) {
         console.log('Could not load question configs:', error);
       }
       
-      // Find empty cells or cells with placeholders and fill them with answers
-      const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1:Z100');
+      // Add a clear marker that this was populated by our system
+      worksheet['A1'] = { v: '*** OTIS ACCEPTANCE PROTOCOL - FILLED BY SYSTEM ***', t: 's' };
+      worksheet['A2'] = { v: `Generated on: ${new Date().toLocaleString()}`, t: 's' };
+      worksheet['A3'] = { v: `Language: ${language}`, t: 's' };
+      worksheet['A4'] = { v: '', t: 's' };
       
-      // Add form data to the worksheet - try to find appropriate places
-      let currentRow = range.e.r + 2; // Start adding data after existing content
+      let currentRow = 5; // Start from row 5
       
       // Add reception date
-      const dateCell = XLSX.utils.encode_cell({ r: currentRow, c: 0 });
-      worksheet[dateCell] = { v: 'Reception Date:', t: 's' };
+      worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 0 })] = { v: 'Reception Date:', t: 's' };
       worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 1 })] = { v: formData.receptionDate, t: 's' };
       currentRow += 2;
       
       // Add answers section
-      worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 0 })] = { v: 'Questions and Answers:', t: 's' };
+      worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 0 })] = { v: '=== QUESTIONS AND ANSWERS ===', t: 's' };
       currentRow += 1;
+      
+      console.log('Adding answers:', Object.keys(formData.answers));
       
       Object.entries(formData.answers).forEach(([questionId, answer]) => {
         const config = questionConfigs.find(q => q.questionId === questionId);
@@ -70,6 +79,8 @@ class ExcelService {
            language === 'de' && config.titleDe ? config.titleDe :
            config.title) :
           `Question ${questionId}`;
+        
+        console.log(`Adding question ${questionId}: ${questionText} = ${answer}`);
         
         worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 0 })] = { v: questionText, t: 's' };
         worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 1 })] = { 
@@ -82,7 +93,7 @@ class ExcelService {
       // Add errors if any
       if (formData.errors && formData.errors.length > 0) {
         currentRow += 1;
-        worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 0 })] = { v: 'Errors:', t: 's' };
+        worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 0 })] = { v: '=== ERRORS ===', t: 's' };
         currentRow += 1;
         
         formData.errors.forEach((error, index) => {
@@ -95,6 +106,8 @@ class ExcelService {
       // Add signature
       if (formData.signatureName) {
         currentRow += 1;
+        worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 0 })] = { v: '=== SIGNATURE ===', t: 's' };
+        currentRow += 1;
         worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 0 })] = { v: 'Signed by:', t: 's' };
         worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 1 })] = { v: formData.signatureName, t: 's' };
         currentRow += 1;
@@ -103,9 +116,12 @@ class ExcelService {
       // Update the range to include new data
       const newRange = XLSX.utils.encode_range({
         s: { r: 0, c: 0 },
-        e: { r: currentRow, c: Math.max(range.e.c, 1) }
+        e: { r: currentRow + 2, c: 5 } // Give some extra space
       });
       worksheet['!ref'] = newRange;
+      
+      console.log('New worksheet range:', newRange);
+      console.log('Added data up to row:', currentRow);
       
       // Generate buffer
       const buffer = XLSX.write(workbook, { 
