@@ -85,10 +85,24 @@ class ExcelService {
       
       cellMappings.forEach(mapping => {
         if (mapping.value) {
-          worksheet[mapping.cell] = { 
-            v: this.formatAnswer(mapping.value, language), 
-            t: typeof mapping.value === 'number' ? 'n' : 's' 
-          };
+          // Preserve existing cell formatting if it exists
+          const existingCell = worksheet[mapping.cell];
+          const newValue = this.formatAnswer(mapping.value, language);
+          
+          if (existingCell) {
+            // Keep existing formatting, just update the value
+            worksheet[mapping.cell] = {
+              ...existingCell,
+              v: newValue,
+              t: typeof mapping.value === 'number' ? 'n' : 's'
+            };
+          } else {
+            // Create new cell with value
+            worksheet[mapping.cell] = { 
+              v: newValue, 
+              t: typeof mapping.value === 'number' ? 'n' : 's' 
+            };
+          }
           console.log(`Filled ${mapping.label} at ${mapping.cell}: ${mapping.value}`);
           filledCells++;
         }

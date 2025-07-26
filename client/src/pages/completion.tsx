@@ -6,7 +6,9 @@ import {
   Cloud, 
   Download, 
   Eye, 
-  Plus 
+  Plus,
+  Home,
+  Settings
 } from 'lucide-react';
 
 interface CompletionProps {
@@ -16,6 +18,8 @@ interface CompletionProps {
   onDownloadExcel: () => void;
   onViewProtocol: () => void;
   onStartNew: () => void;
+  onGoHome: () => void;
+  onSettings: () => void;
 }
 
 export function Completion({
@@ -25,6 +29,8 @@ export function Completion({
   onDownloadExcel,
   onViewProtocol,
   onStartNew,
+  onGoHome,
+  onSettings,
 }: CompletionProps) {
   const { t } = useLanguageContext();
 
@@ -33,11 +39,35 @@ export function Completion({
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center">
-            <div className="h-8 w-12 bg-otis-blue rounded flex items-center justify-center mr-4">
-              <span className="text-white font-bold text-sm">OTIS</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="h-8 w-12 bg-otis-blue rounded flex items-center justify-center mr-4">
+                <span className="text-white font-bold text-sm">OTIS</span>
+              </div>
+              <span className="text-lg font-medium text-gray-800">{t.completionTitle}</span>
             </div>
-            <span className="text-lg font-medium text-gray-800">{t.completionTitle}</span>
+            
+            {/* Navigation buttons */}
+            <div className="flex items-center space-x-2">
+              <Button
+                onClick={onGoHome}
+                variant="outline"
+                size="sm"
+                className="flex items-center"
+              >
+                <Home className="h-4 w-4 mr-2" />
+                {t.home || 'Kezdőlap'}
+              </Button>
+              <Button
+                onClick={onSettings}
+                variant="outline"
+                size="sm"
+                className="flex items-center"
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                {t.settings || 'Beállítások'}
+              </Button>
+            </div>
           </div>
         </div>
       </header>

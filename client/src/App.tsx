@@ -203,6 +203,14 @@ function App() {
     localStorage.removeItem('otis-protocol-form-data');
   };
 
+  const handleGoHome = () => {
+    setCurrentScreen('start');
+  };
+
+  const handleSettings = () => {
+    setCurrentScreen('admin');
+  };
+
   // Stable callbacks defined outside Router to prevent recreation
   const handleAnswerChange = useCallback((questionId: string, value: AnswerValue) => {
     setFormData(prev => ({
@@ -262,6 +270,8 @@ function App() {
                   onDownloadExcel={handleDownloadExcel}
                   onViewProtocol={handleViewProtocol}
                   onStartNew={handleStartNew}
+                  onGoHome={handleGoHome}
+                  onSettings={handleSettings}
                 />
               );
             case 'admin':
