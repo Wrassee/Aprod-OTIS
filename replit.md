@@ -37,11 +37,17 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - Problem is architectural, not with radio button components
 - Need to investigate App.tsx state management and parent re-renders
 
-### Next Priority Actions
-1. **STOP component remounting** - investigate App.tsx formData state changes
-2. **Trace the remounting cause** - localStorage save triggers, parent state updates
-3. **Consider moving questionnaire state to localStorage persistence layer**
-4. **Alternative: Implement controlled radio buttons with useRef for value storage**
+### Latest Attempts (January 27, 2025)
+- **StableQuestionnaire**: Created completely new component with useRef for local state storage
+- **Debounced Updates**: 100ms delay between local updates and parent notifications
+- **Direct HTML Radio**: Replaced complex radio components with simple HTML inputs
+- **Single Load**: Questions load only once with no dependencies
+- **Error**: "onChange is not a function" - IsolatedQuestion interface mismatch
+
+### Current Status
+- **CRITICAL**: Radio button navigation issue persists through multiple architectural changes
+- **Root Cause**: Component remounting from setFormData calls in parent App.tsx
+- **New Approach**: Direct HTML radio inputs with useRef state management
 
 ## System Architecture
 

@@ -149,12 +149,12 @@ export function StableQuestionnaire({
                   <Home className="h-4 w-4" />
                 </Button>
               )}
-              <span className="text-lg font-medium text-gray-800">{t.title}</span>
+              <span className="text-lg font-medium text-gray-800">OTIS Átvételi Protokoll</span>
             </div>
             
             {/* Date Picker and Admin */}
             <div className="flex items-center space-x-4">
-              <Label className="text-sm font-medium text-gray-600">{t.receptionDate}</Label>
+              <Label className="text-sm font-medium text-gray-600">Átvétel dátuma</Label>
               <Input
                 type="date"
                 value={receptionDate}
@@ -167,7 +167,7 @@ export function StableQuestionnaire({
                   size="sm"
                   onClick={onAdminAccess}
                   className="text-gray-600 hover:text-gray-800"
-                  title={t.admin}
+                  title="Admin"
                 >
                   <Settings className="h-4 w-4" />
                 </Button>
@@ -182,7 +182,7 @@ export function StableQuestionnaire({
         <div className="mb-8">
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm font-medium text-gray-600">
-              {t.progress}: {currentPage + 1} / {totalPages}
+              Haladás: {currentPage + 1} / {totalPages}
             </span>
             <span className="text-sm text-gray-500">
               {Math.round(((currentPage + 1) / totalPages) * 100)}%
@@ -198,25 +198,80 @@ export function StableQuestionnaire({
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
           <div className="space-y-6">
             {currentQuestions.map((question) => (
-              <IsolatedQuestion
-                key={question.id}
-                question={question}
-                value={localAnswersRef.current[question.id]}
-                onAnswerChange={handleAnswerChangeStable}
-                language={language}
-              />
+              <div key={question.id} className="space-y-3">
+                <Label className="text-sm font-medium text-gray-700">
+                  {question.title}
+                  {question.required && <span className="text-red-500 ml-1">*</span>}
+                </Label>
+                
+                {question.type === 'text' && (
+                  <Input
+                    type="text"
+                    value={localAnswersRef.current[question.id] as string || ''}
+                    onChange={(e) => handleAnswerChangeStable(question.id, e.target.value)}
+                    className="w-full"
+                    placeholder={question.description || ''}
+                  />
+                )}
+                
+                {question.type === 'yes_no_na' && (
+                  <div className="space-y-2">
+                    {['yes', 'no', 'na'].map((option) => (
+                      <label key={option} className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name={question.id}
+                          value={option}
+                          checked={localAnswersRef.current[question.id] === option}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              handleAnswerChangeStable(question.id, option);
+                            }
+                          }}
+                          className="w-4 h-4"
+                        />
+                        <span className="text-sm text-gray-700">
+                          {option === 'yes' ? 'Igen' : option === 'no' ? 'Nem' : 'N/A'}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+                
+                {question.type === 'number' && (
+                  <Input
+                    type="number"
+                    value={localAnswersRef.current[question.id] as number || ''}
+                    onChange={(e) => handleAnswerChangeStable(question.id, parseInt(e.target.value) || 0)}
+                    className="w-full"
+                    placeholder={question.description || ''}
+                  />
+                )}
+                
+                {question.description && (
+                  <p className="text-xs text-gray-500">{question.description}</p>
+                )}
+              </div>
             ))}
           </div>
         </div>
 
         {/* Error Management */}
-        <ErrorList
-          errors={errors}
-          onAddError={handleAddError}
-          onEditError={handleEditError}
-          onDeleteError={handleDeleteError}
-          language={language}
-        />
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+          <h3 className="text-lg font-medium text-gray-800 mb-4">Hibák kezelése</h3>
+          {errors.length === 0 ? (
+            <p className="text-gray-500">Nincsenek hibák.</p>
+          ) : (
+            <div className="space-y-2">
+              {errors.map((error) => (
+                <div key={error.id} className="p-3 border rounded-lg">
+                  <p className="font-medium">{error.title}</p>
+                  <p className="text-sm text-gray-600">{error.description}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Navigation */}
         <div className="flex justify-between items-center mt-8">
@@ -227,7 +282,7 @@ export function StableQuestionnaire({
             className="flex items-center space-x-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span>{t.previous}</span>
+            <span>Előző</span>
           </Button>
 
           <div className="flex space-x-4">
@@ -237,7 +292,7 @@ export function StableQuestionnaire({
               className="flex items-center space-x-2"
             >
               <Save className="h-4 w-4" />
-              <span>{t.save}</span>
+              <span>Mentés</span>
             </Button>
 
             {isLastPage ? (
@@ -246,7 +301,7 @@ export function StableQuestionnaire({
                 disabled={!canProceed()}
                 className="bg-otis-blue hover:bg-otis-blue/90"
               >
-                {t.continue}
+                Folytatás
               </Button>
             ) : (
               <Button
@@ -254,7 +309,7 @@ export function StableQuestionnaire({
                 disabled={!canProceed()}
                 className="flex items-center space-x-2 bg-otis-blue hover:bg-otis-blue/90"
               >
-                <span>{t.next}</span>
+                <span>Következő</span>
                 <ArrowRight className="h-4 w-4" />
               </Button>
             )}
