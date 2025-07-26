@@ -53,84 +53,155 @@ class ExcelService {
         console.log('Could not load question configs:', error);
       }
       
-      // Add a clear marker that this was populated by our system
-      worksheet['A1'] = { v: '*** OTIS ACCEPTANCE PROTOCOL - FILLED BY SYSTEM ***', t: 's' };
-      worksheet['A2'] = { v: `Generated on: ${new Date().toLocaleString()}`, t: 's' };
-      worksheet['A3'] = { v: `Language: ${language}`, t: 's' };
-      worksheet['A4'] = { v: '', t: 's' };
+      // PRESERVE ORIGINAL TEMPLATE - only add data to specific empty cells
+      // Look for common field names in the template and try to populate them
       
-      let currentRow = 5; // Start from row 5
+      // Convert worksheet to array format to search for patterns
+      const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1:Z100');
+      console.log('Searching template for fillable fields...');
       
-      // Add reception date
-      worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 0 })] = { v: 'Reception Date:', t: 's' };
-      worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 1 })] = { v: formData.receptionDate, t: 's' };
-      currentRow += 2;
+      // Track what we found and filled
+      let filledCells = 0;
       
-      // Add answers section
-      worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 0 })] = { v: '=== QUESTIONS AND ANSWERS ===', t: 's' };
-      currentRow += 1;
+      // Search through cells for patterns that match our data
+      for (let R = range.s.r; R <= range.e.r; R++) {
+        for (let C = range.s.c; C <= range.e.c; C++) {
+          const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+          const cell = worksheet[cellAddress];
+          
+          if (cell && cell.v && typeof cell.v === 'string') {
+            const cellValue = cell.v.toString().toLowerCase();
+            
+            // Try to match common field patterns with our data
+            if (cellValue.includes('név') || cellValue.includes('name')) {
+              // Try to find an empty cell nearby for the name
+              const nextCell = XLSX.utils.encode_cell({ r: R, c: C + 1 });
+              const nextCellBelow = XLSX.utils.encode_cell({ r: R + 1, c: C });
+              
+              if (!worksheet[nextCell] || !worksheet[nextCell].v) {
+                worksheet[nextCell] = { v: formData.answers['1'] || formData.signatureName || '', t: 's' };
+                console.log(`Filled name field at ${nextCell}: ${worksheet[nextCell].v}`);
+                filledCells++;
+              } else if (!worksheet[nextCellBelow] || !worksheet[nextCellBelow].v) {
+                worksheet[nextCellBelow] = { v: formData.answers['1'] || formData.signatureName || '', t: 's' };
+                console.log(`Filled name field at ${nextCellBelow}: ${worksheet[nextCellBelow].v}`);
+                filledCells++;
+              }
+            }
+            
+            if (cellValue.includes('dátum') || cellValue.includes('date')) {
+              const nextCell = XLSX.utils.encode_cell({ r: R, c: C + 1 });
+              const nextCellBelow = XLSX.utils.encode_cell({ r: R + 1, c: C });
+              
+              if (!worksheet[nextCell] || !worksheet[nextCell].v) {
+                worksheet[nextCell] = { v: formData.receptionDate, t: 's' };
+                console.log(`Filled date field at ${nextCell}: ${worksheet[nextCell].v}`);
+                filledCells++;
+              } else if (!worksheet[nextCellBelow] || !worksheet[nextCellBelow].v) {
+                worksheet[nextCellBelow] = { v: formData.receptionDate, t: 's' };
+                console.log(`Filled date field at ${nextCellBelow}: ${worksheet[nextCellBelow].v}`);
+                filledCells++;
+              }
+            }
+            
+            // Match specific question patterns
+            Object.entries(formData.answers).forEach(([questionId, answer]) => {
+              const config = questionConfigs.find(q => q.questionId === questionId);
+              if (config) {
+                const questionText = (language === 'hu' && config.titleHu ? config.titleHu :
+                                   language === 'de' && config.titleDe ? config.titleDe :
+                                   config.title).toLowerCase();
+                
+                if (cellValue.includes(questionText.substring(0, 10))) {
+                  const nextCell = XLSX.utils.encode_cell({ r: R, c: C + 1 });
+                  const nextCellBelow = XLSX.utils.encode_cell({ r: R + 1, c: C });
+                  
+                  if (!worksheet[nextCell] || !worksheet[nextCell].v) {
+                    worksheet[nextCell] = { 
+                      v: this.formatAnswer(answer, language), 
+                      t: typeof answer === 'number' ? 'n' : 's' 
+                    };
+                    console.log(`Filled question ${questionId} at ${nextCell}: ${answer}`);
+                    filledCells++;
+                  } else if (!worksheet[nextCellBelow] || !worksheet[nextCellBelow].v) {
+                    worksheet[nextCellBelow] = { 
+                      v: this.formatAnswer(answer, language), 
+                      t: typeof answer === 'number' ? 'n' : 's' 
+                    };
+                    console.log(`Filled question ${questionId} at ${nextCellBelow}: ${answer}`);
+                    filledCells++;
+                  }
+                }
+              }
+            });
+          }
+        }
+      }
       
-      console.log('Adding answers:', Object.keys(formData.answers));
+      console.log(`Successfully filled ${filledCells} cells in the original template`);
       
-      Object.entries(formData.answers).forEach(([questionId, answer]) => {
-        const config = questionConfigs.find(q => q.questionId === questionId);
-        const questionText = config ? 
-          (language === 'hu' && config.titleHu ? config.titleHu :
-           language === 'de' && config.titleDe ? config.titleDe :
-           config.title) :
-          `Question ${questionId}`;
+      // If we didn't manage to fill many cells, add a data section at the end
+      if (filledCells < 3) {
+        console.log('Adding fallback data section since few cells were matched');
         
-        console.log(`Adding question ${questionId}: ${questionText} = ${answer}`);
+        // Find the actual end of the template content
+        let lastRow = range.e.r;
+        for (let R = range.e.r; R >= range.s.r; R--) {
+          let hasContent = false;
+          for (let C = range.s.c; C <= range.e.c; C++) {
+            const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+            if (worksheet[cellAddress] && worksheet[cellAddress].v) {
+              hasContent = true;
+              break;
+            }
+          }
+          if (hasContent) {
+            lastRow = R;
+            break;
+          }
+        }
         
-        worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 0 })] = { v: questionText, t: 's' };
-        worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 1 })] = { 
-          v: this.formatAnswer(answer, language), 
-          t: typeof answer === 'number' ? 'n' : 's' 
-        };
-        currentRow += 1;
-      });
-      
-      // Add errors if any
-      if (formData.errors && formData.errors.length > 0) {
-        currentRow += 1;
-        worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 0 })] = { v: '=== ERRORS ===', t: 's' };
+        // Add data section after some space
+        let currentRow = lastRow + 3;
+        
+        worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 0 })] = { v: '=== KITÖLTÖTT ADATOK ===', t: 's' };
+        currentRow += 2;
+        
+        worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 0 })] = { v: 'Átvétel dátuma:', t: 's' };
+        worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 1 })] = { v: formData.receptionDate, t: 's' };
         currentRow += 1;
         
-        formData.errors.forEach((error, index) => {
-          worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 0 })] = { v: `Error ${index + 1}:`, t: 's' };
-          worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 1 })] = { v: error.title, t: 's' };
+        Object.entries(formData.answers).forEach(([questionId, answer]) => {
+          const config = questionConfigs.find(q => q.questionId === questionId);
+          const questionText = config ? 
+            (language === 'hu' && config.titleHu ? config.titleHu :
+             language === 'de' && config.titleDe ? config.titleDe :
+             config.title) :
+            `Question ${questionId}`;
+          
+          worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 0 })] = { v: questionText, t: 's' };
+          worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 1 })] = { 
+            v: this.formatAnswer(answer, language), 
+            t: typeof answer === 'number' ? 'n' : 's' 
+          };
           currentRow += 1;
         });
+        
+        if (formData.signatureName) {
+          currentRow += 1;
+          worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 0 })] = { v: 'Aláíró:', t: 's' };
+          worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 1 })] = { v: formData.signatureName, t: 's' };
+        }
       }
       
-      // Add signature
-      if (formData.signatureName) {
-        currentRow += 1;
-        worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 0 })] = { v: '=== SIGNATURE ===', t: 's' };
-        currentRow += 1;
-        worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 0 })] = { v: 'Signed by:', t: 's' };
-        worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 1 })] = { v: formData.signatureName, t: 's' };
-        currentRow += 1;
-      }
-      
-      // Update the range to include new data
-      const newRange = XLSX.utils.encode_range({
-        s: { r: 0, c: 0 },
-        e: { r: currentRow + 2, c: 5 } // Give some extra space
-      });
-      worksheet['!ref'] = newRange;
-      
-      console.log('New worksheet range:', newRange);
-      console.log('Added data up to row:', currentRow);
-      
-      // Generate buffer
+      // Generate buffer without changing the original range unless we added fallback data
       const buffer = XLSX.write(workbook, { 
         type: 'buffer', 
         bookType: 'xlsx',
         compression: true 
       });
       
-      console.log('Successfully populated protocol template with form data');
+      console.log('Successfully populated protocol template preserving original format');
       return buffer;
     } catch (error) {
       console.error('Error populating protocol template:', error);
