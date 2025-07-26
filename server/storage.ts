@@ -54,11 +54,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllProtocols(): Promise<Protocol[]> {
-    const allProtocols = await db.select().from(protocols).orderBy(desc(protocols.createdAt));
-    return allProtocols;
-  }
-
-  async getAllProtocols(): Promise<Protocol[]> {
     return await db.select().from(protocols).orderBy(desc(protocols.createdAt));
   }
 
