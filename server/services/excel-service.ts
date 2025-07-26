@@ -30,7 +30,15 @@ class ExcelService {
 
   private async populateProtocolTemplate(templateBuffer: Buffer, formData: FormData, language: string): Promise<Buffer> {
     try {
-      const workbook = XLSX.read(templateBuffer, { type: 'buffer' });
+      // Read with full formatting preservation
+      const workbook = XLSX.read(templateBuffer, { 
+        type: 'buffer',
+        cellStyles: true,
+        cellNF: true,
+        cellHTML: false,
+        sheetStubs: true,
+        bookSST: true
+      });
       
       // Log template info
       console.log('Template sheet names:', workbook.SheetNames);
@@ -87,14 +95,19 @@ class ExcelService {
       cellMappings.forEach(mapping => {
         if (mapping.value !== null && mapping.value !== undefined && mapping.value !== '') {
           const newValue = this.formatAnswer(mapping.value, language);
+          const existingCell = worksheet[mapping.cell];
           
-          // Force cell creation/update - don't preserve existing formatting that might be empty
+          // Set cell data while preserving template structure
           worksheet[mapping.cell] = { 
-            v: newValue, 
-            t: typeof newValue === 'number' ? 'n' : 's' 
+            v: newValue,
+            t: typeof newValue === 'number' ? 'n' : 's'
           };
           
-          // Cell successfully populated
+          // If there was existing formatting, preserve it
+          if (existingCell && existingCell.s) {
+            worksheet[mapping.cell].s = existingCell.s;
+          }
+          
           filledCells++;
         }
       });
@@ -106,15 +119,17 @@ class ExcelService {
       
       console.log(`Successfully filled ${filledCells} cells in the OTIS protocol template`);
       
-      // Generate buffer with all cell data
+      // Generate buffer preserving ALL original formatting
       const buffer = XLSX.write(workbook, { 
         type: 'buffer', 
         bookType: 'xlsx',
-        compression: false,
-        cellStyles: true,
-        cellNF: true,   // Include number formats
-        cellHTML: false,
-        sheetStubs: false
+        compression: true,  // Use compression for smaller files
+        cellStyles: true,   // Preserve cell styles
+        cellNF: true,       // Preserve number formats  
+        cellHTML: false,    // Don't convert to HTML
+        sheetStubs: true,   // Include empty cells
+        bookSST: true,      // Preserve shared string table
+        cellDates: true     // Preserve date formatting
       });
       
       console.log('Successfully populated protocol template preserving original format');
