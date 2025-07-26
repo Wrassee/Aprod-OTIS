@@ -258,6 +258,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete template
+  app.delete("/api/admin/templates/:id", async (req, res) => {
+    try {
+      const templateId = req.params.id;
+      
+      // Get template info before deletion to remove file
+      const template = await storage.getTemplate(templateId);
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      // Delete associated question configs first
+      await storage.deleteQuestionConfigsByTemplate(templateId);
+      
+      // Delete the template from database
+      const deleted = await storage.deleteTemplate(templateId);
+      if (!deleted) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      // Remove physical file
+      if (template.filePath && fs.existsSync(template.filePath)) {
+        try {
+          fs.unlinkSync(template.filePath);
+        } catch (fileError) {
+          console.error("Error deleting template file:", fileError);
+          // Continue even if file deletion fails
+        }
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting template:", error);
+      res.status(500).json({ message: "Failed to delete template" });
+    }
+  });
+
   // Get question configurations for a template
   app.get("/api/admin/templates/:id/questions", async (req, res) => {
     try {

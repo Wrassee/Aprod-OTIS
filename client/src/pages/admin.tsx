@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguageContext } from '@/components/language-provider';
-import { Upload, Settings, FileSpreadsheet, CheckCircle, XCircle, Eye, Edit, Home } from 'lucide-react';
+import { Upload, Settings, FileSpreadsheet, CheckCircle, XCircle, Eye, Edit, Home, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Template {
@@ -148,6 +148,35 @@ export function Admin({ onBack, onHome }: AdminProps) {
     }
   };
 
+  const handleDelete = async (templateId: string, templateName: string) => {
+    if (!confirm(`Biztosan törölni szeretnéd a(z) "${templateName}" sablont? Ez a művelet nem vonható vissza.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/templates/${templateId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        toast({
+          title: t.success,
+          description: 'Sablon sikeresen törölve',
+        });
+        fetchTemplates();
+      } else {
+        throw new Error('Delete failed');
+      }
+    } catch (error) {
+      console.error('Error deleting template:', error);
+      toast({
+        title: t.error,
+        description: 'Sablon törlése sikertelen',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const filteredTemplates = templates.filter(t => t.language === language);
 
   return (
@@ -227,6 +256,7 @@ export function Admin({ onBack, onHome }: AdminProps) {
                             variant="ghost"
                             size="sm"
                             onClick={() => handlePreview(template.id)}
+                            title="Előnézet"
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
@@ -239,6 +269,15 @@ export function Admin({ onBack, onHome }: AdminProps) {
                               {t.activate}
                             </Button>
                           )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(template.id, template.name)}
+                            className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                            title="Törlés"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
                     ))

@@ -18,6 +18,7 @@ export interface IStorage {
   getAllTemplates(): Promise<Template[]>;
   getActiveTemplate(type: string, language: string): Promise<Template | undefined>;
   setActiveTemplate(id: string): Promise<void>;
+  deleteTemplate(id: string): Promise<boolean>;
   
   // Question Configurations
   getQuestionConfig(id: string): Promise<QuestionConfig | undefined>;
@@ -25,6 +26,7 @@ export interface IStorage {
   updateQuestionConfig(id: string, updates: Partial<QuestionConfig>): Promise<QuestionConfig | undefined>;
   deleteQuestionConfig(id: string): Promise<boolean>;
   getQuestionConfigsByTemplate(templateId: string): Promise<QuestionConfig[]>;
+  deleteQuestionConfigsByTemplate(templateId: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -118,6 +120,14 @@ export class DatabaseStorage implements IStorage {
       .where(eq(templates.id, id));
   }
 
+  async deleteTemplate(id: string): Promise<boolean> {
+    const result = await db
+      .delete(templates)
+      .where(eq(templates.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
   // Question Config methods
   async getQuestionConfig(id: string): Promise<QuestionConfig | undefined> {
     const [config] = await db.select().from(questionConfigs).where(eq(questionConfigs.id, id));
@@ -155,6 +165,14 @@ export class DatabaseStorage implements IStorage {
       .from(questionConfigs)
       .where(eq(questionConfigs.templateId, templateId))
       .orderBy(questionConfigs.createdAt);
+  }
+
+  async deleteQuestionConfigsByTemplate(templateId: string): Promise<boolean> {
+    const result = await db
+      .delete(questionConfigs)
+      .where(eq(questionConfigs.templateId, templateId))
+      .returning();
+    return result.length > 0;
   }
 }
 

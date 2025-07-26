@@ -36,30 +36,32 @@ const IsolatedQuestionComponent = memo(({
     switch (question.type) {
       case 'yes_no_na':
         return (
-          <RadioGroup
-            value={value?.toString() || ''}
-            onValueChange={onChange}
-            className="space-y-3"
-          >
-            <div className="flex items-center space-x-3">
-              <RadioGroupItem value="yes" id={`${question.id}-yes`} />
-              <Label htmlFor={`${question.id}-yes`} className="cursor-pointer">
-                {t.yes}
-              </Label>
-            </div>
-            <div className="flex items-center space-x-3">
-              <RadioGroupItem value="no" id={`${question.id}-no`} />
-              <Label htmlFor={`${question.id}-no`} className="cursor-pointer">
-                {t.no}
-              </Label>
-            </div>
-            <div className="flex items-center space-x-3">
-              <RadioGroupItem value="na" id={`${question.id}-na`} />
-              <Label htmlFor={`${question.id}-na`} className="cursor-pointer">
-                {t.notApplicable}
-              </Label>
-            </div>
-          </RadioGroup>
+          <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
+            <RadioGroup
+              value={value?.toString() || ''}
+              onValueChange={onChange}
+              className="space-y-3"
+            >
+              <div className="flex items-center space-x-3" onClick={(e) => e.stopPropagation()}>
+                <RadioGroupItem value="yes" id={`${question.id}-yes`} />
+                <Label htmlFor={`${question.id}-yes`} className="cursor-pointer">
+                  {t.yes}
+                </Label>
+              </div>
+              <div className="flex items-center space-x-3" onClick={(e) => e.stopPropagation()}>
+                <RadioGroupItem value="no" id={`${question.id}-no`} />
+                <Label htmlFor={`${question.id}-no`} className="cursor-pointer">
+                  {t.no}
+                </Label>
+              </div>
+              <div className="flex items-center space-x-3" onClick={(e) => e.stopPropagation()}>
+                <RadioGroupItem value="na" id={`${question.id}-na`} />
+                <Label htmlFor={`${question.id}-na`} className="cursor-pointer">
+                  {t.notApplicable}
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
         );
 
       case 'number':
