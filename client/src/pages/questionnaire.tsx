@@ -108,7 +108,7 @@ export function Questionnaire({
         setAllQuestions([]);
       } finally {
         setQuestionsLoading(false);
-        setCurrentPage(0);
+        // Don't automatically reset to page 0 - this causes unwanted navigation
       }
     };
 
