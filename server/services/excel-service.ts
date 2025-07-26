@@ -1,8 +1,34 @@
 import * as XLSX from 'xlsx';
 import { FormData } from '../../client/src/lib/types';
+import { storage } from '../storage';
+import { excelParserService } from './excel-parser';
+import fs from 'fs';
 
 class ExcelService {
   async generateExcel(formData: FormData, language: string): Promise<Buffer> {
+    try {
+      // Try to get the active protocol template
+      const protocolTemplate = await storage.getActiveTemplate('protocol', language);
+      
+      if (protocolTemplate) {
+        // Use uploaded template
+        const templateBuffer = fs.readFileSync(protocolTemplate.filePath);
+        const questionConfigs = await storage.getQuestionConfigsByTemplate(protocolTemplate.id);
+        
+        // Populate the template with answers
+        return await excelParserService.populateTemplate(templateBuffer, formData.answers, questionConfigs);
+      } else {
+        // Fallback to creating a new Excel if no template is available
+        return await this.createBasicExcel(formData, language);
+      }
+    } catch (error) {
+      console.error('Error generating Excel from template, falling back to basic Excel:', error);
+      // Fallback to basic Excel creation
+      return await this.createBasicExcel(formData, language);
+    }
+  }
+
+  private async createBasicExcel(formData: FormData, language: string): Promise<Buffer> {
     try {
       // Create a new workbook
       const workbook = XLSX.utils.book_new();
@@ -18,16 +44,52 @@ class ExcelService {
         ['', '', '', ''],
       ];
 
-      // Add answers to the worksheet
-      Object.entries(formData.answers).forEach(([questionId, answer], index) => {
-        const questionText = this.getQuestionText(questionId, language);
-        worksheetData.push([
-          `${index + 1}. ${questionText}`,
-          this.formatAnswer(answer, language),
-          '',
-          ''
-        ]);
-      });
+      // Get question configs to show proper question titles
+      try {
+        const questionsTemplate = await storage.getActiveTemplate('questions', language);
+        if (questionsTemplate) {
+          const questionConfigs = await storage.getQuestionConfigsByTemplate(questionsTemplate.id);
+          
+          // Add answers with proper question titles
+          Object.entries(formData.answers).forEach(([questionId, answer]) => {
+            const config = questionConfigs.find(q => q.questionId === questionId);
+            const questionText = config ? 
+              (language === 'hu' && config.titleHu ? config.titleHu :
+               language === 'de' && config.titleDe ? config.titleDe :
+               config.title) :
+              `Question ${questionId}`;
+              
+            worksheetData.push([
+              questionText,
+              this.formatAnswer(answer, language),
+              '',
+              ''
+            ]);
+          });
+        } else {
+          // Fallback if no questions template
+          Object.entries(formData.answers).forEach(([questionId, answer], index) => {
+            const questionText = this.getQuestionText(questionId, language);
+            worksheetData.push([
+              `${index + 1}. ${questionText}`,
+              this.formatAnswer(answer, language),
+              '',
+              ''
+            ]);
+          });
+        }
+      } catch (error) {
+        console.error('Error getting question configs:', error);
+        // Basic fallback
+        Object.entries(formData.answers).forEach(([questionId, answer], index) => {
+          worksheetData.push([
+            `Question ${questionId}`,
+            this.formatAnswer(answer, language),
+            '',
+            ''
+          ]);
+        });
+      }
 
       // Add errors section
       if (formData.errors.length > 0) {

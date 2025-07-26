@@ -52,7 +52,8 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **SIGNATURE NAME INPUT**: ✅ RESOLVED - Single-mount ref solution with data-initialized attribute prevents cursor jumping
 - **PAGE NAVIGATION**: ✅ RESOLVED - "Tovább" button works with proper validation and localStorage persistence
 - **SIGNATURE CANVAS**: ✅ RESOLVED - Drawing functionality working properly
-- **PROTOCOL PREVIEW**: ✅ RESOLVED - Fixed route ordering issue, /api/protocols/preview endpoint now works with latest protocol or mock data fallback
+- **PROTOCOL PREVIEW**: ✅ RESOLVED - Created beautiful JSON preview page showing questions with proper titles
+- **EXCEL TEMPLATE INTEGRATION**: ✅ RESOLVED - ExcelService now uses uploaded protocol templates or fallbacks to question-aware Excel generation
 - **Cache Strategy**: All inputs use native DOM manipulation - questionnaire via StableNativeInput, signature name via single-mount ref
 - **Event System**: Complete bypass of React event system using native DOM addEventListener for all text inputs
 - **Final Solution**: Zero React state updates during typing, preventing all cursor jumping and keyboard dismissal issues
