@@ -65,7 +65,8 @@ class ExcelService {
       // Add answers based on question configs
       Object.entries(formData.answers).forEach(([questionId, answer]) => {
         const config = questionConfigs.find(q => q.questionId === questionId);
-        if (config && config.cellReference) {
+        
+        if (config && config.cellReference && answer !== '' && answer !== null && answer !== undefined) {
           cellMappings.push({
             cell: config.cellReference,
             value: answer,
@@ -74,12 +75,12 @@ class ExcelService {
         }
       });
       
-      // Add date to a suitable location if not already mapped
-      if (!cellMappings.find(m => m.cell === 'F9')) {
+      // Add signature name to a suitable location 
+      if (formData.signatureName && !cellMappings.find(m => m.cell === 'F9')) {
         cellMappings.push({
-          cell: 'F9', // Try the first available cell
-          value: formData.receptionDate,
-          label: 'Reception date'
+          cell: 'F9',
+          value: formData.signatureName,
+          label: 'Signature name'
         });
       }
       
@@ -103,12 +104,12 @@ class ExcelService {
               t: typeof mapping.value === 'number' ? 'n' : 's' 
             };
           }
-          console.log(`Filled ${mapping.label} at ${mapping.cell}: ${mapping.value}`);
+          // Cell filled successfully
           filledCells++;
         }
       });
       
-      console.log(`Successfully filled ${filledCells} specific cells in the OTIS template`);
+      console.log(`Successfully filled ${filledCells} cells in the OTIS protocol template`);
       
       // MOST IMPORTANTLY: Make sure the worksheet gets the updated range
       // Update the worksheet range to include any new cells we added
@@ -129,11 +130,12 @@ class ExcelService {
         console.log('Updated worksheet range to:', worksheet['!ref']);
       }
       
-      // Generate buffer without changing the original range unless we added fallback data
+      // Generate buffer preserving all original formatting
       const buffer = XLSX.write(workbook, { 
         type: 'buffer', 
         bookType: 'xlsx',
-        compression: true 
+        compression: false,  // Don't compress to preserve formatting better
+        cellStyles: true     // Preserve cell styles
       });
       
       console.log('Successfully populated protocol template preserving original format');
