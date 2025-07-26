@@ -283,7 +283,23 @@ export function Questionnaire({
             
             {isLastPage ? (
               <Button
-                onClick={onNext}
+                onClick={() => {
+                  // Sync all cached values before completing
+                  const cachedRadioValues = getAllCachedValues();
+                  const cachedInputValues = getAllCachedInputValues();
+                  
+                  Object.entries(cachedRadioValues).forEach(([questionId, value]) => {
+                    onAnswerChange(questionId, value);
+                  });
+                  Object.entries(cachedInputValues).forEach(([questionId, value]) => {
+                    onAnswerChange(questionId, value);
+                  });
+                  
+                  // Small delay to ensure state updates before proceeding
+                  setTimeout(() => {
+                    onNext();
+                  }, 100);
+                }}
                 disabled={!canProceed()}
                 className="bg-otis-blue hover:bg-blue-700 text-white flex items-center"
               >
