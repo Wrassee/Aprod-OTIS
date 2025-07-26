@@ -2,8 +2,7 @@ import { memo, useCallback } from 'react';
 import { Question, AnswerValue } from '@shared/schema';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
+import { UltraStableRadio } from './ultra-stable-radio';
 import { Camera, Image } from 'lucide-react';
 import { useLanguageContext } from './language-provider';
 import { MegaStableInput } from './mega-stable-input';
@@ -35,33 +34,19 @@ const IsolatedQuestionComponent = memo(({
   const renderInput = useCallback(() => {
     switch (question.type) {
       case 'yes_no_na':
+        const radioOptions = [
+          { value: 'yes', label: t.yes, id: `${question.id}-yes` },
+          { value: 'no', label: t.no, id: `${question.id}-no` },
+          { value: 'na', label: t.notApplicable, id: `${question.id}-na` }
+        ];
+        
         return (
-          <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
-            <RadioGroup
-              value={value?.toString() || ''}
-              onValueChange={onChange}
-              className="space-y-3"
-            >
-              <div className="flex items-center space-x-3" onClick={(e) => e.stopPropagation()}>
-                <RadioGroupItem value="yes" id={`${question.id}-yes`} />
-                <Label htmlFor={`${question.id}-yes`} className="cursor-pointer">
-                  {t.yes}
-                </Label>
-              </div>
-              <div className="flex items-center space-x-3" onClick={(e) => e.stopPropagation()}>
-                <RadioGroupItem value="no" id={`${question.id}-no`} />
-                <Label htmlFor={`${question.id}-no`} className="cursor-pointer">
-                  {t.no}
-                </Label>
-              </div>
-              <div className="flex items-center space-x-3" onClick={(e) => e.stopPropagation()}>
-                <RadioGroupItem value="na" id={`${question.id}-na`} />
-                <Label htmlFor={`${question.id}-na`} className="cursor-pointer">
-                  {t.notApplicable}
-                </Label>
-              </div>
-            </RadioGroup>
-          </div>
+          <UltraStableRadio
+            value={value?.toString() || ''}
+            onChange={onChange}
+            options={radioOptions}
+            className="space-y-3"
+          />
         );
 
       case 'number':
