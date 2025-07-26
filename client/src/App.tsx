@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -189,16 +189,16 @@ function App() {
               return (
                 <Questionnaire
                   receptionDate={formData.receptionDate}
-                  onReceptionDateChange={(date) => setFormData(prev => ({ ...prev, receptionDate: date }))}
+                  onReceptionDateChange={useCallback((date) => setFormData(prev => ({ ...prev, receptionDate: date })), [])}
                   answers={formData.answers}
-                  onAnswerChange={(questionId, value) => 
+                  onAnswerChange={useCallback((questionId, value) => {
                     setFormData(prev => ({
                       ...prev,
                       answers: { ...prev.answers, [questionId]: value }
-                    }))
-                  }
+                    }));
+                  }, [])}
                   errors={formData.errors}
-                  onErrorsChange={(errors) => setFormData(prev => ({ ...prev, errors }))}
+                  onErrorsChange={useCallback((errors) => setFormData(prev => ({ ...prev, errors })), [])}
                   onNext={handleQuestionnaireNext}
                   onSave={handleSaveProgress}
                   language={language}

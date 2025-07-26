@@ -18,18 +18,30 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Database Integration**: ✅ COMPLETED - Full PostgreSQL integration with Neon serverless configuration
 - **Component Architecture**: ✅ COMPLETED - Isolated question components with full memoization
 
-### Current Issues (January 26, 2025)
-- **Radio Button Page Switching**: Radio button selections trigger unwanted page navigation. Attempted solutions:
+### Current Issues (January 27, 2025)
+- **Radio Button Page Switching**: CRITICAL UNRESOLVED - Radio button selections trigger unwanted page navigation. Attempted solutions:
   - UltraStableRadio with 800ms debounce
   - InstantRadio with immediate response 
-  - Multiple event propagation prevention methods
+  - IsolatedRadio with complete event isolation
+  - ZeroRadio with minimal logic
+  - SimpleRadio with no fancy features
+  - Multiple useEffect dependency changes
+  - Complete event propagation prevention methods
   - Focus/blur handling improvements
-  - None have resolved the core issue
+  - Removing language dependency from useEffect
+  - **ROOT CAUSE**: Component remounting causing continuous API calls and state resets
 
-### Next Steps
-- Investigate root cause of radio button page switching behavior
-- Consider alternative radio button implementation approaches
-- Review questionnaire navigation logic for conflicts
+### Analysis
+- Questions still reload multiple times ("Loaded questions from API (ONCE)" appears 3x)
+- Component is remounting repeatedly, not just re-rendering
+- Problem is architectural, not with radio button components
+- Need to investigate App.tsx state management and parent re-renders
+
+### Next Priority Actions
+1. **STOP component remounting** - investigate App.tsx formData state changes
+2. **Trace the remounting cause** - localStorage save triggers, parent state updates
+3. **Consider moving questionnaire state to localStorage persistence layer**
+4. **Alternative: Implement controlled radio buttons with useRef for value storage**
 
 ## System Architecture
 
