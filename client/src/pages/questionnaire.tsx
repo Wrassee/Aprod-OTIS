@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Question, AnswerValue, ProtocolError } from '@shared/schema';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -111,11 +111,9 @@ export function Questionnaire({
       }
     };
 
-    // Only load once when component mounts
-    if (allQuestions.length === 0) {
-      loadQuestions();
-    }
-  }, []); // NO dependencies - prevents unnecessary re-loads
+    // Load questions only on mount
+    loadQuestions();
+  }, []); // No dependencies at all - load once and done
 
   // Memoized calculations to prevent unnecessary re-renders
   const questionsPerPage = 4;
