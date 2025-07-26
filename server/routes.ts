@@ -45,7 +45,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get protocol
+  // Protocol preview endpoint - MUST BE BEFORE :id route
+  app.get("/api/protocols/preview", async (req, res) => {
+    try {
+      // Get the most recent protocol
+      const protocols = await storage.getAllProtocols();
+      const latestProtocol = protocols[protocols.length - 1];
+      
+      if (!latestProtocol) {
+        // Return a mock protocol for preview if none exists
+        const mockProtocol = {
+          id: 'preview-mock',
+          receptionDate: new Date().toISOString().split('T')[0],
+          answers: {
+            '1': 'Példa Átvevő',
+            '2': 'Példa Cím', 
+            '3': '1000',
+            '4': 'Minden rendben'
+          },
+          errors: [],
+          signature: '',
+          signatureName: 'Példa Aláíró',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        return res.json(mockProtocol);
+      }
+      
+      res.json(latestProtocol);
+    } catch (error) {
+      console.error("Error fetching protocol preview:", error);
+      res.status(500).json({ message: "Failed to fetch protocol preview" });
+    }
+  });
+
+  // Get protocol by ID
   app.get("/api/protocols/:id", async (req, res) => {
     try {
       const protocol = await storage.getProtocol(req.params.id);
@@ -146,39 +180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Protocol preview endpoint - returns latest protocol as JSON data
-  app.get("/api/protocols/preview", async (req, res) => {
-    try {
-      // Get the most recent protocol
-      const protocols = await storage.getAllProtocols();
-      const latestProtocol = protocols[protocols.length - 1];
-      
-      if (!latestProtocol) {
-        // Return a mock protocol for preview if none exists
-        const mockProtocol = {
-          id: 'preview-mock',
-          receptionDate: new Date().toISOString().split('T')[0],
-          answers: {
-            '1': 'Példa Átvevő',
-            '2': 'Példa Cím',
-            '3': '1000',
-            '4': 'Minden rendben'
-          },
-          errors: [],
-          signature: '',
-          signatureName: 'Példa Aláíró',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-        return res.json(mockProtocol);
-      }
-      
-      res.json(latestProtocol);
-    } catch (error) {
-      console.error("Error fetching protocol preview:", error);
-      res.status(500).json({ message: "Failed to fetch protocol preview" });
-    }
-  });
+
 
   // === ADMIN ROUTES FOR TEMPLATE MANAGEMENT ===
 
