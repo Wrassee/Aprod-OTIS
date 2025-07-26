@@ -309,7 +309,7 @@ export function Questionnaire({
               onClick={() => {
                 // Sync all cached values to parent
                 const cachedRadioValues = getAllCachedValues();
-                const cachedInputValues = getAllCachedInputValues();
+                const cachedInputValues = getAllStableInputValues();
                 
                 Object.entries(cachedRadioValues).forEach(([questionId, value]) => {
                   onAnswerChange(questionId, value);
@@ -331,7 +331,7 @@ export function Questionnaire({
                 onClick={() => {
                   // Sync all cached values before completing
                   const cachedRadioValues = getAllCachedValues();
-                  const cachedInputValues = getAllCachedInputValues();
+                  const cachedInputValues = getAllStableInputValues();
                   
                   Object.entries(cachedRadioValues).forEach(([questionId, value]) => {
                     onAnswerChange(questionId, value);
@@ -362,7 +362,7 @@ export function Questionnaire({
                   
                   // Sync cached values before moving to next page
                   const cachedRadioValues = getAllCachedValues();
-                  const cachedInputValues = getAllCachedInputValues();
+                  const cachedInputValues = getAllStableInputValues();
                   
                   Object.entries(cachedRadioValues).forEach(([questionId, value]) => {
                     onAnswerChange(questionId, value);
