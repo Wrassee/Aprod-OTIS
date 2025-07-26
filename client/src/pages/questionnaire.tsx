@@ -190,7 +190,7 @@ export function Questionnaire({
       return hasAnswer || hasCachedRadio || hasCachedInput;
     });
     
-    console.log('Can proceed check result:', result, 'Required questions:', requiredQuestions.length);
+    console.log('Can proceed check result:', result, 'Required questions:', requiredQuestions.length, 'Current page:', currentPage);
     return result;
   };
   
@@ -344,7 +344,11 @@ export function Questionnaire({
                   }, 100);
                 }}
                 disabled={!canProceedState}
-                className="bg-otis-blue hover:bg-blue-700 text-white flex items-center"
+                className={`flex items-center text-white ${
+                  canProceedState 
+                    ? 'bg-otis-blue hover:bg-blue-700 cursor-pointer' 
+                    : 'bg-gray-400 cursor-not-allowed'
+                }`}
               >
                 {t.complete}
                 <ArrowRight className="h-4 w-4 ml-2" />
@@ -352,6 +356,8 @@ export function Questionnaire({
             ) : (
               <Button
                 onClick={() => {
+                  console.log('Next button clicked, canProceedState:', canProceedState);
+                  
                   // Sync cached values before moving to next page
                   const cachedRadioValues = getAllCachedValues();
                   const cachedInputValues = getAllCachedInputValues();
@@ -366,9 +372,13 @@ export function Questionnaire({
                   setCurrentPage(currentPage + 1);
                 }}
                 disabled={!canProceedState}
-                className="bg-otis-blue hover:bg-blue-700 text-white flex items-center"
+                className={`flex items-center text-white ${
+                  canProceedState 
+                    ? 'bg-otis-blue hover:bg-blue-700 cursor-pointer' 
+                    : 'bg-gray-400 cursor-not-allowed'
+                }`}
               >
-                {t.next}
+                {t.next} {canProceedState ? '✓' : '✗'}
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             )}
