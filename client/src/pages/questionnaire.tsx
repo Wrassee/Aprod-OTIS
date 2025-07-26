@@ -168,7 +168,7 @@ export function Questionnaire({
               <img 
                 src="/otis-elevators-seeklogo_1753525178175.png" 
                 alt="OTIS Logo" 
-                className="h-8 w-8 mr-4"
+                className="h-12 w-12 mr-4"
               />
               {onHome && (
                 <Button

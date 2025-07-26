@@ -15,7 +15,7 @@ export function StartScreen({ onLanguageSelect }: StartScreenProps) {
         <img 
           src="/otis-elevators-seeklogo_1753525178175.png" 
           alt="OTIS Logo" 
-          className="h-20 w-20"
+          className="h-32 w-32"
         />
       </div>
       

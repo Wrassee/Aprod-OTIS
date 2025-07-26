@@ -42,7 +42,7 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Debounced Updates**: 100ms delay between local updates and parent notifications  
 - **Direct HTML Radio**: Replaced complex radio components with simple HTML inputs
 - **ZeroDependencyRadio**: 500ms debounced radio with defaultChecked to prevent controlled re-renders
-- **Logo Fix**: Moved logo to client/public/ for proper static serving
+- **Logo Fix**: ✅ COMPLETED - Moved logo to client/public/ for proper static serving, increased size (start: h-32 w-32, header: h-12 w-12)
 - **Component Isolation**: Multiple attempts to isolate radio state from parent updates
 
 ### Current Status
