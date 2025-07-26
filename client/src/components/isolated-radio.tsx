@@ -65,10 +65,12 @@ const IsolatedRadioComponent = ({
   }, []);
 
   // Minden esemény teljes blokkolása
-  const preventNavigation = useCallback((e: React.MouseEvent | React.ChangeEvent) => {
+  const preventNavigation = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    e.stopImmediatePropagation();
+    if ('stopImmediatePropagation' in e) {
+      (e as any).stopImmediatePropagation();
+    }
   }, []);
 
   const handleContainerInteraction = useCallback((e: React.MouseEvent) => {
