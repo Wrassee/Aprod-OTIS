@@ -35,9 +35,9 @@ class ExcelService {
       // Log template info
       console.log('Template sheet names:', workbook.SheetNames);
       
-      // Get the first worksheet
+      // Get the first worksheet and make a copy to preserve original
       const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
+      let worksheet = JSON.parse(JSON.stringify(workbook.Sheets[sheetName]));
       
       console.log('Original worksheet range:', worksheet['!ref']);
       
@@ -96,58 +96,23 @@ class ExcelService {
       
       console.log(`Successfully filled ${filledCells} specific cells in the OTIS template`);
       
-      // Always add a summary section at the end for verification
-      if (true) {
-        console.log('Adding fallback data section since few cells were matched');
+      // MOST IMPORTANTLY: Make sure the worksheet gets the updated range
+      // Update the worksheet range to include any new cells we added
+      if (Object.keys(cellMappings).length > 0) {
+        let newRange = worksheet['!ref'];
+        const range = XLSX.utils.decode_range(newRange || 'A1:A1');
         
-        // Find the actual end of the template content
-        let lastRow = range.e.r;
-        for (let R = range.e.r; R >= range.s.r; R--) {
-          let hasContent = false;
-          for (let C = range.s.c; C <= range.e.c; C++) {
-            const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-            if (worksheet[cellAddress] && worksheet[cellAddress].v) {
-              hasContent = true;
-              break;
-            }
+        // Check if we need to expand the range for new cells
+        cellMappings.forEach(mapping => {
+          if (mapping.value) {
+            const cellRef = XLSX.utils.decode_cell(mapping.cell);
+            if (cellRef.r > range.e.r) range.e.r = cellRef.r;
+            if (cellRef.c > range.e.c) range.e.c = cellRef.c;
           }
-          if (hasContent) {
-            lastRow = R;
-            break;
-          }
-        }
-        
-        // Add data section after some space
-        let currentRow = lastRow + 3;
-        
-        worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 0 })] = { v: '=== KITÖLTÖTT ADATOK ===', t: 's' };
-        currentRow += 2;
-        
-        worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 0 })] = { v: 'Átvétel dátuma:', t: 's' };
-        worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 1 })] = { v: formData.receptionDate, t: 's' };
-        currentRow += 1;
-        
-        Object.entries(formData.answers).forEach(([questionId, answer]) => {
-          const config = questionConfigs.find(q => q.questionId === questionId);
-          const questionText = config ? 
-            (language === 'hu' && config.titleHu ? config.titleHu :
-             language === 'de' && config.titleDe ? config.titleDe :
-             config.title) :
-            `Question ${questionId}`;
-          
-          worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 0 })] = { v: questionText, t: 's' };
-          worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 1 })] = { 
-            v: this.formatAnswer(answer, language), 
-            t: typeof answer === 'number' ? 'n' : 's' 
-          };
-          currentRow += 1;
         });
         
-        if (formData.signatureName) {
-          currentRow += 1;
-          worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 0 })] = { v: 'Aláíró:', t: 's' };
-          worksheet[XLSX.utils.encode_cell({ r: currentRow, c: 1 })] = { v: formData.signatureName, t: 's' };
-        }
+        worksheet['!ref'] = XLSX.utils.encode_range(range);
+        console.log('Updated worksheet range to:', worksheet['!ref']);
       }
       
       // Generate buffer without changing the original range unless we added fallback data
