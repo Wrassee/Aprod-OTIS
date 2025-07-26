@@ -59,12 +59,16 @@ export function Signature({
             <Label className="block text-sm font-medium text-gray-700 mb-2">
               {t.printedName}
             </Label>
-            <Input
+            <input
               type="text"
               placeholder="Enter your full name"
-              value={signatureName}
-              onChange={(e) => onSignatureNameChange(e.target.value)}
-              className="w-full"
+              value={signatureName || ''}
+              onChange={(e) => {
+                console.log('Name input changed:', e.target.value);
+                onSignatureNameChange(e.target.value);
+              }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-otis-blue"
+              style={{ fontSize: '16px' }} // Prevent zoom on iOS
             />
           </div>
           
