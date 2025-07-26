@@ -154,7 +154,18 @@ export function Questionnaire({
 
   const canProceed = () => {
     const requiredQuestions = currentQuestions.filter(q => q.required);
-    return requiredQuestions.every(q => answers[q.id] !== undefined);
+    
+    // Check both answers prop and cached values
+    const cachedRadioValues = getAllCachedValues();
+    const cachedInputValues = getAllCachedInputValues();
+    
+    return requiredQuestions.every(q => {
+      const hasAnswer = answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== '';
+      const hasCachedRadio = cachedRadioValues[q.id] !== undefined && cachedRadioValues[q.id] !== '';
+      const hasCachedInput = cachedInputValues[q.id] !== undefined && cachedInputValues[q.id] !== '';
+      
+      return hasAnswer || hasCachedRadio || hasCachedInput;
+    });
   };
 
   const isLastPage = currentPage === totalPages - 1;
@@ -308,7 +319,20 @@ export function Questionnaire({
               </Button>
             ) : (
               <Button
-                onClick={() => setCurrentPage(currentPage + 1)}
+                onClick={() => {
+                  // Sync cached values before moving to next page
+                  const cachedRadioValues = getAllCachedValues();
+                  const cachedInputValues = getAllCachedInputValues();
+                  
+                  Object.entries(cachedRadioValues).forEach(([questionId, value]) => {
+                    onAnswerChange(questionId, value);
+                  });
+                  Object.entries(cachedInputValues).forEach(([questionId, value]) => {
+                    onAnswerChange(questionId, value);
+                  });
+                  
+                  setCurrentPage(currentPage + 1);
+                }}
                 disabled={!canProceed()}
                 className="bg-otis-blue hover:bg-blue-700 text-white flex items-center"
               >
