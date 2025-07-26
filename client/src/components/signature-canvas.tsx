@@ -39,27 +39,42 @@ export function SignatureCanvas({ onSignatureChange }: SignatureCanvasProps) {
         
         <canvas
           ref={canvasRef}
-          width={800}
-          height={300}
-          className="border-2 border-gray-300 rounded bg-white cursor-crosshair mx-auto touch-none max-w-full"
-          style={{ touchAction: 'none' }}
+          width={600}
+          height={200}
+          className="border-2 border-gray-300 rounded bg-white cursor-crosshair mx-auto block"
+          style={{ 
+            touchAction: 'none',
+            maxWidth: '100%',
+            height: 'auto'
+          }}
+          onPointerDown={(e) => {
+            e.preventDefault();
+            console.log('Pointer down event');
+            startDrawing(e as any);
+          }}
+          onPointerMove={(e) => {
+            e.preventDefault();
+            draw(e as any);
+          }}
+          onPointerUp={(e) => {
+            e.preventDefault();
+            stopDrawing();
+          }}
+          onPointerLeave={stopDrawing}
           onMouseDown={startDrawing}
           onMouseMove={draw}
           onMouseUp={stopDrawing}
           onMouseLeave={stopDrawing}
           onTouchStart={(e) => {
             e.preventDefault();
-            e.stopPropagation();
             startDrawing(e);
           }}
           onTouchMove={(e) => {
             e.preventDefault();
-            e.stopPropagation();
             draw(e);
           }}
           onTouchEnd={(e) => {
             e.preventDefault();
-            e.stopPropagation();
             stopDrawing();
           }}
         />

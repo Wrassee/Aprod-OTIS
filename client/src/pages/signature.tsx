@@ -67,8 +67,17 @@ export function Signature({
                 console.log('Name input changed:', e.target.value);
                 onSignatureNameChange(e.target.value);
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-otis-blue"
-              style={{ fontSize: '16px' }} // Prevent zoom on iOS
+              onFocus={() => console.log('Input focused')}
+              onClick={() => console.log('Input clicked')}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-otis-blue bg-white"
+              style={{ 
+                fontSize: '16px',
+                WebkitAppearance: 'none',
+                zIndex: 10,
+                position: 'relative'
+              }}
+              autoComplete="name"
+              data-testid="signature-name-input"
             />
           </div>
           
