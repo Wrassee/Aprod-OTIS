@@ -53,95 +53,62 @@ class ExcelService {
         console.log('Could not load question configs:', error);
       }
       
-      // PRESERVE ORIGINAL TEMPLATE - only add data to specific empty cells
-      // Look for common field names in the template and try to populate them
+      // PRECISE TEMPLATE FILLING - Based on actual template analysis
+      // Fill specific known cells in the OTIS template
       
-      // Convert worksheet to array format to search for patterns
-      const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1:Z100');
-      console.log('Searching template for fillable fields...');
-      
-      // Track what we found and filled
+      console.log('Filling OTIS template with specific cell mappings...');
       let filledCells = 0;
       
-      // Search through cells for patterns that match our data
-      for (let R = range.s.r; R <= range.e.r; R++) {
-        for (let C = range.s.c; C <= range.e.c; C++) {
-          const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-          const cell = worksheet[cellAddress];
-          
-          if (cell && cell.v && typeof cell.v === 'string') {
-            const cellValue = cell.v.toString().toLowerCase();
-            
-            // Try to match common field patterns with our data
-            if (cellValue.includes('név') || cellValue.includes('name')) {
-              // Try to find an empty cell nearby for the name
-              const nextCell = XLSX.utils.encode_cell({ r: R, c: C + 1 });
-              const nextCellBelow = XLSX.utils.encode_cell({ r: R + 1, c: C });
-              
-              if (!worksheet[nextCell] || !worksheet[nextCell].v) {
-                worksheet[nextCell] = { v: formData.answers['1'] || formData.signatureName || '', t: 's' };
-                console.log(`Filled name field at ${nextCell}: ${worksheet[nextCell].v}`);
-                filledCells++;
-              } else if (!worksheet[nextCellBelow] || !worksheet[nextCellBelow].v) {
-                worksheet[nextCellBelow] = { v: formData.answers['1'] || formData.signatureName || '', t: 's' };
-                console.log(`Filled name field at ${nextCellBelow}: ${worksheet[nextCellBelow].v}`);
-                filledCells++;
-              }
-            }
-            
-            if (cellValue.includes('dátum') || cellValue.includes('date')) {
-              const nextCell = XLSX.utils.encode_cell({ r: R, c: C + 1 });
-              const nextCellBelow = XLSX.utils.encode_cell({ r: R + 1, c: C });
-              
-              if (!worksheet[nextCell] || !worksheet[nextCell].v) {
-                worksheet[nextCell] = { v: formData.receptionDate, t: 's' };
-                console.log(`Filled date field at ${nextCell}: ${worksheet[nextCell].v}`);
-                filledCells++;
-              } else if (!worksheet[nextCellBelow] || !worksheet[nextCellBelow].v) {
-                worksheet[nextCellBelow] = { v: formData.receptionDate, t: 's' };
-                console.log(`Filled date field at ${nextCellBelow}: ${worksheet[nextCellBelow].v}`);
-                filledCells++;
-              }
-            }
-            
-            // Match specific question patterns
-            Object.entries(formData.answers).forEach(([questionId, answer]) => {
-              const config = questionConfigs.find(q => q.questionId === questionId);
-              if (config) {
-                const questionText = (language === 'hu' && config.titleHu ? config.titleHu :
-                                   language === 'de' && config.titleDe ? config.titleDe :
-                                   config.title).toLowerCase();
-                
-                if (cellValue.includes(questionText.substring(0, 10))) {
-                  const nextCell = XLSX.utils.encode_cell({ r: R, c: C + 1 });
-                  const nextCellBelow = XLSX.utils.encode_cell({ r: R + 1, c: C });
-                  
-                  if (!worksheet[nextCell] || !worksheet[nextCell].v) {
-                    worksheet[nextCell] = { 
-                      v: this.formatAnswer(answer, language), 
-                      t: typeof answer === 'number' ? 'n' : 's' 
-                    };
-                    console.log(`Filled question ${questionId} at ${nextCell}: ${answer}`);
-                    filledCells++;
-                  } else if (!worksheet[nextCellBelow] || !worksheet[nextCellBelow].v) {
-                    worksheet[nextCellBelow] = { 
-                      v: this.formatAnswer(answer, language), 
-                      t: typeof answer === 'number' ? 'n' : 's' 
-                    };
-                    console.log(`Filled question ${questionId} at ${nextCellBelow}: ${answer}`);
-                    filledCells++;
-                  }
-                }
-              }
-            });
-          }
+      // Based on template analysis, we know the exact locations:
+      // Row 9, Col K: "Name des Monteur / Reparateur: " -> Fill cell L9
+      // Row 11, Col K: "Name des ST:" -> Fill cell L11  
+      // Row 13, Col F: "PLZ :" -> Fill cell G13
+      // Row 13, Col M: "Stadt :" -> Fill cell N13
+      // Row 14, Col F: "Strasse :" -> Fill cell G14
+      // Row 14, Col M: "N°" -> Fill cell N14
+      // Row 16, Col L: "Otis Anlage N° :" -> Fill cell M16
+      
+      const cellMappings = [
+        // Monteur/Reparateur name (question 1: Átvevő neve)
+        { cell: 'L9', value: formData.answers['1'] || '', label: 'Monteur/Reparateur name' },
+        
+        // ST name (question 2: Szerelő neve) 
+        { cell: 'L11', value: formData.answers['2'] || '', label: 'ST name' },
+        
+        // PLZ (question 3: Irányítószám)
+        { cell: 'G13', value: formData.answers['3'] || '', label: 'PLZ' },
+        
+        // Stadt (question 4: Város)
+        { cell: 'N13', value: formData.answers['4'] || '', label: 'Stadt' },
+        
+        // Strasse (question 5: Utca)
+        { cell: 'G14', value: formData.answers['5'] || '', label: 'Strasse' },
+        
+        // House number (question 6: Házszám)
+        { cell: 'N14', value: formData.answers['6'] || '', label: 'House number' },
+        
+        // Otis Anlage Nr (question 7: Otis Lift-azonosító)
+        { cell: 'M16', value: formData.answers['7'] || '', label: 'Otis Anlage Nr' },
+        
+        // Add date if we can find a suitable place - try a few locations
+        { cell: 'T9', value: formData.receptionDate, label: 'Reception date' },
+      ];
+      
+      cellMappings.forEach(mapping => {
+        if (mapping.value) {
+          worksheet[mapping.cell] = { 
+            v: this.formatAnswer(mapping.value, language), 
+            t: typeof mapping.value === 'number' ? 'n' : 's' 
+          };
+          console.log(`Filled ${mapping.label} at ${mapping.cell}: ${mapping.value}`);
+          filledCells++;
         }
-      }
+      });
       
-      console.log(`Successfully filled ${filledCells} cells in the original template`);
+      console.log(`Successfully filled ${filledCells} specific cells in the OTIS template`);
       
-      // If we didn't manage to fill many cells, add a data section at the end
-      if (filledCells < 3) {
+      // Always add a summary section at the end for verification
+      if (true) {
         console.log('Adding fallback data section since few cells were matched');
         
         // Find the actual end of the template content
