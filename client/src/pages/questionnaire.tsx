@@ -9,7 +9,7 @@ import { ErrorList } from '@/components/error-list';
 import { useLanguageContext } from '@/components/language-provider';
 import { ArrowLeft, ArrowRight, Save, Settings, Home } from 'lucide-react';
 import { getAllCachedValues } from '@/components/cache-radio';
-import { getAllCachedInputValues } from '@/components/cache-input';
+import { getAllStableInputValues } from '@/components/stable-input';
 
 interface QuestionnaireProps {
   receptionDate: string;
@@ -182,7 +182,7 @@ export function Questionnaire({
     
     // Check both answers prop and cached values
     const cachedRadioValues = getAllCachedValues();
-    const cachedInputValues = getAllCachedInputValues();
+    const cachedInputValues = getAllStableInputValues();
     
     const result = requiredQuestions.every(q => {
       const hasAnswer = answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== '';

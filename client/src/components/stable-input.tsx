@@ -1,101 +1,68 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface StableInputProps {
-  type?: 'text' | 'number';
+  questionId: string;
+  type: 'text' | 'number';
   placeholder?: string;
-  value: string | number;
-  onChange: (value: string | number) => void;
-  className?: string;
-  style?: React.CSSProperties;
-  rows?: number;
-  multiline?: boolean;
+  initialValue?: string;
+  onValueChange?: (value: string) => void;
 }
 
-export function StableInput({ 
-  type = 'text', 
-  placeholder, 
-  value, 
-  onChange, 
-  className,
-  style,
-  rows = 4,
-  multiline = false
-}: StableInputProps) {
-  const [localValue, setLocalValue] = useState(value?.toString() || '');
-  const [isFocused, setIsFocused] = useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout>();
+export function StableInput({ questionId, type, placeholder, initialValue, onValueChange }: StableInputProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const mountedRef = useRef(false);
 
-  // Update local value when external value changes (but not when focused)
   useEffect(() => {
-    const newValue = value?.toString() || '';
-    if (!isFocused && newValue !== localValue) {
-      setLocalValue(newValue);
-    }
-  }, [value, isFocused, localValue]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const newValue = e.target.value;
-    setLocalValue(newValue);
-
-    // Clear existing timeout
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-
-    // Debounce the onChange call
-    timeoutRef.current = setTimeout(() => {
-      if (type === 'number') {
-        const numVal = parseFloat(newValue);
-        onChange(isNaN(numVal) ? '' : numVal);
-      } else {
-        onChange(newValue);
+    if (inputRef.current && !mountedRef.current) {
+      // Set initial value only once on mount
+      if (initialValue) {
+        inputRef.current.value = initialValue;
       }
-    }, 500); // Increased to 500ms debounce
-  };
-
-  const handleFocus = () => {
-    setIsFocused(true);
-  };
-
-  const handleBlur = () => {
-    setIsFocused(false);
-    // Immediate sync on blur
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
+      mountedRef.current = true;
     }
-    if (type === 'number') {
-      const numVal = parseFloat(localValue);
-      onChange(isNaN(numVal) ? '' : numVal);
-    } else {
-      onChange(localValue);
-    }
-  };
+  }, [initialValue]);
 
-  if (multiline) {
-    return (
-      <textarea
-        placeholder={placeholder}
-        value={localValue}
-        onChange={handleChange}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-        className={className}
-        style={style}
-        rows={rows}
-      />
-    );
-  }
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    console.log(`Stable input typing: ${questionId} = ${value}`);
+    
+    // Store in global cache immediately (no React state update!)
+    if (!(window as any).stableInputValues) {
+      (window as any).stableInputValues = {};
+    }
+    (window as any).stableInputValues[questionId] = value;
+    
+    // Debounced callback to avoid excessive parent updates
+    clearTimeout((window as any)[`stable-timeout-${questionId}`]);
+    (window as any)[`stable-timeout-${questionId}`] = setTimeout(() => {
+      if (onValueChange) {
+        onValueChange(value);
+      }
+    }, 500);
+  };
 
   return (
     <input
+      ref={inputRef}
       type={type}
-      placeholder={placeholder}
-      value={localValue}
       onChange={handleChange}
-      onFocus={handleFocus}
-      onBlur={handleBlur}
-      className={className}
-      style={style}
+      placeholder={placeholder}
+      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-transparent"
+      style={{ 
+        fontSize: '16px',
+        backgroundColor: 'white',
+        color: '#000'
+      }}
     />
   );
+}
+
+// Helper function to get all stable input values
+export function getAllStableInputValues(): Record<string, string> {
+  return (window as any).stableInputValues || {};
+}
+
+// Helper function to clear all stable input values
+export function clearAllStableInputValues() {
+  (window as any).stableInputValues = {};
 }
