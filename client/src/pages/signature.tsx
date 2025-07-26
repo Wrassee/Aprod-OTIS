@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { SimpleSignatureCanvas } from '@/components/simple-signature-canvas';
+import { StableInput } from '@/components/stable-input';
 import { useLanguageContext } from '@/components/language-provider';
 import { ArrowLeft, Check, Calendar } from 'lucide-react';
 
@@ -61,11 +62,11 @@ export function Signature({
               Nyomtatott név (opcionális):
             </label>
             <div className="relative">
-              <input
+              <StableInput
                 type="text"
                 placeholder="Teljes név"
-                value={signatureName}
-                onChange={(e) => onSignatureNameChange(e.target.value)}
+                value={signatureName || ''}
+                onChange={(value) => onSignatureNameChange(value as string)}
                 className="w-full h-12 px-4 text-lg border-2 border-gray-300 rounded-lg focus:border-otis-blue focus:outline-none bg-white"
                 style={{ 
                   fontSize: '18px',

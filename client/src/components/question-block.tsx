@@ -2,12 +2,11 @@ import { useState } from 'react';
 import { Question, AnswerValue, QuestionType } from '@shared/schema';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Camera, Image } from 'lucide-react';
 import { useLanguageContext } from './language-provider';
+import { StableInput } from './stable-input';
 
 interface QuestionBlockProps {
   question: Question;
@@ -67,32 +66,25 @@ export function QuestionBlock({
 
       case 'number':
         return (
-          <Input
+          <StableInput
             type="number"
             placeholder={question.placeholder || "Enter number"}
-            value={value?.toString() || ''}
-            onChange={(e) => {
-              const val = e.target.value;
-              if (val === '') {
-                onChange('');
-              } else {
-                const numVal = parseFloat(val);
-                if (!isNaN(numVal)) {
-                  onChange(numVal);
-                }
-              }
-            }}
-            className="w-full text-lg py-3"
+            value={value || ''}
+            onChange={onChange}
+            className="w-full text-lg py-3 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-otis-blue"
+            style={{ fontSize: '16px' }}
           />
         );
 
       case 'text':
         return (
-          <Textarea
+          <StableInput
             placeholder={question.placeholder || "Enter text"}
-            value={value?.toString() || ''}
-            onChange={(e) => onChange(e.target.value)}
-            className="w-full resize-none"
+            value={value || ''}
+            onChange={onChange}
+            multiline={true}
+            className="w-full resize-none px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-otis-blue"
+            style={{ fontSize: '16px' }}
             rows={4}
           />
         );

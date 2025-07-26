@@ -29,8 +29,13 @@ function App() {
     if (currentScreen === 'start') return;
     
     const timeoutId = setTimeout(() => {
-      localStorage.setItem('otis-protocol-form-data', JSON.stringify(formData));
-    }, 1000); // 1 second debounce
+      try {
+        localStorage.setItem('otis-protocol-form-data', JSON.stringify(formData));
+        console.log('Form data saved to localStorage');
+      } catch (error) {
+        console.error('Error saving to localStorage:', error);
+      }
+    }, 2000); // Increased to 2 seconds to reduce frequent saves
 
     return () => clearTimeout(timeoutId);
   }, [formData, currentScreen]);
