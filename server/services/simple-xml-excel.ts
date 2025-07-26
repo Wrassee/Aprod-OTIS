@@ -96,12 +96,21 @@ class SimpleXmlExcelService {
           const styleMatch = worksheetXml.match(new RegExp(`<c r="${cell}" s="([^"]+)"/>`));
           if (styleMatch) {
             const styleValue = styleMatch[1];
+            const replacement = `<c r="${cell}" s="${styleValue}" t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`;
             worksheetXml = worksheetXml.replace(
               new RegExp(`<c r="${cell}" s="${styleValue}"/>`), 
-              `<c r="${cell}" s="${styleValue}" t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`
+              replacement
             );
             modifiedCount++;
             console.log(`XML: Added ${cell} = "${value}" (exact style preserved: s="${styleValue}")`);
+            
+            // Special debug for Q13
+            if (cell === 'Q13') {
+              console.log(`Q13 DEBUG: Original pattern found and replaced`);
+              console.log(`Q13 DEBUG: Replacement = ${replacement}`);
+            }
+          } else {
+            console.log(`XML: Style match failed for ${cell}`);
           }
         }
         // Fallback for any other empty pattern
