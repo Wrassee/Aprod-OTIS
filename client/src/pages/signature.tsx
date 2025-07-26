@@ -63,10 +63,27 @@ export function Signature({
             </label>
             <div className="relative">
               <input
+                key="signature-name-input"
                 type="text"
                 placeholder="Teljes név"
-                value={signatureName || ''}
-                onChange={(e) => onSignatureNameChange(e.target.value)}
+                defaultValue={signatureName || ''}
+                onInput={(e) => {
+                  const target = e.target as HTMLInputElement;
+                  const newValue = target.value;
+                  console.log(`Signature name typing: ${newValue}`);
+                  
+                  // Store value globally without React state updates
+                  if (!(window as any).signatureNameValue) {
+                    (window as any).signatureNameValue = '';
+                  }
+                  (window as any).signatureNameValue = newValue;
+                  
+                  // Debounced callback to parent
+                  clearTimeout((window as any).signatureNameTimeout);
+                  (window as any).signatureNameTimeout = setTimeout(() => {
+                    onSignatureNameChange(newValue);
+                  }, 300);
+                }}
                 className="w-full h-12 px-4 text-lg border-2 border-gray-300 rounded-lg focus:border-otis-blue focus:outline-none bg-white"
                 style={{ 
                   fontSize: '18px',
@@ -95,7 +112,18 @@ export function Signature({
             </Button>
             
             <Button
-              onClick={onComplete}
+              onClick={() => {
+                // Sync signature name from global storage before completing
+                const signatureName = (window as any).signatureNameValue || '';
+                if (signatureName) {
+                  onSignatureNameChange(signatureName);
+                }
+                
+                // Small delay to ensure state updates
+                setTimeout(() => {
+                  onComplete();
+                }, 100);
+              }}
               disabled={!canComplete}
               className="bg-otis-blue hover:bg-blue-700 text-white flex items-center px-8"
             >
