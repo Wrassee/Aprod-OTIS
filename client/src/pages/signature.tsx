@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { SimpleSignatureCanvas } from '@/components/simple-signature-canvas';
-import { UltraStableInput } from '@/components/ultra-stable-input';
+import { MegaStableInput } from '@/components/mega-stable-input';
 import { useLanguageContext } from '@/components/language-provider';
 import { ArrowLeft, Check, Calendar } from 'lucide-react';
 
@@ -62,7 +62,7 @@ export function Signature({
               Nyomtatott név (opcionális):
             </label>
             <div className="relative">
-              <UltraStableInput
+              <MegaStableInput
                 type="text"
                 placeholder="Teljes név"
                 value={signatureName || ''}

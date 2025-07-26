@@ -65,22 +65,25 @@ const UltraStableInputComponent = ({
   };
 
   const handleBlur = () => {
-    setIsFocused(false);
-    // Immediate sync on blur
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    
-    let finalValue: string | number;
-    if (type === 'number') {
-      const numVal = parseFloat(localValue);
-      finalValue = isNaN(numVal) ? '' : numVal;
-    } else {
-      finalValue = localValue;
-    }
-    
-    lastValueRef.current = finalValue;
-    onChange(finalValue);
+    // Delay setting focus to false to prevent race conditions
+    setTimeout(() => {
+      setIsFocused(false);
+      
+      // Only sync if value actually changed
+      let finalValue: string | number;
+      if (type === 'number') {
+        const numVal = parseFloat(localValue);
+        finalValue = isNaN(numVal) ? '' : numVal;
+      } else {
+        finalValue = localValue;
+      }
+      
+      // Only trigger onChange if value is different
+      if (finalValue !== lastValueRef.current) {
+        lastValueRef.current = finalValue;
+        onChange(finalValue);
+      }
+    }, 100); // Small delay to prevent conflicts
   };
 
   // Cleanup timeout on unmount

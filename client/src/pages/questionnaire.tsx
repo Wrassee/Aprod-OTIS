@@ -109,26 +109,26 @@ export function Questionnaire({
     return { totalPages: total, currentQuestions: current, progress: prog };
   }, [allQuestions, currentPage]);
 
-  // Memoized error handlers to prevent function recreation
+  // Ultra-stable error handlers with proper typing
   const handleAddError = useCallback((error: Omit<ProtocolError, 'id'>) => {
     const newError: ProtocolError = {
       ...error,
       id: Date.now().toString(),
     };
-    onErrorsChange([...errors, newError]);
-  }, [errors, onErrorsChange]);
+    onErrorsChange((prev: ProtocolError[]) => [...prev, newError]);
+  }, [onErrorsChange]);
 
   const handleEditError = useCallback((id: string, updatedError: Omit<ProtocolError, 'id'>) => {
-    onErrorsChange(
-      errors.map((error) =>
+    onErrorsChange((prev: ProtocolError[]) =>
+      prev.map((error: ProtocolError) =>
         error.id === id ? { ...updatedError, id } : error
       )
     );
-  }, [errors, onErrorsChange]);
+  }, [onErrorsChange]);
 
   const handleDeleteError = useCallback((id: string) => {
-    onErrorsChange(errors.filter((error) => error.id !== id));
-  }, [errors, onErrorsChange]);
+    onErrorsChange((prev: ProtocolError[]) => prev.filter((error: ProtocolError) => error.id !== id));
+  }, [onErrorsChange]);
 
   const canProceed = () => {
     const requiredQuestions = currentQuestions.filter(q => q.required);

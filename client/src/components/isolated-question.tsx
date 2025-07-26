@@ -6,7 +6,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Camera, Image } from 'lucide-react';
 import { useLanguageContext } from './language-provider';
-import { UltraStableInput } from './ultra-stable-input';
+import { MegaStableInput } from './mega-stable-input';
 
 interface IsolatedQuestionProps {
   question: Question;
@@ -64,7 +64,7 @@ const IsolatedQuestionComponent = memo(({
 
       case 'number':
         return (
-          <UltraStableInput
+          <MegaStableInput
             type="number"
             placeholder={question.placeholder || "Enter number"}
             value={value || ''}
@@ -76,7 +76,7 @@ const IsolatedQuestionComponent = memo(({
 
       case 'text':
         return (
-          <UltraStableInput
+          <MegaStableInput
             placeholder={question.placeholder || "Enter text"}
             value={value || ''}
             onChange={onChange}
