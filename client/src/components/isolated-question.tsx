@@ -51,11 +51,13 @@ const IsolatedQuestionComponent = memo(({
       case 'number':
         return (
           <input
+            key={`${question.id}-number-stable`}
+            id={`input-${question.id}`}
             type="number"
             defaultValue={value?.toString() || ''}
-            onChange={(e) => {
+            onBlur={(e) => {
               const newValue = e.target.value;
-              console.log(`Direct number input: ${question.id} = ${newValue}`);
+              console.log(`Number input saved: ${question.id} = ${newValue}`);
               onChange(newValue);
             }}
             placeholder={question.placeholder || "Enter number"}
@@ -67,11 +69,13 @@ const IsolatedQuestionComponent = memo(({
       case 'text':
         return (
           <input
+            key={`${question.id}-text-stable`}
+            id={`input-${question.id}`}
             type="text"
             defaultValue={value?.toString() || ''}
-            onChange={(e) => {
+            onBlur={(e) => {
               const newValue = e.target.value;
-              console.log(`Direct text input: ${question.id} = ${newValue}`);
+              console.log(`Text input saved: ${question.id} = ${newValue}`);
               onChange(newValue);
             }}
             placeholder={question.placeholder || "Enter text"}
