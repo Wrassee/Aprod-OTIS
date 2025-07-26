@@ -154,7 +154,7 @@ class XmlExcelService {
     const naCellRef = config.cellReferenceNa;
     
     console.log(`Handling yes_no_na question ${questionId}: answer="${answer}"`);
-    console.log(`Cells - Yes: ${yesCellRef}, No: ${noCellRef}, NA: ${naCellRef}`);
+    console.log(`Cells - Yes(A): ${yesCellRef}, No(B): ${noCellRef}, NA(C): ${naCellRef}`);
     
     // Clear all three cells first (set to empty string)
     if (yesCellRef) {
