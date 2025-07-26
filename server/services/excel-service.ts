@@ -2,29 +2,34 @@ import * as XLSX from 'xlsx';
 import { FormData } from '../../client/src/lib/types';
 import { storage } from '../storage';
 import { excelParserService } from './excel-parser';
+import { simpleXmlExcelService } from './simple-xml-excel';
 import fs from 'fs';
 
 class ExcelService {
   async generateExcel(formData: FormData, language: string): Promise<Buffer> {
     try {
-      // Try to get the active protocol template
-      const protocolTemplate = await storage.getActiveTemplate('protocol', language);
+      // Try XML-based approach first for better formatting preservation
+      console.log('Using XML-based Excel manipulation for perfect formatting preservation');
+      return await simpleXmlExcelService.generateExcelFromTemplate(formData, language);
+    } catch (xmlError) {
+      console.error('XML-based approach failed, falling back to XLSX library:', xmlError);
       
-      if (protocolTemplate) {
-        console.log(`Using protocol template: ${protocolTemplate.name} (${protocolTemplate.fileName})`);
+      // Fallback to original XLSX approach
+      try {
+        const protocolTemplate = await storage.getActiveTemplate('protocol', language);
         
-        // Use uploaded template directly - copy the template and add data to it
-        const templateBuffer = fs.readFileSync(protocolTemplate.filePath);
-        return await this.populateProtocolTemplate(templateBuffer, formData, language);
-      } else {
-        console.log('No protocol template found, using basic Excel creation');
-        // Fallback to creating a new Excel if no template is available
+        if (protocolTemplate) {
+          console.log(`Using XLSX fallback with template: ${protocolTemplate.name}`);
+          const templateBuffer = fs.readFileSync(protocolTemplate.filePath);
+          return await this.populateProtocolTemplate(templateBuffer, formData, language);
+        } else {
+          console.log('No protocol template found, using basic Excel creation');
+          return await this.createBasicExcel(formData, language);
+        }
+      } catch (fallbackError) {
+        console.error('Fallback also failed, using basic Excel:', fallbackError);
         return await this.createBasicExcel(formData, language);
       }
-    } catch (error) {
-      console.error('Error generating Excel from template, falling back to basic Excel:', error);
-      // Fallback to basic Excel creation
-      return await this.createBasicExcel(formData, language);
     }
   }
 
