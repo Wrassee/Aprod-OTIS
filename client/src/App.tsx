@@ -24,11 +24,15 @@ function App() {
     signatureName: '',
   });
 
-  // Auto-save form data to localStorage
+  // Auto-save form data to localStorage with debouncing
   useEffect(() => {
-    if (currentScreen !== 'start') {
+    if (currentScreen === 'start') return;
+    
+    const timeoutId = setTimeout(() => {
       localStorage.setItem('otis-protocol-form-data', JSON.stringify(formData));
-    }
+    }, 1000); // 1 second debounce
+
+    return () => clearTimeout(timeoutId);
   }, [formData, currentScreen]);
 
   // Load saved form data on initialization

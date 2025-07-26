@@ -49,7 +49,10 @@ export function Signature({
           
           {/* Signature Canvas */}
           <div className="mb-6">
-            <SimpleSignatureCanvas onSignatureChange={onSignatureChange} />
+            <SimpleSignatureCanvas 
+              onSignatureChange={onSignatureChange} 
+              initialSignature={signature}
+            />
           </div>
           
           {/* Optional Name Input */}

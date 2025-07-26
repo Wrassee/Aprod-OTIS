@@ -4,9 +4,10 @@ import { useLanguageContext } from './language-provider';
 
 interface SimpleSignatureCanvasProps {
   onSignatureChange: (signature: string) => void;
+  initialSignature?: string;
 }
 
-export function SimpleSignatureCanvas({ onSignatureChange }: SimpleSignatureCanvasProps) {
+export function SimpleSignatureCanvas({ onSignatureChange, initialSignature }: SimpleSignatureCanvasProps) {
   const { t } = useLanguageContext();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -32,7 +33,22 @@ export function SimpleSignatureCanvas({ onSignatureChange }: SimpleSignatureCanv
     ctx.lineWidth = 2;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-  }, []);
+    
+    // Load initial signature if provided
+    if (initialSignature && initialSignature !== canvas.toDataURL()) {
+      const img = new Image();
+      img.onload = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+      };
+      img.src = initialSignature;
+    } else {
+      // Initial signature change callback
+      onSignatureChange(canvas.toDataURL());
+    }
+  }, [onSignatureChange, initialSignature]);
 
   const getEventPos = (e: any, canvas: HTMLCanvasElement) => {
     const rect = canvas.getBoundingClientRect();
@@ -91,12 +107,16 @@ export function SimpleSignatureCanvas({ onSignatureChange }: SimpleSignatureCanv
 
   const stopDrawing = (e?: any) => {
     if (e) e.preventDefault();
+    if (!isDrawing) return;
+    
     setIsDrawing(false);
     setLastPoint(null);
 
     const canvas = canvasRef.current;
     if (canvas) {
-      onSignatureChange(canvas.toDataURL());
+      const dataURL = canvas.toDataURL();
+      onSignatureChange(dataURL);
+      console.log('Signature saved:', dataURL.length > 0);
     }
   };
 
