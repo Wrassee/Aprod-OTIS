@@ -2,7 +2,7 @@ import { memo, useCallback } from 'react';
 import { Question, AnswerValue } from '@shared/schema';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FinalRadio } from './final-radio';
+import { CacheRadio } from './cache-radio';
 import { Camera, Image } from 'lucide-react';
 import { useLanguageContext } from './language-provider';
 import { MegaStableInput } from './mega-stable-input';
@@ -41,10 +41,9 @@ const IsolatedQuestionComponent = memo(({
         ];
         
         return (
-          <FinalRadio
+          <CacheRadio
             questionId={question.id}
-            value={value?.toString() || ''}
-            onChange={onChange}
+            initialValue={value?.toString() || ''}
             options={radioOptions}
           />
         );

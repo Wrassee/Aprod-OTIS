@@ -8,6 +8,7 @@ import { IsolatedQuestion } from '@/components/isolated-question';
 import { ErrorList } from '@/components/error-list';
 import { useLanguageContext } from '@/components/language-provider';
 import { ArrowLeft, ArrowRight, Save, Settings, Home } from 'lucide-react';
+import { getAllCachedValues } from '@/components/cache-radio';
 
 interface QuestionnaireProps {
   receptionDate: string;
@@ -259,7 +260,14 @@ export function Questionnaire({
           <div className="flex space-x-4">
             <Button
               variant="outline"
-              onClick={onSave}
+              onClick={() => {
+                // Sync cached radio values to parent
+                const cachedValues = getAllCachedValues();
+                Object.entries(cachedValues).forEach(([questionId, value]) => {
+                  onAnswerChange(questionId, value);
+                });
+                onSave();
+              }}
               className="flex items-center"
             >
               <Save className="h-4 w-4 mr-2" />
