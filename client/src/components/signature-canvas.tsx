@@ -39,23 +39,27 @@ export function SignatureCanvas({ onSignatureChange }: SignatureCanvasProps) {
         
         <canvas
           ref={canvasRef}
-          width={600}
-          height={200}
-          className="border border-gray-300 rounded bg-white cursor-crosshair mx-auto touch-none"
+          width={800}
+          height={300}
+          className="border-2 border-gray-300 rounded bg-white cursor-crosshair mx-auto touch-none max-w-full"
+          style={{ touchAction: 'none' }}
           onMouseDown={startDrawing}
           onMouseMove={draw}
           onMouseUp={stopDrawing}
           onMouseLeave={stopDrawing}
           onTouchStart={(e) => {
             e.preventDefault();
+            e.stopPropagation();
             startDrawing(e);
           }}
           onTouchMove={(e) => {
             e.preventDefault();
+            e.stopPropagation();
             draw(e);
           }}
           onTouchEnd={(e) => {
             e.preventDefault();
+            e.stopPropagation();
             stopDrawing();
           }}
         />

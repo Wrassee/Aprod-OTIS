@@ -47,6 +47,8 @@ function App() {
   const handleLanguageSelect = (selectedLanguage: 'hu' | 'de') => {
     setLanguage(selectedLanguage);
     setCurrentScreen('questionnaire');
+    // Clear navigation state for new session
+    localStorage.removeItem('questionnaire-current-page');
   };
 
   const handleSaveProgress = () => {

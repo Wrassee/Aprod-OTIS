@@ -71,7 +71,17 @@ export function QuestionBlock({
             type="number"
             placeholder={question.placeholder || "Enter number"}
             value={value?.toString() || ''}
-            onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === '') {
+                onChange('');
+              } else {
+                const numVal = parseFloat(val);
+                if (!isNaN(numVal)) {
+                  onChange(numVal);
+                }
+              }
+            }}
             className="w-full text-lg py-3"
           />
         );

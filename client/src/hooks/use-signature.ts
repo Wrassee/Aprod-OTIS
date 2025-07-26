@@ -64,10 +64,21 @@ export function useSignature() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    // Clear canvas first
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Set up drawing style
     ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
+    
+    // Set white background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Reset to drawing style
+    ctx.fillStyle = '#000000';
   }, []);
 
   return {

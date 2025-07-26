@@ -37,10 +37,18 @@ export function Questionnaire({
   onHome,
 }: QuestionnaireProps) {
   const { t, language: contextLanguage } = useLanguageContext();
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(() => {
+    const saved = localStorage.getItem('questionnaire-current-page');
+    return saved ? parseInt(saved, 10) : 0;
+  });
 
   const [allQuestions, setAllQuestions] = useState<Question[]>([]);
   const [questionsLoading, setQuestionsLoading] = useState(true);
+
+  // Save current page to localStorage
+  useEffect(() => {
+    localStorage.setItem('questionnaire-current-page', currentPage.toString());
+  }, [currentPage]);
 
   // Load questions from API
   useEffect(() => {
@@ -92,6 +100,8 @@ export function Questionnaire({
     };
 
     fetchQuestions();
+    // Reset to first page when language changes
+    setCurrentPage(0);
   }, [language, t]);
 
   // Group questions into pages of 4 (2x2 grid)
