@@ -113,7 +113,7 @@ export function Questionnaire({
 
     // Load questions only on mount
     loadQuestions();
-  }, []); // No dependencies at all - load once and done
+  }, []); // Load questions only once on mount
 
   // Memoized calculations to prevent unnecessary re-renders
   const questionsPerPage = 4;
