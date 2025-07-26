@@ -37,20 +37,27 @@ const UltraStableRadioComponent = ({
       clearTimeout(timeoutRef.current);
     }
 
-    // Extremely short delay to batch updates but prevent flickering
+    // Longer delay to prevent UI flickering and page switching
     timeoutRef.current = setTimeout(() => {
       if (newValue !== lastValueRef.current) {
         lastValueRef.current = newValue;
         onChange(newValue);
       }
       setIsChanging(false);
-    }, 50); // Very short delay
+    }, 800); // Longer delay to prevent flickering
   }, [onChange]);
 
-  // Prevent event bubbling
+  // Prevent event bubbling and prevent focus/blur issues
   const handleContainerClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
   }, []);
+
+  const handleLabelClick = useCallback((e: React.MouseEvent, optionValue: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    handleValueChange(optionValue);
+  }, [handleValueChange]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -74,8 +81,19 @@ const UltraStableRadioComponent = ({
             className="flex items-center space-x-3" 
             onClick={handleContainerClick}
           >
-            <RadioGroupItem value={option.value} id={option.id} />
-            <Label htmlFor={option.id} className="cursor-pointer">
+            <RadioGroupItem 
+              value={option.value} 
+              id={option.id}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleValueChange(option.value);
+              }}
+            />
+            <Label 
+              htmlFor={option.id} 
+              className="cursor-pointer select-none"
+              onClick={(e) => handleLabelClick(e, option.value)}
+            >
               {option.label}
             </Label>
           </div>

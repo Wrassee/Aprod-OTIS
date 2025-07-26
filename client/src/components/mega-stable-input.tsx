@@ -47,7 +47,7 @@ const MegaStableInputComponent = ({
       clearTimeout(timeoutRef.current);
     }
 
-    // Very long debounce to prevent UI flickering
+    // Extended debounce to prevent UI flickering during radio selection
     timeoutRef.current = setTimeout(() => {
       if (type === 'number') {
         const numVal = parseFloat(newValue);
@@ -57,7 +57,7 @@ const MegaStableInputComponent = ({
         onChange(newValue);
       }
       isChangingRef.current = false;
-    }, 1200); // Extended to 1.2 seconds
+    }, 1500); // Even longer delay when radio buttons are active
   };
 
   const handleFocus = () => {
