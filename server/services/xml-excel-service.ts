@@ -120,12 +120,18 @@ class XmlExcelService {
     Object.entries(formData.answers).forEach(([questionId, answer]) => {
       const config = questionConfigs.find(q => q.questionId === questionId);
       
-      if (config && config.cellReference && answer !== '' && answer !== null && answer !== undefined) {
-        mappings.push({
-          cell: config.cellReference,
-          value: this.formatAnswer(answer, language),
-          label: config.title || `Question ${questionId}`
-        });
+      if (config && answer !== '' && answer !== null && answer !== undefined) {
+        if (config.type === 'yes_no_na') {
+          // Handle yes_no_na type with three cells
+          this.handleYesNoNaMappings(mappings, config, answer, questionId);
+        } else if (config.cellReference) {
+          // Handle text/number types with single cell
+          mappings.push({
+            cell: config.cellReference,
+            value: this.formatAnswer(answer, language),
+            label: config.title || `Question ${questionId}`
+          });
+        }
       }
     });
     
@@ -139,6 +145,73 @@ class XmlExcelService {
     }
     
     return mappings;
+  }
+
+  private handleYesNoNaMappings(mappings: any[], config: any, answer: string, questionId: string) {
+    // Define the cells for yes_no_na type
+    const yesCellRef = config.cellReferenceYes || config.cellReference; // fallback to base cell
+    const noCellRef = config.cellReferenceNo;
+    const naCellRef = config.cellReferenceNa;
+    
+    console.log(`Handling yes_no_na question ${questionId}: answer="${answer}"`);
+    console.log(`Cells - Yes: ${yesCellRef}, No: ${noCellRef}, NA: ${naCellRef}`);
+    
+    // Clear all three cells first (set to empty string)
+    if (yesCellRef) {
+      mappings.push({
+        cell: yesCellRef,
+        value: '',
+        label: `${config.title} - Yes (clear)`,
+        clearCell: true
+      });
+    }
+    if (noCellRef) {
+      mappings.push({
+        cell: noCellRef,
+        value: '',
+        label: `${config.title} - No (clear)`,
+        clearCell: true
+      });
+    }
+    if (naCellRef) {
+      mappings.push({
+        cell: naCellRef,
+        value: '',
+        label: `${config.title} - NA (clear)`,
+        clearCell: true
+      });
+    }
+    
+    // Set X in the appropriate cell based on answer
+    let targetCell = null;
+    let label = '';
+    
+    switch (answer.toLowerCase()) {
+      case 'yes':
+        targetCell = yesCellRef;
+        label = `${config.title} - Yes`;
+        break;
+      case 'no':
+        targetCell = noCellRef;
+        label = `${config.title} - No`;
+        break;
+      case 'na':
+        targetCell = naCellRef;
+        label = `${config.title} - NA`;
+        break;
+      default:
+        console.warn(`Unknown yes_no_na answer: ${answer} for question ${questionId}`);
+        return;
+    }
+    
+    if (targetCell) {
+      mappings.push({
+        cell: targetCell,
+        value: 'X',
+        label: label
+      });
+      console.log(`Setting X in cell ${targetCell} for answer: ${answer}`);
+    }
   }
 
   private updateCellValues(worksheetObj: any, cellMappings: any[]) {
@@ -162,7 +235,7 @@ class XmlExcelService {
       const rows = Array.isArray(worksheet.sheetData.row) ? worksheet.sheetData.row : [worksheet.sheetData.row];
       
       cellMappings.forEach(mapping => {
-        const { cell, value } = mapping;
+        const { cell, value, clearCell } = mapping;
         const { row: rowNum } = this.parseCellReference(cell);
         
         // Find or create the row
@@ -181,16 +254,29 @@ class XmlExcelService {
         
         // Find or create the cell
         let targetCell = targetRow.c.find((c: any) => c && c['@_r'] === cell);
-        if (!targetCell) {
-          targetCell = { '@_r': cell };
-          targetRow.c.push(targetCell);
+        
+        if (clearCell && value === '') {
+          // Clear the cell by removing it completely or setting it to empty
+          if (targetCell) {
+            const cellIndex = targetRow.c.findIndex((c: any) => c && c['@_r'] === cell);
+            if (cellIndex >= 0) {
+              targetRow.c.splice(cellIndex, 1);
+              console.log(`XML: Cleared cell ${cell}`);
+            }
+          }
+        } else {
+          // Set cell value
+          if (!targetCell) {
+            targetCell = { '@_r': cell };
+            targetRow.c.push(targetCell);
+          }
+          
+          // Set cell value using inline string format for maximum compatibility
+          targetCell['@_t'] = 'inlineStr';
+          targetCell.is = { t: value };
+          
+          console.log(`XML: Set ${cell} = "${value}"`);
         }
-        
-        // Set cell value using inline string format for maximum compatibility
-        targetCell['@_t'] = 'inlineStr';
-        targetCell.is = { t: value };
-        
-        console.log(`XML: Set ${cell} = "${value}"`);
       });
       
       // Update the worksheet with modified rows
