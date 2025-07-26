@@ -46,9 +46,12 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Logo Fix**: ✅ COMPLETED - Moved logo to client/public/ for proper static serving, increased size (start: h-48 w-48, header: h-12 w-12)
 - **Component Isolation**: Multiple attempts to isolate radio state from parent updates
 
-### Current Status (January 27, 2025 - 10:51)
+### Current Status (January 27, 2025 - 14:18)
 - **RADIO BUTTON ISSUE**: ✅ RESOLVED - CacheRadio with global Map cache prevents parent updates
 - **INPUT FIELD ISSUE**: ✅ RESOLVED - CacheInput prevents UI refreshes during typing
+- **PAGE NAVIGATION**: ✅ RESOLVED - "Tovább" button now works with proper validation and localStorage persistence
+- **SIGNATURE INPUT**: ✅ RESOLVED - Replaced MegaStableInput with native input element
+- **PROTOCOL PREVIEW**: ✅ RESOLVED - Added missing /api/protocols/preview endpoint
 - **Cache Strategy**: Both radio and input values stored locally, synced only on Save button click
 - **Event System**: Custom events for tracking changes without triggering parent re-renders
 

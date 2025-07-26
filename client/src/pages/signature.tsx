@@ -62,11 +62,11 @@ export function Signature({
               Nyomtatott név (opcionális):
             </label>
             <div className="relative">
-              <MegaStableInput
+              <input
                 type="text"
                 placeholder="Teljes név"
                 value={signatureName || ''}
-                onChange={(value) => onSignatureNameChange(value as string)}
+                onChange={(e) => onSignatureNameChange(e.target.value)}
                 className="w-full h-12 px-4 text-lg border-2 border-gray-300 rounded-lg focus:border-otis-blue focus:outline-none bg-white"
                 style={{ 
                   fontSize: '18px',

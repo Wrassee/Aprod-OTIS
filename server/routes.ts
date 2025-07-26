@@ -173,6 +173,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Protocol preview endpoint
+  app.get("/api/protocols/preview", async (req, res) => {
+    try {
+      // Get the most recent protocol or a specific one
+      const protocols = await storage.getAllProtocols();
+      const latestProtocol = protocols[protocols.length - 1];
+      
+      if (!latestProtocol) {
+        return res.status(404).json({ message: "No protocol found for preview" });
+      }
+      
+      res.json(latestProtocol);
+    } catch (error) {
+      console.error("Error fetching protocol preview:", error);
+      res.status(500).json({ message: "Failed to fetch protocol preview" });
+    }
+  });
+
   // === ADMIN ROUTES FOR TEMPLATE MANAGEMENT ===
 
   // Get all templates

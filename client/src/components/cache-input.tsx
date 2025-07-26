@@ -29,25 +29,25 @@ export const CacheInput = memo(({ questionId, initialValue, type = 'text', place
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
+    console.log(`Input change event: ${questionId} = ${newValue}`);
+    
     setLocalValue(newValue);
     inputCache.set(questionId, newValue);
     
-    console.log(`Input changed: ${questionId} = ${newValue}`);
-    
-    // Dispatch custom event for save button to pick up
+    // Dispatch custom event for validation to pick up
     window.dispatchEvent(new CustomEvent('input-change', {
       detail: { questionId, value: newValue }
     }));
   };
 
   return (
-    <Input
+    <input
       ref={inputRef}
       type={type}
       value={localValue}
       onChange={handleChange}
       placeholder={placeholder}
-      className="w-full"
+      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-transparent"
     />
   );
 });
