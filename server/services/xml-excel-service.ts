@@ -119,9 +119,12 @@ class XmlExcelService {
     // Add answers based on question configs
     Object.entries(formData.answers).forEach(([questionId, answer]) => {
       const config = questionConfigs.find(q => q.questionId === questionId);
+      console.log(`Processing question ${questionId}: answer="${answer}", config found: ${!!config}`);
       
       if (config && answer !== '' && answer !== null && answer !== undefined) {
+        console.log(`Config type: ${config.type}`);
         if (config.type === 'yes_no_na') {
+          console.log(`Processing yes_no_na question ${questionId}`);
           // Handle yes_no_na type with three cells
           this.handleYesNoNaMappings(mappings, config, answer, questionId);
         } else if (config.cellReference) {
@@ -154,6 +157,14 @@ class XmlExcelService {
     const naCellRef = config.cellReferenceNa;
     
     console.log(`Handling yes_no_na question ${questionId}: answer="${answer}"`);
+    console.log(`Config:`, JSON.stringify({
+      questionId: config.questionId,
+      type: config.type,
+      cellRef: config.cellReference,
+      yesRef: config.cellReferenceYes,
+      noRef: config.cellReferenceNo,
+      naRef: config.cellReferenceNa
+    }));
     console.log(`Cells - Yes(A): ${yesCellRef}, No(B): ${noCellRef}, NA(C): ${naCellRef}`);
     
     // Clear all three cells first (set to empty string)
