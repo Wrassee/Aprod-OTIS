@@ -148,7 +148,7 @@ export function Questionnaire({
       window.removeEventListener('radio-change', handleCacheChange);
       window.removeEventListener('input-change', handleCacheChange);
     };
-  }, [checkCanProceed]);
+  }, []);
 
   // Ultra-stable error handlers with proper typing
   const handleAddError = useCallback((error: Omit<ProtocolError, 'id'>) => {
@@ -173,7 +173,7 @@ export function Questionnaire({
 
   const [canProceedState, setCanProceedState] = useState(false);
   
-  const checkCanProceed = useCallback(() => {
+  const checkCanProceed = () => {
     const requiredQuestions = currentQuestions.filter(q => q.required);
     
     if (requiredQuestions.length === 0) return true;
@@ -192,13 +192,13 @@ export function Questionnaire({
     
     console.log('Can proceed check result:', result, 'Required questions:', requiredQuestions.length);
     return result;
-  }, [currentQuestions, answers]);
+  };
   
   // Update canProceed state when dependencies change
   useEffect(() => {
     const newCanProceed = checkCanProceed();
     setCanProceedState(newCanProceed);
-  }, [checkCanProceed]);
+  }, [currentQuestions, answers]);
 
   const isLastPage = currentPage === totalPages - 1;
 
