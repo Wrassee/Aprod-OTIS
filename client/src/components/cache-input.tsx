@@ -1,5 +1,4 @@
-import { memo, useState, useEffect, useRef } from 'react';
-import { Input } from '@/components/ui/input';
+import { memo, useState, useEffect, useRef, useCallback } from 'react';
 
 interface CacheInputProps {
   questionId: string;
@@ -12,42 +11,48 @@ interface CacheInputProps {
 const inputCache = new Map<string, string>();
 
 export const CacheInput = memo(({ questionId, initialValue, type = 'text', placeholder }: CacheInputProps) => {
-  const [localValue, setLocalValue] = useState(() => {
-    // Get from cache or use initial value
-    return inputCache.get(questionId) || initialValue;
-  });
-  
   const inputRef = useRef<HTMLInputElement>(null);
-
-  // Sync with initial value only if cache is empty
+  
+  // Use ref for stable value access
+  const currentValueRef = useRef(inputCache.get(questionId) || initialValue || '');
+  
+  // Initialize cache if needed
   useEffect(() => {
     if (!inputCache.has(questionId) && initialValue) {
-      setLocalValue(initialValue);
       inputCache.set(questionId, initialValue);
+      currentValueRef.current = initialValue;
+      if (inputRef.current) {
+        inputRef.current.value = initialValue;
+      }
     }
   }, [questionId, initialValue]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    console.log(`Input change event: ${questionId} = ${newValue}`);
+    console.log(`Input typing: ${questionId} = ${newValue}`);
     
-    setLocalValue(newValue);
+    // Update cache and ref immediately
     inputCache.set(questionId, newValue);
+    currentValueRef.current = newValue;
     
-    // Dispatch custom event for validation to pick up
-    window.dispatchEvent(new CustomEvent('input-change', {
-      detail: { questionId, value: newValue }
-    }));
-  };
+    // Dispatch event for validation (debounced)
+    clearTimeout((window as any)[`input-timeout-${questionId}`]);
+    (window as any)[`input-timeout-${questionId}`] = setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('input-change', {
+        detail: { questionId, value: newValue }
+      }));
+    }, 300);
+  }, [questionId]);
 
   return (
     <input
       ref={inputRef}
       type={type}
-      value={localValue}
+      defaultValue={currentValueRef.current}
       onChange={handleChange}
       placeholder={placeholder}
       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-transparent"
+      style={{ fontSize: '16px' }} // Prevent zoom on mobile
     />
   );
 });

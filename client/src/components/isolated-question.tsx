@@ -50,21 +50,33 @@ const IsolatedQuestionComponent = memo(({
 
       case 'number':
         return (
-          <CacheInput
-            questionId={question.id}
-            initialValue={value?.toString() || ''}
+          <input
             type="number"
+            defaultValue={value?.toString() || ''}
+            onChange={(e) => {
+              const newValue = e.target.value;
+              console.log(`Direct number input: ${question.id} = ${newValue}`);
+              onChange(newValue);
+            }}
             placeholder={question.placeholder || "Enter number"}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-transparent"
+            style={{ fontSize: '16px' }}
           />
         );
 
       case 'text':
         return (
-          <CacheInput
-            questionId={question.id}
-            initialValue={value?.toString() || ''}
+          <input
             type="text"
+            defaultValue={value?.toString() || ''}
+            onChange={(e) => {
+              const newValue = e.target.value;
+              console.log(`Direct text input: ${question.id} = ${newValue}`);
+              onChange(newValue);
+            }}
             placeholder={question.placeholder || "Enter text"}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-transparent"
+            style={{ fontSize: '16px' }}
           />
         );
 
