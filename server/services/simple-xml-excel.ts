@@ -83,7 +83,10 @@ class SimpleXmlExcelService {
           
           // Replace the entire cell with new content - SINGLE replacement
           const replacement = `<c r="${cell}"${styleAttr} t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`;
-          worksheetXml = worksheetXml.replace(anyMatch[0], replacement);
+          
+          // Use a more precise replacement to avoid XML corruption
+          const oldPattern = anyMatch[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          worksheetXml = worksheetXml.replace(new RegExp(oldPattern, 'g'), replacement);
           cellModified = true;
           console.log(`XML: Updated ${cell} = "${value}"${styleAttr ? ' (style preserved)' : ''}`);
         } 
@@ -94,7 +97,10 @@ class SimpleXmlExcelService {
           if (emptyMatch) {
             const styleValue = emptyMatch[1];
             const replacement = `<c r="${cell}" s="${styleValue}" t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`;
-            worksheetXml = worksheetXml.replace(emptyMatch[0], replacement);
+            
+            // Use precise replacement to avoid corruption
+            const oldPattern = emptyMatch[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            worksheetXml = worksheetXml.replace(new RegExp(oldPattern, 'g'), replacement);
             cellModified = true;
             console.log(`XML: Filled empty ${cell} = "${value}" (s="${styleValue}")`);
           }

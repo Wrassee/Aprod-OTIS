@@ -8,28 +8,22 @@ import fs from 'fs';
 class ExcelService {
   async generateExcel(formData: FormData, language: string): Promise<Buffer> {
     try {
-      // Try XML-based approach first for better formatting preservation
-      console.log('Using XML-based Excel manipulation for perfect formatting preservation');
-      return await simpleXmlExcelService.generateExcelFromTemplate(formData, language);
-    } catch (xmlError) {
-      console.error('XML-based approach failed, falling back to XLSX library:', xmlError);
+      // Use the reliable XLSX library approach for maximum compatibility
+      console.log('Using XLSX library approach for maximum stability and compatibility');
       
-      // Fallback to original XLSX approach
-      try {
-        const protocolTemplate = await storage.getActiveTemplate('protocol', language);
-        
-        if (protocolTemplate) {
-          console.log(`Using XLSX fallback with template: ${protocolTemplate.name}`);
-          const templateBuffer = fs.readFileSync(protocolTemplate.filePath);
-          return await this.populateProtocolTemplate(templateBuffer, formData, language);
-        } else {
-          console.log('No protocol template found, using basic Excel creation');
-          return await this.createBasicExcel(formData, language);
-        }
-      } catch (fallbackError) {
-        console.error('Fallback also failed, using basic Excel:', fallbackError);
+      const protocolTemplate = await storage.getActiveTemplate('protocol', language);
+      
+      if (protocolTemplate) {
+        console.log(`Using XLSX with template: ${protocolTemplate.name}`);
+        const templateBuffer = fs.readFileSync(protocolTemplate.filePath);
+        return await this.populateProtocolTemplate(templateBuffer, formData, language);
+      } else {
+        console.log('No protocol template found, using basic Excel creation');
         return await this.createBasicExcel(formData, language);
       }
+    } catch (error) {
+      console.error('XLSX approach failed, using basic Excel:', error);
+      return await this.createBasicExcel(formData, language);
     }
   }
 
