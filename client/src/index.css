@@ -114,3 +114,21 @@
     min-height: 44px;
   }
 }
+
+/* Stable radio component styling */
+.stable-radio-container {
+  isolation: isolate;
+  pointer-events: auto;
+}
+
+.stable-radio-item {
+  isolation: isolate;
+}
+
+.stable-radio-input {
+  pointer-events: auto;
+}
+
+.stable-radio-label {
+  pointer-events: auto;
+}
