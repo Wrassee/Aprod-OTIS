@@ -86,7 +86,9 @@ class XmlExcelService {
       const worksheetObj = this.xmlParser.parse(worksheetXml);
       
       // Create cell mappings based on question configs
+      console.log('=== BEFORE createCellMappings ===');
       const cellMappings = this.createCellMappings(formData, questionConfigs, language);
+      console.log('=== AFTER createCellMappings ===');
       
       console.log(`XML mappings created: ${cellMappings.length}`);
       cellMappings.forEach(mapping => {
