@@ -6,7 +6,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Camera, Image } from 'lucide-react';
 import { useLanguageContext } from './language-provider';
-import { StableInput } from './stable-input';
+import { UltraStableInput } from './ultra-stable-input';
 
 interface QuestionBlockProps {
   question: Question;
@@ -66,7 +66,7 @@ const QuestionBlockComponent = ({
 
       case 'number':
         return (
-          <StableInput
+          <UltraStableInput
             type="number"
             placeholder={question.placeholder || "Enter number"}
             value={value || ''}
@@ -78,7 +78,7 @@ const QuestionBlockComponent = ({
 
       case 'text':
         return (
-          <StableInput
+          <UltraStableInput
             placeholder={question.placeholder || "Enter text"}
             value={value || ''}
             onChange={onChange}

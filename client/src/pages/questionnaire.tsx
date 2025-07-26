@@ -53,12 +53,22 @@ export function Questionnaire({
     return () => clearTimeout(timeoutId);
   }, [currentPage]);
 
-  // Load questions from API - stabilized
+  // Load questions from API - prevent constant re-fetches
   useEffect(() => {
+    let isMounted = true;
+    
     const fetchQuestions = async () => {
+      // Skip if already have questions for this language
+      if (allQuestions.length > 0 && !questionsLoading) {
+        return;
+      }
+      
       try {
         setQuestionsLoading(true);
         const response = await fetch(`/api/questions/${language}`);
+        
+        if (!isMounted) return; // Component unmounted, skip update
+        
         if (response.ok) {
           const questions = await response.json();
           setAllQuestions(questions);
@@ -67,26 +77,26 @@ export function Questionnaire({
           setAllQuestions([
             {
               id: 'q1',
-              title: language === 'hu' ? 'Lift telepítés kész?' : language === 'de' ? 'Aufzuginstallation abgeschlossen?' : 'Elevator installation complete?',
+              title: language === 'hu' ? 'Lift telepítés kész?' : 'Aufzuginstallation abgeschlossen?',
               type: 'yes_no_na',
               required: true,
             },
             {
               id: 'q2',
-              title: language === 'hu' ? 'Biztonsági rendszerek működnek?' : language === 'de' ? 'Sicherheitssysteme funktionsfähig?' : 'Safety systems operational?',
+              title: language === 'hu' ? 'Biztonsági rendszerek működnek?' : 'Sicherheitssysteme funktionsfähig?',
               type: 'yes_no_na',
               required: true,
             },
             {
               id: 'q3',
-              title: language === 'hu' ? 'Teherbírás (kg)' : language === 'de' ? 'Tragfähigkeit (kg)' : 'Load capacity (kg)',
+              title: language === 'hu' ? 'Teherbírás (kg)' : 'Tragfähigkeit (kg)',
               type: 'number',
               required: true,
               placeholder: 'Enter load capacity',
             },
             {
               id: 'q4',
-              title: language === 'hu' ? 'További megjegyzések' : language === 'de' ? 'Zusätzliche Kommentare' : 'Additional comments',
+              title: language === 'hu' ? 'További megjegyzések' : 'Zusätzliche Kommentare',
               type: 'text',
               required: false,
               placeholder: 'Enter any additional comments or observations',
@@ -94,20 +104,30 @@ export function Questionnaire({
           ]);
         }
       } catch (error) {
-        console.error('Error fetching questions:', error);
-        // Use fallback questions on error
-        setAllQuestions([]);
+        if (isMounted) {
+          console.error('Error fetching questions:', error);
+          setAllQuestions([]);
+        }
       } finally {
-        setQuestionsLoading(false);
+        if (isMounted) {
+          setQuestionsLoading(false);
+        }
       }
     };
 
-    // Only fetch if we don't have questions yet or language changed
-    if (allQuestions.length === 0 || questionsLoading) {
-      fetchQuestions();
-      setCurrentPage(0);
+    fetchQuestions();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Remove all dependencies to prevent re-fetching
+
+  // Separate effect for language changes
+  useEffect(() => {
+    if (allQuestions.length > 0) {
+      setCurrentPage(0); // Reset page when language changes
     }
-  }, [language]); // Minimal dependencies
+  }, [language]);
 
   // Memoized calculations to prevent unnecessary re-renders
   const questionsPerPage = 4;

@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 
-interface StableInputProps {
+interface UltraStableInputProps {
   type?: 'text' | 'number';
   placeholder?: string;
   value: string | number;
@@ -11,7 +11,7 @@ interface StableInputProps {
   multiline?: boolean;
 }
 
-export function StableInput({ 
+const UltraStableInputComponent = ({ 
   type = 'text', 
   placeholder, 
   value, 
@@ -20,16 +20,20 @@ export function StableInput({
   style,
   rows = 4,
   multiline = false
-}: StableInputProps) {
+}: UltraStableInputProps) => {
   const [localValue, setLocalValue] = useState(value?.toString() || '');
   const [isFocused, setIsFocused] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout>();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const lastValueRef = useRef(value);
 
-  // Update local value when external value changes (but not when focused)
+  // Only update local value if external value genuinely changed and we're not focused
   useEffect(() => {
     const newValue = value?.toString() || '';
-    if (!isFocused && newValue !== localValue) {
+    if (!isFocused && newValue !== localValue && value !== lastValueRef.current) {
       setLocalValue(newValue);
+      lastValueRef.current = value;
     }
   }, [value, isFocused, localValue]);
 
@@ -42,15 +46,18 @@ export function StableInput({
       clearTimeout(timeoutRef.current);
     }
 
-    // Debounce the onChange call
+    // Debounce the onChange call - longer delay to prevent UI flicker
     timeoutRef.current = setTimeout(() => {
       if (type === 'number') {
         const numVal = parseFloat(newValue);
-        onChange(isNaN(numVal) ? '' : numVal);
+        const finalValue = isNaN(numVal) ? '' : numVal;
+        lastValueRef.current = finalValue;
+        onChange(finalValue);
       } else {
+        lastValueRef.current = newValue;
         onChange(newValue);
       }
-    }, 500); // Increased to 500ms debounce
+    }, 800); // Extended to 800ms
   };
 
   const handleFocus = () => {
@@ -63,24 +70,41 @@ export function StableInput({
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
+    
+    let finalValue: string | number;
     if (type === 'number') {
       const numVal = parseFloat(localValue);
-      onChange(isNaN(numVal) ? '' : numVal);
+      finalValue = isNaN(numVal) ? '' : numVal;
     } else {
-      onChange(localValue);
+      finalValue = localValue;
     }
+    
+    lastValueRef.current = finalValue;
+    onChange(finalValue);
   };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   if (multiline) {
     return (
       <textarea
+        ref={textareaRef}
         placeholder={placeholder}
         value={localValue}
         onChange={handleChange}
         onFocus={handleFocus}
         onBlur={handleBlur}
         className={className}
-        style={style}
+        style={{ ...style, fontSize: '16px' }}
+        autoComplete="off"
+        spellCheck={false}
         rows={rows}
       />
     );
@@ -88,6 +112,7 @@ export function StableInput({
 
   return (
     <input
+      ref={inputRef}
       type={type}
       placeholder={placeholder}
       value={localValue}
@@ -95,7 +120,11 @@ export function StableInput({
       onFocus={handleFocus}
       onBlur={handleBlur}
       className={className}
-      style={style}
+      style={{ ...style, fontSize: '16px' }}
+      autoComplete="off"
+      spellCheck={false}
     />
   );
-}
+};
+
+export const UltraStableInput = memo(UltraStableInputComponent);
