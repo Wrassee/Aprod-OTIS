@@ -32,8 +32,7 @@ export const CacheInput = memo(({ questionId, initialValue, type = 'text', place
     setLocalValue(newValue);
     inputCache.set(questionId, newValue);
     
-    // console.log(`Input changed: ${questionId} = ${newValue}`);
-    // console.log('Current input cache:', getAllCachedInputValues());
+    console.log(`Input changed: ${questionId} = ${newValue}`);
     
     // Dispatch custom event for save button to pick up
     window.dispatchEvent(new CustomEvent('input-change', {

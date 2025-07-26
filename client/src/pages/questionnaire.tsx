@@ -132,10 +132,10 @@ export function Questionnaire({
     return { totalPages: total, currentQuestions: current, progress: prog };
   }, [allQuestions, currentPage]);
 
-  // Listen for cache changes to trigger re-validation
+  // Listen for cache changes to force re-render
   useEffect(() => {
     const handleCacheChange = () => {
-      setCacheUpdateTrigger(prev => prev + 1);
+      setForceUpdate(prev => prev + 1);
     };
 
     window.addEventListener('radio-change', handleCacheChange);
@@ -168,7 +168,9 @@ export function Questionnaire({
     onErrorsChange((prev: ProtocolError[]) => prev.filter((error: ProtocolError) => error.id !== id));
   }, [onErrorsChange]);
 
-  const canProceed = useMemo(() => {
+  const [forceUpdate, setForceUpdate] = useState(0);
+  
+  const canProceed = () => {
     const requiredQuestions = currentQuestions.filter(q => q.required);
     
     if (requiredQuestions.length === 0) return true;
@@ -177,16 +179,14 @@ export function Questionnaire({
     const cachedRadioValues = getAllCachedValues();
     const cachedInputValues = getAllCachedInputValues();
     
-    const result = requiredQuestions.every(q => {
+    return requiredQuestions.every(q => {
       const hasAnswer = answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== '';
       const hasCachedRadio = cachedRadioValues[q.id] !== undefined && cachedRadioValues[q.id] !== '';
       const hasCachedInput = cachedInputValues[q.id] !== undefined && cachedInputValues[q.id] !== '';
       
       return hasAnswer || hasCachedRadio || hasCachedInput;
     });
-    
-    return result;
-  }, [currentQuestions, answers, cacheUpdateTrigger]);
+  };
 
   const isLastPage = currentPage === totalPages - 1;
 
@@ -331,7 +331,7 @@ export function Questionnaire({
                     onNext();
                   }, 100);
                 }}
-                disabled={!canProceed}
+                disabled={!canProceed()}
                 className="bg-otis-blue hover:bg-blue-700 text-white flex items-center"
               >
                 {t.complete}
@@ -353,7 +353,7 @@ export function Questionnaire({
                   
                   setCurrentPage(currentPage + 1);
                 }}
-                disabled={!canProceed}
+                disabled={!canProceed()}
                 className="bg-otis-blue hover:bg-blue-700 text-white flex items-center"
               >
                 {t.next}
