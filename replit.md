@@ -39,15 +39,16 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 
 ### Latest Attempts (January 27, 2025)
 - **StableQuestionnaire**: Created completely new component with useRef for local state storage
-- **Debounced Updates**: 100ms delay between local updates and parent notifications
+- **Debounced Updates**: 100ms delay between local updates and parent notifications  
 - **Direct HTML Radio**: Replaced complex radio components with simple HTML inputs
-- **Single Load**: Questions load only once with no dependencies
-- **Error**: "onChange is not a function" - IsolatedQuestion interface mismatch
+- **ZeroDependencyRadio**: 500ms debounced radio with defaultChecked to prevent controlled re-renders
+- **Logo Fix**: Moved logo to client/public/ for proper static serving
+- **Component Isolation**: Multiple attempts to isolate radio state from parent updates
 
 ### Current Status
-- **CRITICAL**: Radio button navigation issue persists through multiple architectural changes
-- **Root Cause**: Component remounting from setFormData calls in parent App.tsx
-- **New Approach**: Direct HTML radio inputs with useRef state management
+- **CRITICAL**: Radio button navigation issue persists - questions still load 3x on every interaction
+- **Root Cause**: setFormData calls in App.tsx trigger complete component remounts
+- **Strategy**: Long debounce (500ms) with defaultChecked instead of checked prop
 
 ## System Architecture
 

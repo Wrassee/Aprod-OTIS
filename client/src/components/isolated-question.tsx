@@ -2,7 +2,7 @@ import { memo, useCallback } from 'react';
 import { Question, AnswerValue } from '@shared/schema';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { DirectRadio } from './direct-radio';
+import { ZeroDependencyRadio } from './zero-dependency-radio';
 import { Camera, Image } from 'lucide-react';
 import { useLanguageContext } from './language-provider';
 import { MegaStableInput } from './mega-stable-input';
@@ -41,7 +41,7 @@ const IsolatedQuestionComponent = memo(({
         ];
         
         return (
-          <DirectRadio
+          <ZeroDependencyRadio
             questionId={question.id}
             value={value?.toString() || ''}
             onChange={onChange}
