@@ -165,9 +165,11 @@ export function Questionnaire({
           <div className="flex items-center justify-between">
             {/* Logo, Home and Title */}
             <div className="flex items-center">
-              <div className="h-8 w-12 bg-otis-blue rounded flex items-center justify-center mr-4">
-                <span className="text-white font-bold text-sm">OTIS</span>
-              </div>
+              <img 
+                src="/attached_assets/otis-elevators-seeklogo_1753525178175.png" 
+                alt="OTIS Logo" 
+                className="h-8 w-8 mr-4"
+              />
               {onHome && (
                 <Button
                   variant="ghost"

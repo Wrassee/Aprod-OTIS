@@ -11,6 +11,7 @@ import { Signature } from "@/pages/signature";
 import { Completion } from "@/pages/completion";
 import { Admin } from "@/pages/admin";
 import { FormData } from "@/lib/types";
+import { AnswerValue, ProtocolError } from "@shared/schema";
 import NotFound from "@/pages/not-found";
 
 function App() {
@@ -178,6 +179,22 @@ function App() {
     localStorage.removeItem('otis-protocol-form-data');
   };
 
+  // Stable callbacks defined outside Router to prevent recreation
+  const handleAnswerChange = useCallback((questionId: string, value: AnswerValue) => {
+    setFormData(prev => ({
+      ...prev,
+      answers: { ...prev.answers, [questionId]: value }
+    }));
+  }, []);
+
+  const handleReceptionDateChange = useCallback((date: string) => {
+    setFormData(prev => ({ ...prev, receptionDate: date }));
+  }, []);
+
+  const handleErrorsChange = useCallback((errors: ProtocolError[]) => {
+    setFormData(prev => ({ ...prev, errors }));
+  }, []);
+
   function Router() {
     return (
       <Switch>
@@ -189,16 +206,11 @@ function App() {
               return (
                 <Questionnaire
                   receptionDate={formData.receptionDate}
-                  onReceptionDateChange={useCallback((date) => setFormData(prev => ({ ...prev, receptionDate: date })), [])}
+                  onReceptionDateChange={handleReceptionDateChange}
                   answers={formData.answers}
-                  onAnswerChange={useCallback((questionId, value) => {
-                    setFormData(prev => ({
-                      ...prev,
-                      answers: { ...prev.answers, [questionId]: value }
-                    }));
-                  }, [])}
+                  onAnswerChange={handleAnswerChange}
                   errors={formData.errors}
-                  onErrorsChange={useCallback((errors) => setFormData(prev => ({ ...prev, errors })), [])}
+                  onErrorsChange={handleErrorsChange}
                   onNext={handleQuestionnaireNext}
                   onSave={handleSaveProgress}
                   language={language}
