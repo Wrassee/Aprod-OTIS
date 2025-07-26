@@ -106,21 +106,6 @@ class SimpleXmlExcelService {
           console.log(`XML: Warning - Could not modify ${cell}`);
         }
       });
-        // Insert new cell if row exists
-        else {
-          const rowNumber = cell.match(/\d+/)?.[0];
-          if (rowNumber) {
-            const rowPattern = new RegExp(`(<row r="${rowNumber}"[^>]*>)(.*?)(</row>)`, 'g');
-            if (rowPattern.test(worksheetXml)) {
-              const defaultStyle = this.inferCellStyle(cell, rowNumber);
-              worksheetXml = worksheetXml.replace(rowPattern, 
-                `$1$2<c r="${cell}"${defaultStyle} t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>$3`);
-              modifiedCount++;
-              console.log(`XML: Inserted ${cell} = "${value}" (with inferred style)`);
-            }
-          }
-        }
-      });
       
       console.log(`XML: Modified ${totalModified} cells`);
       
