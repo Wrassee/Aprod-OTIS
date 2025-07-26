@@ -46,6 +46,7 @@ export function Questionnaire({
 
   const [allQuestions, setAllQuestions] = useState<Question[]>([]);
   const [questionsLoading, setQuestionsLoading] = useState(true);
+  const [cacheUpdateTrigger, setCacheUpdateTrigger] = useState(0);
 
   // Save current page to localStorage - debounced
   useEffect(() => {
@@ -131,6 +132,21 @@ export function Questionnaire({
     return { totalPages: total, currentQuestions: current, progress: prog };
   }, [allQuestions, currentPage]);
 
+  // Listen for cache changes to trigger re-validation
+  useEffect(() => {
+    const handleCacheChange = () => {
+      setCacheUpdateTrigger(prev => prev + 1);
+    };
+
+    window.addEventListener('radio-change', handleCacheChange);
+    window.addEventListener('input-change', handleCacheChange);
+
+    return () => {
+      window.removeEventListener('radio-change', handleCacheChange);
+      window.removeEventListener('input-change', handleCacheChange);
+    };
+  }, []);
+
   // Ultra-stable error handlers with proper typing
   const handleAddError = useCallback((error: Omit<ProtocolError, 'id'>) => {
     const newError: ProtocolError = {
@@ -152,21 +168,25 @@ export function Questionnaire({
     onErrorsChange((prev: ProtocolError[]) => prev.filter((error: ProtocolError) => error.id !== id));
   }, [onErrorsChange]);
 
-  const canProceed = () => {
+  const canProceed = useMemo(() => {
     const requiredQuestions = currentQuestions.filter(q => q.required);
+    
+    if (requiredQuestions.length === 0) return true;
     
     // Check both answers prop and cached values
     const cachedRadioValues = getAllCachedValues();
     const cachedInputValues = getAllCachedInputValues();
     
-    return requiredQuestions.every(q => {
+    const result = requiredQuestions.every(q => {
       const hasAnswer = answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== '';
       const hasCachedRadio = cachedRadioValues[q.id] !== undefined && cachedRadioValues[q.id] !== '';
       const hasCachedInput = cachedInputValues[q.id] !== undefined && cachedInputValues[q.id] !== '';
       
       return hasAnswer || hasCachedRadio || hasCachedInput;
     });
-  };
+    
+    return result;
+  }, [currentQuestions, answers, cacheUpdateTrigger]);
 
   const isLastPage = currentPage === totalPages - 1;
 
@@ -311,7 +331,7 @@ export function Questionnaire({
                     onNext();
                   }, 100);
                 }}
-                disabled={!canProceed()}
+                disabled={!canProceed}
                 className="bg-otis-blue hover:bg-blue-700 text-white flex items-center"
               >
                 {t.complete}
@@ -333,7 +353,7 @@ export function Questionnaire({
                   
                   setCurrentPage(currentPage + 1);
                 }}
-                disabled={!canProceed()}
+                disabled={!canProceed}
                 className="bg-otis-blue hover:bg-blue-700 text-white flex items-center"
               >
                 {t.next}

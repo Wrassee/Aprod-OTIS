@@ -27,6 +27,9 @@ export const CacheRadio = memo(({ questionId, initialValue, options }: CacheRadi
     setLocalValue(newValue);
     radioCache.set(questionId, newValue);
     
+    // console.log(`Radio changed: ${questionId} = ${newValue}`);
+    // console.log('Current radio cache:', getAllCachedValues());
+    
     // Dispatch custom event for save button to pick up
     window.dispatchEvent(new CustomEvent('radio-change', {
       detail: { questionId, value: newValue }
