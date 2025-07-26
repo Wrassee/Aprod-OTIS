@@ -115,20 +115,25 @@
   }
 }
 
-/* Stable radio component styling */
-.stable-radio-container {
+/* Isolated radio component styling */
+.isolated-radio-wrapper {
+  isolation: isolate;
+  pointer-events: auto;
+  position: relative;
+  z-index: 1;
+}
+
+.isolated-radio-row {
   isolation: isolate;
   pointer-events: auto;
 }
 
-.stable-radio-item {
+.isolated-radio-item {
+  pointer-events: auto;
   isolation: isolate;
 }
 
-.stable-radio-input {
+.isolated-radio-label {
   pointer-events: auto;
-}
-
-.stable-radio-label {
-  pointer-events: auto;
+  isolation: isolate;
 }
