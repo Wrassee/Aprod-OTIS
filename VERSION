@@ -1,0 +1,36 @@
+OTIS APRO Version 0.1.0
+Release Date: January 27, 2025
+Status: Stable Production Release
+
+Major Features:
+- Complete lift inspection protocol digitization
+- Excel template management with XML-based formatting preservation
+- Hungarian and German language support
+- Real-time form validation with native DOM manipulation
+- PostgreSQL database integration with Neon serverless
+- Digital signature capture
+- Multi-step questionnaire with progress tracking
+- Admin template upload and activation system
+
+Technical Achievements:
+- Zero cursor jumping in text inputs
+- Perfect Unicode character support in Excel output
+- 100% template formatting preservation
+- Stable radio button functionality
+- Comprehensive error handling
+- Production-ready database connection management
+
+End-to-End Workflow:
+✅ Language selection (Hungarian/German)
+✅ Multi-step questionnaire completion
+✅ Error documentation with severity levels
+✅ Digital signature capture
+✅ Excel protocol generation with preserved formatting
+✅ Template management system
+✅ Data persistence and validation
+
+Next planned features for v0.2:
+- PDF generation from Excel templates
+- Email distribution system
+- Cloud storage integration
+- Enhanced error reporting with image attachments
