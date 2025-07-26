@@ -88,6 +88,11 @@ class XmlExcelService {
       // Create cell mappings based on question configs
       const cellMappings = this.createCellMappings(formData, questionConfigs, language);
       
+      console.log(`XML mappings created: ${cellMappings.length}`);
+      cellMappings.forEach(mapping => {
+        console.log(`Mapping: ${mapping.cell} = "${mapping.value}" (${mapping.label})`);
+      });
+      
       // Update cell values in the worksheet object
       this.updateCellValues(worksheetObj, cellMappings);
       
