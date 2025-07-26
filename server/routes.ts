@@ -4,6 +4,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { storage } from "./storage";
+import { testConnection } from "./db";
 import { insertProtocolSchema, insertTemplateSchema, insertQuestionConfigSchema } from "@shared/schema";
 import { excelService } from "./services/excel-service";
 import { pdfService } from "./services/pdf-service";
@@ -33,6 +34,13 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Test database connection first
+  console.log('Testing database connection...');
+  const dbConnected = await testConnection();
+  if (!dbConnected) {
+    throw new Error('Failed to connect to database');
+  }
+  
   // Create protocol
   app.post("/api/protocols", async (req, res) => {
     try {
