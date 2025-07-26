@@ -53,7 +53,7 @@ export function Questionnaire({
     return () => clearTimeout(timeoutId);
   }, [currentPage]);
 
-  // Load questions from API/database
+  // Load questions from API/database ONCE - no dependencies to prevent re-renders
   useEffect(() => {
     const loadQuestions = async () => {
       try {
@@ -62,7 +62,7 @@ export function Questionnaire({
         
         if (response.ok) {
           const questionsData = await response.json();
-          console.log('Loaded questions from API:', questionsData.length);
+          console.log('Loaded questions from API (ONCE):', questionsData.length);
           setAllQuestions(questionsData);
         } else {
           console.warn('No active template found, using fallback questions');
@@ -108,12 +108,14 @@ export function Questionnaire({
         setAllQuestions([]);
       } finally {
         setQuestionsLoading(false);
-        // Don't automatically reset to page 0 - this causes unwanted navigation
       }
     };
 
-    loadQuestions();
-  }, [language]);
+    // Only load once when component mounts
+    if (allQuestions.length === 0) {
+      loadQuestions();
+    }
+  }, []); // NO dependencies - prevents unnecessary re-loads
 
   // Memoized calculations to prevent unnecessary re-renders
   const questionsPerPage = 4;
