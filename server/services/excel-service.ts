@@ -8,19 +8,9 @@ import fs from 'fs';
 class ExcelService {
   async generateExcel(formData: FormData, language: string): Promise<Buffer> {
     try {
-      // Use XLSX library with minimal modification to preserve template structure
-      console.log('Using XLSX library with template preservation approach');
-      
-      const protocolTemplate = await storage.getActiveTemplate('protocol', language);
-      
-      if (protocolTemplate) {
-        console.log(`Using template: ${protocolTemplate.name}`);
-        const templateBuffer = fs.readFileSync(protocolTemplate.filePath);
-        return await this.populateProtocolTemplatePreserveFormat(templateBuffer, formData, language);
-      } else {
-        console.log('No protocol template found, using basic Excel creation');
-        return await this.createBasicExcel(formData, language);
-      }
+      // Use the fixed XML approach for perfect formatting preservation
+      console.log('Using fixed XML approach with corruption repairs');
+      return await simpleXmlExcelService.generateExcelFromTemplate(formData, language);
     } catch (error) {
       console.error('Excel generation failed:', error);
       return await this.createBasicExcel(formData, language);
