@@ -46,7 +46,10 @@ export function SimpleSignatureCanvas({ onSignatureChange, initialSignature }: S
       img.src = initialSignature;
     } else {
       // Initial signature change callback
-      onSignatureChange(canvas.toDataURL());
+      setTimeout(() => {
+        onSignatureChange(canvas.toDataURL());
+        console.log('Signature initialized');
+      }, 100);
     }
   }, [onSignatureChange, initialSignature]);
 
@@ -75,7 +78,7 @@ export function SimpleSignatureCanvas({ onSignatureChange, initialSignature }: S
     e.preventDefault();
     const canvas = canvasRef.current;
     if (!canvas) return;
-
+    
     const pos = getEventPos(e, canvas);
     setIsDrawing(true);
     setLastPoint(pos);

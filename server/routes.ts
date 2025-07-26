@@ -173,15 +173,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Protocol preview endpoint
+  // Protocol preview endpoint - returns latest protocol as JSON data
   app.get("/api/protocols/preview", async (req, res) => {
     try {
-      // Get the most recent protocol or a specific one
+      // Get the most recent protocol
       const protocols = await storage.getAllProtocols();
       const latestProtocol = protocols[protocols.length - 1];
       
       if (!latestProtocol) {
-        return res.status(404).json({ message: "No protocol found for preview" });
+        // Return a mock protocol for preview if none exists
+        const mockProtocol = {
+          id: 'preview-mock',
+          receptionDate: new Date().toISOString().split('T')[0],
+          answers: {
+            '1': 'Példa Átvevő',
+            '2': 'Példa Cím',
+            '3': '1000',
+            '4': 'Minden rendben'
+          },
+          errors: [],
+          signature: '',
+          signatureName: 'Példa Aláíró',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        return res.json(mockProtocol);
       }
       
       res.json(latestProtocol);
