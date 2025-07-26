@@ -8,22 +8,25 @@ import fs from 'fs';
 class ExcelService {
   async generateExcel(formData: FormData, language: string): Promise<Buffer> {
     try {
-      // Use the reliable XLSX library approach for maximum compatibility
-      console.log('Using XLSX library approach for maximum stability and compatibility');
+      // Use XML-based approach to preserve formatting, but with improved error handling
+      console.log('Using XML-based Excel manipulation to preserve OTIS template formatting');
+      return await simpleXmlExcelService.generateExcelFromTemplate(formData, language);
+    } catch (xmlError) {
+      console.error('XML-based approach failed:', xmlError.message);
+      
+      // Only use XLSX library as last resort since it destroys formatting
+      console.log('Falling back to XLSX library (will lose formatting)');
       
       const protocolTemplate = await storage.getActiveTemplate('protocol', language);
       
       if (protocolTemplate) {
-        console.log(`Using XLSX with template: ${protocolTemplate.name}`);
+        console.log(`Using XLSX fallback with template: ${protocolTemplate.name}`);
         const templateBuffer = fs.readFileSync(protocolTemplate.filePath);
         return await this.populateProtocolTemplate(templateBuffer, formData, language);
       } else {
         console.log('No protocol template found, using basic Excel creation');
         return await this.createBasicExcel(formData, language);
       }
-    } catch (error) {
-      console.error('XLSX approach failed, using basic Excel:', error);
-      return await this.createBasicExcel(formData, language);
     }
   }
 

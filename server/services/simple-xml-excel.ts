@@ -124,7 +124,7 @@ class SimpleXmlExcelService {
         compression: 'DEFLATE',
         compressionOptions: { level: 6 },
         streamFiles: false,
-        platform: 'UNIX'
+        platform: 'DOS' // Better Excel compatibility
       });
       
       console.log(`XML Excel generation successful with ${totalModified} modifications`);
@@ -203,8 +203,9 @@ class SimpleXmlExcelService {
   }
 
   private escapeXml(text: string): string {
+    if (!text) return '';
     // Proper XML escaping with Unicode preservation for Hungarian characters
-    return text
+    return String(text)
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
