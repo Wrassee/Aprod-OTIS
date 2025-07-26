@@ -132,34 +132,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Preview PDF
-  app.get("/api/protocols/preview", async (req, res) => {
-    try {
-      // For preview, we'll use mock data
-      const mockFormData = {
-        receptionDate: new Date().toISOString().split('T')[0],
-        answers: {
-          q1: 'yes',
-          q2: 'yes',
-          q3: 1000,
-          q4: 'All systems working properly',
-        },
-        errors: [],
-        signature: '',
-        signatureName: 'Sample User',
-      };
-      
-      const excelBuffer = await excelService.generateExcel(mockFormData, 'en');
-      const pdfBuffer = await pdfService.generatePDF(excelBuffer);
-      
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', 'inline; filename=protocol-preview.pdf');
-      res.send(pdfBuffer);
-    } catch (error) {
-      console.error("Error generating PDF preview:", error);
-      res.status(500).json({ message: "Failed to generate PDF preview" });
-    }
-  });
+
 
   // Upload images
   app.post("/api/upload", async (req, res) => {
