@@ -41,7 +41,9 @@ export function Questionnaire({
   const { t, language: contextLanguage } = useLanguageContext();
   const [currentPage, setCurrentPage] = useState(() => {
     const saved = localStorage.getItem('questionnaire-current-page');
-    return saved ? parseInt(saved, 10) : 0;
+    const page = saved ? parseInt(saved, 10) : 0;
+    console.log('Initial currentPage loaded from localStorage:', page);
+    return page;
   });
 
   const [allQuestions, setAllQuestions] = useState<Question[]>([]);
@@ -369,7 +371,10 @@ export function Questionnaire({
                     onAnswerChange(questionId, value);
                   });
                   
-                  setCurrentPage(currentPage + 1);
+                  const nextPage = currentPage + 1;
+                  console.log('Setting next page from', currentPage, 'to', nextPage);
+                  setCurrentPage(nextPage);
+                  localStorage.setItem('questionnaire-current-page', nextPage.toString());
                 }}
                 disabled={!canProceedState}
                 className={`flex items-center text-white ${
