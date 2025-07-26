@@ -8,6 +8,15 @@ This is a full-stack TypeScript application that digitizes the OTIS elevator acc
 
 Preferred communication style: Simple, everyday language (Hungarian preferred).
 
+## Recent Changes
+
+### January 26, 2025 - UI Stability Improvements
+- **Text Input Stabilization**: Implemented MegaStableInput component with 1.2-second debouncing and enhanced focus management to eliminate cursor jumping and UI flickering during text entry
+- **Radio Button Stabilization**: Created UltraStableRadio component with 50ms delay and memo optimization to prevent UI flickering during selection changes
+- **Admin File Management**: Added template deletion functionality with physical file removal, allowing cleanup of old uploaded Excel files
+- **Database Integration**: Full PostgreSQL integration with Neon serverless configuration completed
+- **Component Architecture**: Isolated question components with full memoization to prevent unnecessary re-renders
+
 ## System Architecture
 
 ### Frontend Architecture
