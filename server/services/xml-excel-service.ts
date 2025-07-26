@@ -116,6 +116,12 @@ class XmlExcelService {
   private createCellMappings(formData: FormData, questionConfigs: any[], language: string) {
     const mappings = [];
     
+    console.log(`FormData answers:`, JSON.stringify(formData.answers));
+    console.log(`Question configs count: ${questionConfigs.length}`);
+    questionConfigs.forEach(config => {
+      console.log(`Config: ${config.questionId} - type: ${config.type}`);
+    });
+    
     // Add answers based on question configs
     Object.entries(formData.answers).forEach(([questionId, answer]) => {
       const config = questionConfigs.find(q => q.questionId === questionId);
