@@ -80,8 +80,8 @@ const IsolatedQuestionComponent = memo(({
   }, [question, value, onChange, t]);
 
   return (
-    <Card className="bg-white border border-gray-200 shadow-sm">
-      <CardContent className="p-6">
+    <Card className="question-card bg-white border border-gray-200 shadow-sm">
+      <CardContent className="question-block p-6">
         <div className="flex items-start justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-800">
             {question.title}

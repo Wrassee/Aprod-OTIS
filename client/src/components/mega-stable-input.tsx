@@ -70,6 +70,21 @@ const MegaStableInputComponent = ({
       return; // Stay active if focus is still within our component
     }
     
+    // Check if clicking within the same question block or UI components
+    const relatedTarget = e.relatedTarget as HTMLElement;
+    if (relatedTarget) {
+      // Don't blur if clicking on buttons, question blocks, or other UI elements
+      const isUIElement = relatedTarget.closest('button') || 
+                         relatedTarget.closest('[role="radiogroup"]') ||
+                         relatedTarget.closest('.question-block') ||
+                         relatedTarget.closest('label') ||
+                         relatedTarget.classList.contains('question-card');
+      
+      if (isUIElement) {
+        return; // Keep focus state
+      }
+    }
+    
     // Delay deactivation to prevent race conditions
     setTimeout(() => {
       setIsActive(false);
@@ -89,7 +104,7 @@ const MegaStableInputComponent = ({
       
       onChange(finalValue);
       isChangingRef.current = false;
-    }, 150);
+    }, 300); // Longer delay to prevent premature blur
   };
 
   // Prevent container clicks from bubbling

@@ -53,46 +53,66 @@ export function Questionnaire({
     return () => clearTimeout(timeoutId);
   }, [currentPage]);
 
-  // Static questions - no API calls to prevent UI flickering
+  // Load questions from API/database
   useEffect(() => {
-    const staticQuestions = [
-      {
-        id: 'q1',
-        title: language === 'hu' ? 'Átvevő neve' : 'Name des Empfängers',
-        type: 'text' as const,
-        required: true,
-      },
-      {
-        id: 'q2',
-        title: language === 'hu' ? 'Lift telepítés kész?' : 'Aufzuginstallation abgeschlossen?',
-        type: 'yes_no_na' as const,
-        required: true,
-      },
-      {
-        id: 'q3',
-        title: language === 'hu' ? 'Biztonsági rendszerek működnek?' : 'Sicherheitssysteme funktionsfähig?',
-        type: 'yes_no_na' as const,
-        required: true,
-      },
-      {
-        id: 'q4',
-        title: language === 'hu' ? 'Teherbírás (kg)' : 'Tragfähigkeit (kg)',
-        type: 'number' as const,
-        required: true,
-        placeholder: 'Enter load capacity',
-      },
-      {
-        id: 'q5',
-        title: language === 'hu' ? 'További megjegyzések' : 'Zusätzliche Kommentare',
-        type: 'text' as const,
-        required: false,
-        placeholder: 'Enter any additional comments or observations',
-      },
-    ];
-    
-    setAllQuestions(staticQuestions);
-    setQuestionsLoading(false);
-    setCurrentPage(0);
+    const loadQuestions = async () => {
+      try {
+        setQuestionsLoading(true);
+        const response = await fetch(`/api/questions/${language}`);
+        
+        if (response.ok) {
+          const questionsData = await response.json();
+          console.log('Loaded questions from API:', questionsData.length);
+          setAllQuestions(questionsData);
+        } else {
+          console.warn('No active template found, using fallback questions');
+          // Fallback static questions only if no template exists
+          const fallbackQuestions = [
+            {
+              id: 'q1',
+              title: language === 'hu' ? 'Átvevő neve' : 'Name des Empfängers',
+              type: 'text' as const,
+              required: true,
+            },
+            {
+              id: 'q2',
+              title: language === 'hu' ? 'Lift telepítés kész?' : 'Aufzuginstallation abgeschlossen?',
+              type: 'yes_no_na' as const,
+              required: true,
+            },
+            {
+              id: 'q3',
+              title: language === 'hu' ? 'Biztonsági rendszerek működnek?' : 'Sicherheitssysteme funktionsfähig?',
+              type: 'yes_no_na' as const,
+              required: true,
+            },
+            {
+              id: 'q4',
+              title: language === 'hu' ? 'Teherbírás (kg)' : 'Tragfähigkeit (kg)',
+              type: 'number' as const,
+              required: true,
+              placeholder: 'Enter load capacity',
+            },
+            {
+              id: 'q5',
+              title: language === 'hu' ? 'További megjegyzések' : 'Zusätzliche Kommentare',
+              type: 'text' as const,
+              required: false,
+              placeholder: 'Enter any additional comments or observations',
+            },
+          ];
+          setAllQuestions(fallbackQuestions);
+        }
+      } catch (error) {
+        console.error('Error loading questions:', error);
+        setAllQuestions([]);
+      } finally {
+        setQuestionsLoading(false);
+        setCurrentPage(0);
+      }
+    };
+
+    loadQuestions();
   }, [language]);
 
   // Memoized calculations to prevent unnecessary re-renders
