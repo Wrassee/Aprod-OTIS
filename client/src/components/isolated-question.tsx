@@ -67,6 +67,7 @@ const IsolatedQuestionComponent = memo(({
             initialValue={value?.toString() || ''}
             onValueChange={(newValue) => onChange(parseFloat(newValue) || 0)}
             placeholder={question.placeholder || '0'}
+            className="w-full"
           />
         );
         
@@ -79,6 +80,7 @@ const IsolatedQuestionComponent = memo(({
             initialValue={value?.toString() || ''}
             onValueChange={(newValue) => onChange(newValue)}
             placeholder={question.placeholder || t.enterText || 'Szöveg megadása'}
+            className="w-full"
           />
         );
     }

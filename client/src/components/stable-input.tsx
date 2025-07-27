@@ -6,9 +6,10 @@ interface StableInputProps {
   placeholder?: string;
   initialValue?: string;
   onValueChange?: (value: string) => void;
+  className?: string;
 }
 
-export function StableInput({ questionId, type, placeholder, initialValue, onValueChange }: StableInputProps) {
+export function StableInput({ questionId, type, placeholder, initialValue, onValueChange, className }: StableInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const mountedRef = useRef(false);
 
@@ -32,13 +33,14 @@ export function StableInput({ questionId, type, placeholder, initialValue, onVal
     }
     (window as any).stableInputValues[questionId] = value;
     
-    // Debounced callback to avoid excessive parent updates
-    clearTimeout((window as any)[`stable-timeout-${questionId}`]);
-    (window as any)[`stable-timeout-${questionId}`] = setTimeout(() => {
-      if (onValueChange) {
-        onValueChange(value);
-      }
-    }, 500);
+    // DON'T call onValueChange during typing - it causes page refresh!
+    // Only save to localStorage directly during validation and sync
+    // clearTimeout((window as any)[`stable-timeout-${questionId}`]);
+    // (window as any)[`stable-timeout-${questionId}`] = setTimeout(() => {
+    //   if (onValueChange) {
+    //     onValueChange(value);
+    //   }
+    // }, 500);
   };
 
   return (
