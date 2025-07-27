@@ -27,7 +27,7 @@ interface QuestionnaireProps {
   onHome?: () => void;
 }
 
-function Questionnaire({
+const Questionnaire = memo(function Questionnaire({
   receptionDate,
   onReceptionDateChange,
   answers,
@@ -42,7 +42,7 @@ function Questionnaire({
 }: QuestionnaireProps) {
   const { t, language: contextLanguage } = useLanguageContext();
   
-  // Debug: Log when component mounts/unmounts
+  // Debug: Log when component mounts/unmounts - this should only happen ONCE if component is stable
   console.log('🔄 Questionnaire component rendered/mounted');
   
   const [currentPage, setCurrentPage] = useState(() => {
@@ -541,7 +541,6 @@ function Questionnaire({
       </main>
     </div>
   );
-}
+});
 
-// Remove memo wrapper temporarily to debug
-export { Questionnaire };
+export default Questionnaire;
