@@ -4,8 +4,8 @@
 
 This is a full-stack TypeScript application that digitizes the OTIS elevator acceptance protocol process. The system guides users through a step-by-step questionnaire, allows error documentation with images, generates PDFs, and enables sharing via email or cloud storage. It supports both Hungarian and German languages.
 
-**Current Version**: OTIS APRO 0.1.9.3 - Complete Production Release (January 27, 2025)
-**Status**: FULLY OPERATIONAL ✅ - TELJES SIKER!
+**Current Version**: OTIS APRO 0.2.0 - Production Release with Custom File Naming (January 27, 2025)
+**Status**: FULLY OPERATIONAL ✅ - TÖKÉLETES MINDEN!
 
 ## User Preferences
 
@@ -113,10 +113,16 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Direct PDF Download**: ✅ COMPLETED - Single click PDF download with preserved OTIS protocol formatting
 - **User Requirement**: ✅ SATISFIED - PDF now looks exactly like original Excel file with complete formatting preservation
 
-## VERSION 0.1.9.3 FINAL RELEASE - COMPLETE SUCCESS ✅
+## VERSION 0.2.0 FINAL RELEASE - TÖKÉLETES MINDEN! ✅
 
 ### Release Date: January 27, 2025 
-### Status: OTIS APRO 0.1.9.3 - TELJES SIKER! (FULLY OPERATIONAL)
+### Status: OTIS APRO 0.2.0 - TÖKÉLETES MINDEN! (FULLY OPERATIONAL)
+
+### Version 0.2.0 New Features (January 27, 2025)
+- **Custom File Naming Enhancement**: ✅ COMPLETED - Files now download with "AP_" prefix + Otis Lift-azonosító format
+- **Perfect File Format**: ✅ VERIFIED - Downloads as "AP_1CT89.xlsx" and "AP_1CT89.pdf" based on Question 7 value
+- **User-Requested Format**: ✅ SATISFIED - Exact "AP_" + ID format as requested by user
+- **Complete Testing**: ✅ CONFIRMED - User validated "Tökéletes minden!" confirming perfect functionality
 
 **Complete Feature Set Successfully Implemented:**
 

@@ -1,4 +1,4 @@
-OTIS APRO Version 0.1.1
+OTIS APRO Version 0.2.0
 Release Date: January 27, 2025
 Status: Stable Production Release
 
@@ -29,8 +29,15 @@ End-to-End Workflow:
 ✅ Template management system
 ✅ Data persistence and validation
 
-Next planned features for v0.2:
-- PDF generation from Excel templates
-- Email distribution system
+New Features in v0.2.0:
+✅ Custom file naming with "AP_" prefix + Otis Lift-azonosító format
+✅ Perfect Excel-to-PDF conversion preserving original OTIS formatting
+✅ LibreOffice integration for authentic PDF generation
+✅ Complete UI stability with advanced input caching
+✅ Protocol completion workflow fully operational
+
+Next planned features for v0.3:
+- Email distribution system enhancement
 - Cloud storage integration
 - Enhanced error reporting with image attachments
+- Multi-protocol batch processing
