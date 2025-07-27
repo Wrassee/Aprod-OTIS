@@ -6,72 +6,23 @@ import { fileURLToPath } from 'url';
 
 class PDFService {
   async generatePDF(excelBuffer: Buffer, language: string = 'hu'): Promise<Buffer> {
+    console.log('Generating PDF from Excel buffer of size:', excelBuffer.length);
+    
     try {
-      console.log('Generating PDF from Excel buffer of size:', excelBuffer.length);
-      
-      // Read the Excel file to extract data
+      // Read Excel data
       const workbook = XLSX.read(excelBuffer, { type: 'buffer' });
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
       
-      console.log('Excel sheet name:', sheetName);
-      console.log('Excel range:', worksheet['!ref']);
+      // Convert to array for processing
+      const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
       
-      // Convert worksheet to JSON for better control over formatting
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false }) as any[][];
-      
-      // Create structured HTML table with proper OTIS styling
-      const html = this.createStructuredTable(jsonData, language);
-      
-      // Create a proper HTML document with enhanced OTIS styling
-      const fullHtml = this.createOTISHtmlTemplate(html, language);
-      
-      console.log('Generated HTML length:', fullHtml.length);
-      
-      // Use puppeteer to convert HTML to PDF with Replit-compatible settings
-      const browser = await puppeteer.launch({
-        headless: true,
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-gpu',
-          '--disable-extensions',
-          '--no-first-run',
-          '--no-zygote',
-          '--single-process',
-          '--disable-background-timer-throttling',
-          '--disable-backgrounding-occluded-windows',
-          '--disable-renderer-backgrounding'
-        ],
-        executablePath: process.env.CHROME_BIN || undefined
-      });
-      
-      const page = await browser.newPage();
-      await page.setContent(fullHtml, { waitUntil: 'networkidle0' });
-      
-      const pdfUint8Array = await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        margin: {
-          top: '20mm',
-          right: '15mm',
-          bottom: '20mm',
-          left: '15mm'
-        }
-      });
-      
-      const pdfBuffer = Buffer.from(pdfUint8Array);
-      
-      await browser.close();
-      
-      console.log('Generated PDF buffer size:', pdfBuffer.length);
-      return pdfBuffer;
+      // Generate OTIS branded PDF
+      return this.generateEnhancedFallbackPDF(data, language);
     } catch (error) {
-      console.error('Error generating PDF with Puppeteer:', error);
-      console.log('Falling back to HTML-based PDF generation...');
-      // Enhanced fallback with better HTML-to-PDF conversion
-      return this.generateEnhancedFallbackPDF(jsonData, language);
+      console.error('PDF generation error:', error);
+      // Fallback to simple PDF
+      return this.generateFallbackPDF(excelBuffer, language);
     }
   }
 
@@ -437,53 +388,8 @@ class PDFService {
       // Convert to array of arrays for easier processing
       const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
       
-      // Create a simple text representation  
-      let textContent = 'OTIS ACCEPTANCE PROTOCOL\n';
-      textContent += '========================\n\n';
-      textContent += `Generated: ${new Date().toLocaleString()}\n\n`;
-      
-      data.forEach((row, index) => {
-        if (row && row.length > 0) {
-          textContent += `${row.join(' | ')}\n`;
-        }
-      });
-      
-      // Create a minimal PDF with the text content
-      const simplePDF = `%PDF-1.4
-1 0 obj
-<< /Type /Catalog /Pages 2 0 R >>
-endobj
-2 0 obj
-<< /Type /Pages /Kids [3 0 R] /Count 1 >>
-endobj
-3 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R >>
-endobj
-4 0 obj
-<< /Length ${textContent.length + 50} >>
-stream
-BT
-/F1 10 Tf
-50 750 Td
-12 TL
-${textContent.split('\n').map(line => `(${line.replace(/[()\\]/g, '\\$&')}) Tj T*`).join('\n')}
-ET
-endstream
-endobj
-xref
-0 5
-0000000000 65535 f 
-0000000009 00000 n 
-0000000058 00000 n 
-0000000115 00000 n 
-0000000206 00000 n 
-trailer
-<< /Size 5 /Root 1 0 R >>
-startxref
-${300 + textContent.length}
-%%EOF`;
-
-      return Buffer.from(simplePDF, 'utf-8');
+      // Use enhanced fallback with OTIS branding
+      return this.generateEnhancedFallbackPDF(data, language);
     } catch (error) {
       console.error('Fallback PDF generation failed:', error);
       throw new Error('Failed to generate PDF');
