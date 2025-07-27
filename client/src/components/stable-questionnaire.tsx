@@ -120,7 +120,7 @@ export function StableQuestionnaire({
   if (loading) {
     return (
       <div className="min-h-screen bg-light-surface flex items-center justify-center">
-        <div className="text-lg">Kérdések betöltése...</div>
+        <div className="text-lg">{language === 'de' ? 'Fragen werden geladen...' : 'Kérdések betöltése...'}</div>
       </div>
     );
   }
@@ -144,17 +144,17 @@ export function StableQuestionnaire({
                   size="sm"
                   onClick={onHome}
                   className="text-gray-600 hover:text-gray-800 mr-4"
-                  title="Kezdőlap"
+                  title={language === 'de' ? 'Startseite' : 'Kezdőlap'}
                 >
                   <Home className="h-4 w-4" />
                 </Button>
               )}
-              <span className="text-lg font-medium text-gray-800">OTIS Átvételi Protokoll</span>
+              <span className="text-lg font-medium text-gray-800">{t.title}</span>
             </div>
             
             {/* Date Picker and Admin */}
             <div className="flex items-center space-x-4">
-              <Label className="text-sm font-medium text-gray-600">Átvétel dátuma</Label>
+              <Label className="text-sm font-medium text-gray-600">{t.receptionDate}</Label>
               <Input
                 type="date"
                 value={receptionDate}
@@ -182,7 +182,7 @@ export function StableQuestionnaire({
         <div className="mb-8">
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm font-medium text-gray-600">
-              Haladás: {currentPage + 1} / {totalPages}
+              {t.progress}: {currentPage + 1} / {totalPages}
             </span>
             <span className="text-sm text-gray-500">
               {Math.round(((currentPage + 1) / totalPages) * 100)}%
@@ -231,7 +231,7 @@ export function StableQuestionnaire({
                           className="w-4 h-4"
                         />
                         <span className="text-sm text-gray-700">
-                          {option === 'yes' ? 'Igen' : option === 'no' ? 'Nem' : 'N/A'}
+                          {option === 'yes' ? t.yes : option === 'no' ? t.no : t.notApplicable}
                         </span>
                       </label>
                     ))}
