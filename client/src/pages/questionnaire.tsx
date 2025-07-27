@@ -49,11 +49,13 @@ const Questionnaire = memo(function Questionnaire({
   console.log('🔄 Questionnaire component rendered/mounted - RENDER COUNT:', mountCountRef.current);
   
   // Use a stable ref for currentPage to prevent re-mounting
-  const currentPageRef = useRef(() => {
+  const currentPageRef = useRef(0);
+  const [currentPage, setCurrentPage] = useState(() => {
     const saved = localStorage.getItem('questionnaire-current-page');
-    return saved ? parseInt(saved, 10) : 0;
+    const initialPage = saved ? parseInt(saved, 10) : 0;
+    currentPageRef.current = initialPage;
+    return initialPage;
   });
-  const [currentPage, setCurrentPage] = useState(currentPageRef.current);
   
   console.log('📁 Current page:', currentPage);
 
@@ -132,7 +134,7 @@ const Questionnaire = memo(function Questionnaire({
   // Group questions by groupName and organize by groups
   const { questionGroups, totalPages, currentQuestions, progress, currentGroup } = useMemo(() => {
     // Group questions by groupName
-    const groups = allQuestions.reduce((acc, question) => {
+    const groups = allQuestions.reduce((acc: Record<string, Question[]>, question: Question) => {
       const groupName = question.groupName || 'Egyéb';
       if (!acc[groupName]) {
         acc[groupName] = [];
@@ -143,7 +145,7 @@ const Questionnaire = memo(function Questionnaire({
 
     // Sort questions within each group by groupOrder
     Object.keys(groups).forEach(groupName => {
-      groups[groupName].sort((a, b) => (a.groupOrder || 0) - (b.groupOrder || 0));
+      groups[groupName].sort((a: Question, b: Question) => (a.groupOrder || 0) - (b.groupOrder || 0));
     });
 
     // Convert to array format for pagination
@@ -189,20 +191,20 @@ const Questionnaire = memo(function Questionnaire({
       ...error,
       id: Date.now().toString(),
     };
-    onErrorsChange((prev: ProtocolError[]) => [...prev, newError]);
-  }, [onErrorsChange]);
+    onErrorsChange([...errors, newError]);
+  }, [onErrorsChange, errors]);
 
   const handleEditError = useCallback((id: string, updatedError: Omit<ProtocolError, 'id'>) => {
-    onErrorsChange((prev: ProtocolError[]) =>
-      prev.map((error: ProtocolError) =>
+    onErrorsChange(
+      errors.map((error: ProtocolError) =>
         error.id === id ? { ...updatedError, id } : error
       )
     );
-  }, [onErrorsChange]);
+  }, [onErrorsChange, errors]);
 
   const handleDeleteError = useCallback((id: string) => {
-    onErrorsChange((prev: ProtocolError[]) => prev.filter((error: ProtocolError) => error.id !== id));
-  }, [onErrorsChange]);
+    onErrorsChange(errors.filter((error: ProtocolError) => error.id !== id));
+  }, [onErrorsChange, errors]);
 
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
