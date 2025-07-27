@@ -33,6 +33,9 @@ export function StableInput({ questionId, type, placeholder, initialValue, onVal
     }
     (window as any).stableInputValues[questionId] = value;
     
+    // Trigger custom event for cache update
+    window.dispatchEvent(new CustomEvent('input-change'));
+    
     // DON'T call onValueChange during typing - it causes page refresh!
     // Only save to localStorage directly during validation and sync
     // clearTimeout((window as any)[`stable-timeout-${questionId}`]);

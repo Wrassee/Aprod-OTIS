@@ -217,13 +217,26 @@ const Questionnaire = memo(function Questionnaire({
     const cachedTrueFalseValues = getAllTrueFalseValues();
     const cachedInputValues = getAllStableInputValues();
     
+    // ALSO check localStorage for any saved data
+    const savedFormData = JSON.parse(localStorage.getItem('otis-protocol-form-data') || '{"answers":{}}');
+    
+    const combinedAnswers = {
+      ...answers,
+      ...savedFormData.answers,
+      ...cachedRadioValues,
+      ...cachedTrueFalseValues,
+      ...cachedInputValues,
+    };
+    
+    console.log('checkCanProceed: Combined answers:', combinedAnswers);
+    console.log('checkCanProceed: Cached input values:', cachedInputValues);
+    console.log('checkCanProceed: localStorage answers:', savedFormData.answers);
+    
     const result = requiredQuestions.every((q: Question) => {
-      const hasAnswer = answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== '';
-      const hasCachedRadio = cachedRadioValues[q.id] !== undefined && cachedRadioValues[q.id] !== '';
-      const hasCachedTrueFalse = cachedTrueFalseValues[q.id] !== undefined && cachedTrueFalseValues[q.id] !== '';
-      const hasCachedInput = cachedInputValues[q.id] !== undefined && cachedInputValues[q.id] !== '';
-      
-      return hasAnswer || hasCachedRadio || hasCachedTrueFalse || hasCachedInput;
+      const answer = combinedAnswers[q.id];
+      const hasAnswer = answer !== undefined && answer !== null && answer !== '';
+      console.log(`Question ${q.id} (${q.title}): ${hasAnswer ? 'OK' : 'MISSING'} (value: "${answer}")`);
+      return hasAnswer;
     });
     
     console.log('Can proceed check result:', result, 'Required questions:', requiredQuestions.length, 'Current page:', currentPage);
