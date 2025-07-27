@@ -57,8 +57,10 @@ export interface Translation {
   emailPDF: string;
   saveToCloud: string;
   downloadPDF: string;
+  downloadExcel: string;
   viewProtocol: string;
   startNew: string;
+  home: string;
   
   // Validation
   requiredField: string;
@@ -151,8 +153,10 @@ export const translations: Record<string, Translation> = {
     emailPDF: "PDF küldése e-mailben",
     saveToCloud: "Mentés Google Drive-ra",
     downloadPDF: "PDF letöltése",
+    downloadExcel: "Excel letöltése",
     viewProtocol: "Protokoll előnézete",
     startNew: "Új protokoll indítása",
+    home: "Kezdőlap",
     
     // Validation
     requiredField: "Ez a mező kötelező",
@@ -243,8 +247,10 @@ export const translations: Record<string, Translation> = {
     emailPDF: "PDF per E-Mail senden",
     saveToCloud: "In Google Drive speichern",
     downloadPDF: "PDF herunterladen",
+    downloadExcel: "Excel herunterladen",
     viewProtocol: "Protokoll-Vorschau",
     startNew: "Neues Protokoll starten",
+    home: "Startseite",
     
     // Validation
     requiredField: "Dieses Feld ist erforderlich",

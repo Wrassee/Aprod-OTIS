@@ -56,7 +56,7 @@ export function Completion({
                 className="flex items-center"
               >
                 <Home className="h-4 w-4 mr-2" />
-                {t.home || 'Kezdőlap'}
+                {t.home}
               </Button>
               <Button
                 onClick={onSettings}
@@ -111,7 +111,7 @@ export function Completion({
               className="bg-gray-600 hover:bg-gray-700 text-white flex items-center justify-center py-4 h-auto"
             >
               <Download className="h-5 w-5 mr-3" />
-              PDF letöltés
+              {t.downloadPDF}
             </Button>
             
             {/* Download Excel */}
@@ -120,7 +120,7 @@ export function Completion({
               className="bg-orange-600 hover:bg-orange-700 text-white flex items-center justify-center py-4 h-auto"
             >
               <Download className="h-5 w-5 mr-3" />
-              Excel letöltés
+              {t.downloadExcel}
             </Button>
             
             {/* View Protocol */}
