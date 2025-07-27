@@ -73,23 +73,63 @@ function App() {
 
   const handleSignatureComplete = async () => {
     try {
+      // Sync all cached values before creating protocol
+      const cachedRadioValues = (window as any).radioCache?.getAll?.() || {};
+      const cachedTrueFalseValues = (window as any).trueFalseCache || new Map();
+      const cachedInputValues = (window as any).stableInputValues || {};
+      
+      // Convert Map to object if needed
+      const trueFalseAnswers: Record<string, string> = {};
+      if (cachedTrueFalseValues instanceof Map) {
+        cachedTrueFalseValues.forEach((value, key) => {
+          trueFalseAnswers[key] = value;
+        });
+      } else {
+        Object.assign(trueFalseAnswers, cachedTrueFalseValues);
+      }
+      
+      // Combine all answers
+      const combinedAnswers = {
+        ...formData.answers,
+        ...cachedRadioValues,
+        ...trueFalseAnswers,
+        ...cachedInputValues,
+      };
+      
+      // Ensure we have a valid receptionDate
+      const receptionDate = formData.receptionDate || new Date().toISOString().split('T')[0];
+      
+      const protocolData = {
+        receptionDate,
+        language,
+        answers: combinedAnswers,
+        errors: formData.errors || [],
+        signature: formData.signature || '',
+        signatureName: formData.signatureName || '',
+        completed: true,
+      };
+      
+      console.log('Creating protocol with data:', protocolData);
+      console.log('Combined answers count:', Object.keys(combinedAnswers).length);
+      console.log('Reception date:', receptionDate);
+      
       // Submit the protocol data to backend
       const response = await fetch('/api/protocols', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          language,
-          completed: true,
-        }),
+        body: JSON.stringify(protocolData),
       });
 
       if (response.ok) {
+        const result = await response.json();
+        console.log('Protocol created successfully:', result);
         setCurrentScreen('completion');
         // Clear saved data after successful completion
         localStorage.removeItem('otis-protocol-form-data');
       } else {
-        throw new Error('Failed to save protocol');
+        const errorText = await response.text();
+        console.error('Protocol creation failed:', errorText);
+        throw new Error(`Failed to save protocol: ${errorText}`);
       }
     } catch (error) {
       console.error('Error completing protocol:', error);
