@@ -104,7 +104,7 @@ export const translations: Record<string, Translation> = {
     german: "Deutsch",
     
     // Header
-    title: "Átvételi Protokoll",
+    title: "OTIS APROD - Átvételi Protokoll",
     receptionDate: "Átvételi dátum:",
     progress: "Folyamat",
     
@@ -201,7 +201,7 @@ export const translations: Record<string, Translation> = {
     german: "Deutsch",
     
     // Header
-    title: "Abnahmeprotokoll",
+    title: "OTIS APROD - Abnahmeprotokoll",
     receptionDate: "Abnahmedatum:",
     progress: "Fortschritt",
     

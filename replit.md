@@ -1,10 +1,10 @@
-# OTIS APRO (Acceptance Protocol) Application - Version 0.1
+# OTIS APROD (Acceptance Protocol Document) Application - Version 0.2
 
 ## Overview
 
 This is a full-stack TypeScript application that digitizes the OTIS elevator acceptance protocol process. The system guides users through a step-by-step questionnaire, allows error documentation with images, generates PDFs, and enables sharing via email or cloud storage. It supports both Hungarian and German languages.
 
-**Current Version**: OTIS APRO 0.2.0 - Production Release with Custom File Naming (January 27, 2025)
+**Current Version**: OTIS APROD 0.2.0 - Production Release with Custom File Naming (January 27, 2025)
 **Status**: FULLY OPERATIONAL ✅ - TÖKÉLETES MINDEN!
 
 ## User Preferences
@@ -116,7 +116,7 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 ## VERSION 0.2.0 FINAL RELEASE - TÖKÉLETES MINDEN! ✅
 
 ### Release Date: January 27, 2025 
-### Status: OTIS APRO 0.2.0 - TÖKÉLETES MINDEN! (FULLY OPERATIONAL)
+### Status: OTIS APROD 0.2.0 - TÖKÉLETES MINDEN! (FULLY OPERATIONAL)
 
 ### Version 0.2.0 New Features (January 27, 2025)
 - **Custom File Naming Enhancement**: ✅ COMPLETED - Files now download with "AP_" prefix + Otis Lift-azonosító format

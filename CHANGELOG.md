@@ -1,4 +1,4 @@
-OTIS APRO v0.2.0 - TÖKÉLETES MINDEN!
+OTIS APROD v0.2.0 - TÖKÉLETES MINDEN!
 
 ## Version 0.2.0 (January 27, 2025)
 
