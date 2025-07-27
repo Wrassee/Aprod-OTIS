@@ -21,7 +21,11 @@ export const TrueFalseRadio = memo(({ questionId, questionTitle, value, onChange
 
   const currentValue = trueFalseCache.get(questionId) || value || '';
 
-  const handleChange = useCallback((newValue: string) => {
+  const handleChange = useCallback((newValue: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    // Prevent any default behavior
+    event.preventDefault();
+    event.stopPropagation();
+    
     // Update cache immediately
     trueFalseCache.set(questionId, newValue);
     
@@ -31,13 +35,15 @@ export const TrueFalseRadio = memo(({ questionId, questionTitle, value, onChange
       falseRadioRef.current.checked = newValue === 'false';
     }
     
-    // Notify parent component
-    onChange(newValue);
-    
-    // Dispatch custom event to trigger validation check
-    window.dispatchEvent(new CustomEvent('radio-change', { 
-      detail: { questionId, value: newValue }
-    }));
+    // Notify parent component asynchronously to prevent re-render cycles
+    setTimeout(() => {
+      onChange(newValue);
+      
+      // Dispatch custom event to trigger validation check
+      window.dispatchEvent(new CustomEvent('radio-change', { 
+        detail: { questionId, value: newValue }
+      }));
+    }, 0);
   }, [questionId, onChange]);
 
   return (
@@ -56,12 +62,14 @@ export const TrueFalseRadio = memo(({ questionId, questionTitle, value, onChange
           name={questionId}
           value="true"
           defaultChecked={currentValue === 'true'}
-          onChange={(e) => {
+          onClick={(e) => {
             e.preventDefault();
-            if (e.target.checked) {
-              handleChange('true');
+            e.stopPropagation();
+            if (!trueRadioRef.current?.checked) {
+              handleChange('true', e as any);
             }
           }}
+          onChange={() => {}} // Empty onChange to prevent React warnings
           className="w-5 h-5 text-green-600 bg-gray-100 border-gray-300 focus:ring-green-500 focus:ring-2"
         />
       </div>
@@ -75,12 +83,14 @@ export const TrueFalseRadio = memo(({ questionId, questionTitle, value, onChange
           name={questionId}
           value="false"
           defaultChecked={currentValue === 'false'}
-          onChange={(e) => {
+          onClick={(e) => {
             e.preventDefault();
-            if (e.target.checked) {
-              handleChange('false');
+            e.stopPropagation();
+            if (!falseRadioRef.current?.checked) {
+              handleChange('false', e as any);
             }
           }}
+          onChange={() => {}} // Empty onChange to prevent React warnings
           className="w-5 h-5 text-red-600 bg-gray-100 border-gray-300 focus:ring-red-500 focus:ring-2"
         />
       </div>
