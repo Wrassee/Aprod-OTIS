@@ -29,10 +29,12 @@ export const TrueFalseGroup = memo(({ questions, values, onChange, groupName }: 
           <div className="text-sm font-semibold text-gray-700">
             Kérdés
           </div>
-          <div className="text-sm font-semibold text-green-600 text-center">
+          <div className="text-sm font-semibold text-green-600 text-center flex items-center justify-center gap-1">
+            <span className="text-green-600 font-bold">✓</span>
             Igen
           </div>
-          <div className="text-sm font-semibold text-red-600 text-center">
+          <div className="text-sm font-semibold text-red-600 text-center flex items-center justify-center gap-1">
+            <span className="text-red-600 font-bold">✗</span>
             Nem
           </div>
         </div>
@@ -50,10 +52,7 @@ export const TrueFalseGroup = memo(({ questions, values, onChange, groupName }: 
           ))}
         </div>
 
-        {/* Info Text */}
-        <div className="text-xs text-gray-500 mt-4 pt-3 border-t border-gray-100">
-          Igen = "X" az Excel cellában, Nem = "-" az Excel cellában
-        </div>
+
       </CardContent>
     </Card>
   );
