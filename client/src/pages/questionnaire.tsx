@@ -369,12 +369,18 @@ export function Questionnaire({
             <Button
               variant="outline"
               onClick={async () => {
+                console.log('Save button clicked on page:', currentPage);
                 setSaveStatus('saving');
                 try {
                   // Sync all cached values to parent
                   const cachedRadioValues = getAllCachedValues();
                   const cachedTrueFalseValues = getAllTrueFalseValues();
                   const cachedInputValues = (window as any).inputValues || {};
+                  
+                  console.log('Save: Syncing cached values on page', currentPage);
+                  console.log('Save: Radio values:', cachedRadioValues);
+                  console.log('Save: True/False values:', cachedTrueFalseValues);
+                  console.log('Save: Input values:', cachedInputValues);
                   
                   Object.entries(cachedRadioValues).forEach(([questionId, value]) => {
                     onAnswerChange(questionId, value);
@@ -386,15 +392,17 @@ export function Questionnaire({
                     onAnswerChange(questionId, value);
                   });
                   
+                  console.log('Save: Calling onSave()...');
                   await onSave();
+                  console.log('Save: onSave() completed successfully');
                   setSaveStatus('saved');
                   setLastSaved(new Date());
                   
                   // Auto-clear saved status after 3 seconds
                   setTimeout(() => setSaveStatus('idle'), 3000);
                 } catch (error) {
+                  console.error('Save: Failed with error:', error);
                   setSaveStatus('error');
-                  console.error('Save failed:', error);
                   setTimeout(() => setSaveStatus('idle'), 3000);
                 }
               }}
