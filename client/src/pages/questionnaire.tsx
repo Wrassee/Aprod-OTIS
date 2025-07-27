@@ -12,6 +12,7 @@ import { useLanguageContext } from '@/components/language-provider';
 import { ArrowLeft, ArrowRight, Save, Settings, Home, Check, X } from 'lucide-react';
 import { getAllCachedValues } from '@/components/cache-radio';
 import { getAllTrueFalseValues } from '@/components/true-false-radio';
+import { getAllStableInputValues } from '@/components/stable-input';
 
 interface QuestionnaireProps {
   receptionDate: string;
@@ -214,7 +215,7 @@ const Questionnaire = memo(function Questionnaire({
     // Check both answers prop and cached values
     const cachedRadioValues = getAllCachedValues();
     const cachedTrueFalseValues = getAllTrueFalseValues();
-    const cachedInputValues = (window as any).inputValues || {};
+    const cachedInputValues = getAllStableInputValues();
     
     const result = requiredQuestions.every((q: Question) => {
       const hasAnswer = answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== '';
@@ -392,7 +393,7 @@ const Questionnaire = memo(function Questionnaire({
                   // Sync all cached values to parent
                   const cachedRadioValues = getAllCachedValues();
                   const cachedTrueFalseValues = getAllTrueFalseValues();
-                  const cachedInputValues = (window as any).inputValues || {};
+                  const cachedInputValues = getAllStableInputValues();
                   
                   console.log('Save: Syncing cached values on page', currentPage);
                   console.log('Save: Radio values:', cachedRadioValues);
@@ -465,7 +466,7 @@ const Questionnaire = memo(function Questionnaire({
                   // Sync all cached values before completing
                   const cachedRadioValues = getAllCachedValues();
                   const cachedTrueFalseValues = getAllTrueFalseValues();
-                  const cachedInputValues = (window as any).inputValues || {};
+                  const cachedInputValues = getAllStableInputValues();
                   
                   console.log('Complete button: Syncing cached values...');
                   console.log('Radio values:', cachedRadioValues);
@@ -508,7 +509,7 @@ const Questionnaire = memo(function Questionnaire({
                   // Sync cached values before moving to next page
                   const cachedRadioValues = getAllCachedValues();
                   const cachedTrueFalseValues = getAllTrueFalseValues();
-                  const cachedInputValues = (window as any).inputValues || {};
+                  const cachedInputValues = getAllStableInputValues();
                   
                   Object.entries(cachedRadioValues).forEach(([questionId, value]) => {
                     onAnswerChange(questionId, value as string);
