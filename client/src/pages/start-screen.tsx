@@ -11,7 +11,7 @@ export function StartScreen({ onLanguageSelect }: StartScreenProps) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white">
       {/* OTIS Logo */}
-      <div className="mb-2">
+      <div className="mb-6">
         <img 
           src="/otis-elevators-seeklogo_1753525178175.png" 
           alt="OTIS Logo" 
@@ -21,7 +21,7 @@ export function StartScreen({ onLanguageSelect }: StartScreenProps) {
       
       {/* Slogan */}
       <h1 className="text-6xl md:text-7xl font-light text-gray-700 mb-8 text-center tracking-wide leading-relaxed">
-        <span className="font-extralight text-gray-600 uppercase text-2xl md:text-3xl tracking-widest">
+        <span className="font-extralight text-gray-600 uppercase text-xl md:text-2xl tracking-widest">
           {t.slogan}<sup className="text-xs ml-1">™</sup>
         </span>
       </h1>
