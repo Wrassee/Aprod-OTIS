@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -222,30 +222,49 @@ function App() {
     setFormData(prev => ({ ...prev, errors }));
   }, []);
 
+  const handleAdminAccess = useCallback(() => setCurrentScreen('admin'), []);
+  const handleHome = useCallback(() => setCurrentScreen('start'), []);
+
+  // Memoized screen components to prevent re-creation
+  const questionnaireComponent = useMemo(() => (
+    <Questionnaire
+      key="questionnaire-stable"
+      receptionDate={formData.receptionDate}
+      onReceptionDateChange={handleReceptionDateChange}
+      answers={formData.answers}
+      onAnswerChange={handleAnswerChange}
+      errors={formData.errors}
+      onErrorsChange={handleErrorsChange}
+      onNext={handleQuestionnaireNext}
+      onSave={handleSaveProgress}
+      language={language}
+      onAdminAccess={handleAdminAccess}
+      onHome={handleHome}
+    />
+  ), [
+    formData.receptionDate,
+    formData.answers,
+    formData.errors,
+    handleReceptionDateChange,
+    handleAnswerChange,
+    handleErrorsChange,
+    handleQuestionnaireNext,
+    handleSaveProgress,
+    language,
+    handleAdminAccess,
+    handleHome
+  ]);
+
   function Router() {
     return (
       <Switch>
         <Route path="/" component={() => {
+          console.log('🏠 Route component function called - currentScreen:', currentScreen);
           switch (currentScreen) {
             case 'start':
               return <StartScreen onLanguageSelect={handleLanguageSelect} />;
             case 'questionnaire':
-              return (
-                <Questionnaire
-                  key="questionnaire-stable"
-                  receptionDate={formData.receptionDate}
-                  onReceptionDateChange={handleReceptionDateChange}
-                  answers={formData.answers}
-                  onAnswerChange={handleAnswerChange}
-                  errors={formData.errors}
-                  onErrorsChange={handleErrorsChange}
-                  onNext={handleQuestionnaireNext}
-                  onSave={handleSaveProgress}
-                  language={language}
-                  onAdminAccess={() => setCurrentScreen('admin')}
-                  onHome={() => setCurrentScreen('start')}
-                />
-              );
+              return questionnaireComponent;
             case 'signature':
               return (
                 <Signature

@@ -543,5 +543,5 @@ function Questionnaire({
   );
 }
 
-export const MemoizedQuestionnaire = memo(Questionnaire);
-export { MemoizedQuestionnaire as Questionnaire };
+// Remove memo wrapper temporarily to debug
+export { Questionnaire };
