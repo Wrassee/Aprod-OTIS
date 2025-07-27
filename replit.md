@@ -27,13 +27,12 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Logo Display**: ✅ COMPLETED - Moved logo to client/public/ for proper static serving
 - **Yes/No/NA Logic**: ✅ COMPLETED - X-based logic implemented for multi-column questions
 
-### Latest Update (January 27, 2025) - Version 0.1.4
+### Latest Update (January 27, 2025) - Version 0.1.5
 - **German UI Translation**: ✅ COMPLETED - Complete German language interface implemented
-- **Template Management Fix**: ✅ COMPLETED - Admin panel now shows all templates regardless of language selection
-- **Language Badge System**: ✅ COMPLETED - Template list displays HU/DE language indicators
-- **German Template Integration**: ✅ COMPLETED - German question templates load with proper group names
-- **Signature Page Translation**: ✅ COMPLETED - All signature elements translated to German
-- **Navigation Translation**: ✅ COMPLETED - All buttons and progress indicators support German language
+- **Language Synchronization**: ✅ COMPLETED - Fixed language context sync between App.tsx and LanguageProvider
+- **Signature Canvas Translation**: ✅ COMPLETED - All signature elements including "Löschen" button and instruction text
+- **Template Management Fix**: ✅ COMPLETED - Admin panel shows all templates with HU/DE language badges
+- **Full German Interface**: ✅ COMPLETED - Every UI element properly translated including navigation, progress, and signatures
 
 ## VERSION 0.1 RELEASE - STABLE PRODUCTION BUILD ✅
 
