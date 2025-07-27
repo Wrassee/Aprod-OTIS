@@ -11,6 +11,7 @@ import { pdfService } from "./services/pdf-service";
 import { emailService } from "./services/email-service";
 import { excelParserService } from "./services/excel-parser";
 import { z } from "zod";
+import JSZip from "jszip";
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), 'uploads');
@@ -171,20 +172,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Download PDF
+  // Download PDF directly (Excel-style formatting)
   app.post("/api/protocols/download", async (req, res) => {
     try {
       const { formData, language } = req.body;
       
-      // Generate Excel from template
+      // Generate Excel from template first
       const excelBuffer = await excelService.generateExcel(formData, language);
       
-      // Generate PDF from Excel
+      // Generate PDF from Excel with proper formatting
       const pdfBuffer = await pdfService.generatePDF(excelBuffer);
       
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-');
+      
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', 'attachment; filename=acceptance-protocol.pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="OTIS_Protocol_${timestamp}.pdf"`);
       res.send(pdfBuffer);
+      
     } catch (error) {
       console.error("Error generating PDF download:", error);
       res.status(500).json({ message: "Failed to generate PDF" });

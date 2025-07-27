@@ -1,35 +1,148 @@
 import { ProtocolError } from '@shared/schema';
 import * as XLSX from 'xlsx';
+import puppeteer from 'puppeteer';
 
 class PDFService {
   async generatePDF(excelBuffer: Buffer): Promise<Buffer> {
     try {
-      console.log('Generating PDF from Excel buffer of size:', excelBuffer.length);
+      console.log('Converting Excel to PDF with full formatting preservation');
       
-      // Read the Excel file to extract data
-      const workbook = XLSX.read(excelBuffer, { type: 'buffer' });
+      // Read the Excel workbook with full formatting support
+      const workbook = XLSX.read(excelBuffer, { 
+        type: 'buffer',
+        cellStyles: true,
+        cellNF: true,
+        cellHTML: true,
+        sheetStubs: true,
+        bookSST: true,
+        dense: false
+      });
+      
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
       
       console.log('Excel sheet name:', sheetName);
       console.log('Excel range:', worksheet['!ref']);
       
-      // Convert to array of arrays for structured data extraction
-      const data = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' }) as any[][];
+      // Convert Excel to HTML with full formatting
+      const htmlContent = XLSX.utils.sheet_to_html(worksheet, {
+        header: this.getHTMLHeader(),
+        footer: '</body></html>',
+        editable: false,
+        cellHTML: true
+      });
       
-      // Extract key information
-      const keyInfo = this.extractKeyInformation(data);
+      console.log('Generated HTML for PDF conversion, length:', htmlContent.length);
       
-      // Create a properly formatted PDF using raw PDF format
-      const pdfContent = this.createPDFContent(keyInfo);
+      // Use Puppeteer to convert HTML to PDF maintaining Excel layout
+      console.log('Starting Puppeteer browser...');
       
-      console.log('Generated PDF content length:', pdfContent.length);
-      return Buffer.from(pdfContent, 'utf-8');
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: [
+          '--no-sandbox', 
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-gpu'
+        ]
+      });
+      
+      const page = await browser.newPage();
+      
+      // Set content and wait for load
+      await page.setContent(htmlContent, { 
+        waitUntil: 'networkidle0',
+        timeout: 30000 
+      });
+      
+      console.log('Generating PDF from HTML...');
+      
+      // Generate PDF with Excel-like formatting
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: {
+          top: '5mm',
+          right: '5mm', 
+          bottom: '5mm',
+          left: '5mm'
+        },
+        scale: 0.75,
+        preferCSSPageSize: false
+      });
+      
+      await browser.close();
+      
+      console.log('Generated PDF buffer size:', pdfBuffer.length, 'bytes');
+      return Buffer.from(pdfBuffer);
       
     } catch (error) {
-      console.error('Error generating PDF:', error);
+      console.error('Error converting Excel to PDF:', error);
       return this.generateFallbackPDF(excelBuffer);
     }
+  }
+  
+  private getHTMLHeader(): string {
+    return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>OTIS Acceptance Protocol</title>
+  <style>
+    body { 
+      font-family: 'Calibri', 'Arial', sans-serif; 
+      margin: 0; 
+      padding: 5px;
+      background: white;
+      font-size: 11px;
+    }
+    table { 
+      border-collapse: collapse; 
+      width: 100%; 
+      table-layout: auto;
+      font-size: 10px;
+    } 
+    td, th { 
+      border: 1px solid #000; 
+      padding: 2px 4px; 
+      text-align: left; 
+      vertical-align: middle;
+      font-size: 9px;
+      word-wrap: break-word;
+      height: auto;
+      min-height: 12px;
+    } 
+    th { 
+      background-color: #d32f2f; 
+      color: white;
+      font-weight: bold;
+      text-align: center;
+    }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    .otis-red {
+      background-color: #d32f2f !important;
+      color: white !important;
+      font-weight: bold;
+      text-align: center;
+    }
+    .otis-header {
+      background-color: #d32f2f;
+      color: white;
+      font-weight: bold;
+      text-align: center;
+      font-size: 12px;
+      padding: 8px;
+    }
+    @media print {
+      body { margin: 0; padding: 0; }
+      table { page-break-inside: auto; }
+      tr { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>`
   }
 
   private extractKeyInformation(data: any[][]): { basicInfo: Array<{label: string, value: string}>, questions: Array<{question: string, answer: string}> } {
@@ -214,14 +327,102 @@ startxref
 
   private async generateFallbackPDF(excelBuffer: Buffer): Promise<Buffer> {
     try {
-      console.log('Using fallback PDF generation');
+      console.log('Using Excel-based fallback PDF generation');
       
-      const basicContent = 'OTIS ACCEPTANCE PROTOCOL\n\nPDF generation completed\n\nPlease use Excel file for detailed view';
-      return Buffer.from(this.createPDFContent({ basicInfo: [], questions: [] }));
+      // Read Excel and extract meaningful data
+      const workbook = XLSX.read(excelBuffer, { type: 'buffer' });
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      
+      // Extract data in a more structured way
+      const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1:Z100');
+      const extractedData: Array<{label: string, value: string}> = [];
+      
+      // Look for filled cells with meaningful content
+      for (let row = range.s.r; row <= Math.min(range.e.r, 50); row++) {
+        for (let col = range.s.c; col <= Math.min(range.e.c, 10); col++) {
+          const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+          const cell = worksheet[cellAddress];
+          
+          if (cell && cell.v && typeof cell.v === 'string' && cell.v.length > 2) {
+            const nextCellAddress = XLSX.utils.encode_cell({ r: row, c: col + 1 });
+            const nextCell = worksheet[nextCellAddress];
+            
+            if (nextCell && nextCell.v) {
+              extractedData.push({
+                label: String(cell.v).substring(0, 30),
+                value: String(nextCell.v).substring(0, 50)
+              });
+            }
+          }
+        }
+      }
+      
+      console.log(`Extracted ${extractedData.length} data pairs from Excel`);
+      
+      return Buffer.from(this.createPDFContent({ 
+        basicInfo: extractedData.slice(0, 10), 
+        questions: [] 
+      }));
+      
     } catch (error) {
       console.error('Fallback PDF generation failed:', error);
-      throw new Error('Failed to generate PDF');
+      
+      // Ultra simple fallback
+      const simplePDF = this.createSimplePDF();
+      return Buffer.from(simplePDF, 'binary');
     }
+  }
+  
+  private createSimplePDF(): string {
+    const currentDate = new Date().toLocaleString();
+    
+    return `%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 300 >>
+stream
+BT
+/F1 16 Tf
+50 750 Td
+(OTIS ELEVATOR ACCEPTANCE PROTOCOL) Tj
+0 -50 Td
+/F1 12 Tf
+(Generated: ${currentDate}) Tj
+0 -30 Td
+(This is a simplified PDF version.) Tj
+0 -20 Td
+(Please use the Excel file for complete formatting.) Tj
+0 -30 Td
+(OTIS Elevator Company) Tj
+0 -20 Td
+(Made to move you) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000015 00000 n 
+0000000074 00000 n 
+0000000131 00000 n 
+0000000244 00000 n 
+0000000595 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+672
+%%EOF`;
   }
 
   async generateErrorListPDF(errors: ProtocolError[], language: string): Promise<Buffer> {
