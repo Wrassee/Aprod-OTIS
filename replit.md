@@ -33,8 +33,6 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Excel Integration**: ✅ COMPLETED - True="X", False="-" cell population working perfectly
 - **Template Syntax Support**: ✅ COMPLETED - Excel parser recognizes "true_false" type in question templates
 - **Database Integration**: ✅ COMPLETED - Question configs support true_false type with proper cell references
-- **Admin Preview Enhancement**: ✅ COMPLETED - Detailed template preview showing questions and Excel cell mappings
-- **UI Layout Optimization**: ✅ COMPLETED - Single column question layout for better space efficiency and data entry
 - **Complete German UI Translation**: ✅ COMPLETED - All interface elements properly translated
 - **Language Synchronization**: ✅ COMPLETED - Fixed language context sync between App.tsx and LanguageProvider  
 - **Signature Canvas Translation**: ✅ COMPLETED - All signature elements including "Löschen" button and instruction text
