@@ -204,7 +204,7 @@ export function Questionnaire({
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   
   const checkCanProceed = () => {
-    const requiredQuestions = currentQuestions.filter(q => q.required);
+    const requiredQuestions = (currentQuestions as Question[]).filter((q: Question) => q.required);
     
     if (requiredQuestions.length === 0) return true;
     
@@ -213,7 +213,7 @@ export function Questionnaire({
     const cachedTrueFalseValues = getAllTrueFalseValues();
     const cachedInputValues = (window as any).inputValues || {};
     
-    const result = requiredQuestions.every(q => {
+    const result = requiredQuestions.every((q: Question) => {
       const hasAnswer = answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== '';
       const hasCachedRadio = cachedRadioValues[q.id] !== undefined && cachedRadioValues[q.id] !== '';
       const hasCachedTrueFalse = cachedTrueFalseValues[q.id] !== undefined && cachedTrueFalseValues[q.id] !== '';
@@ -330,9 +330,9 @@ export function Questionnaire({
         {/* Question Content */}
         <div className="mb-8">
           {/* Check if current group has only true_false questions */}
-          {currentQuestions.length > 0 && currentQuestions.every(q => q.type === 'true_false') ? (
+          {(currentQuestions as Question[]).length > 0 && (currentQuestions as Question[]).every((q: Question) => q.type === 'true_false') ? (
             <TrueFalseGroup
-              questions={currentQuestions}
+              questions={currentQuestions as Question[]}
               values={answers}
               onChange={onAnswerChange}
               groupName={currentGroup?.name || 'Kérdések'}
@@ -340,7 +340,7 @@ export function Questionnaire({
           ) : (
             /* Regular Question Grid (2x2 Layout) for non-true_false questions */
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {currentQuestions.map((question) => (
+              {(currentQuestions as Question[]).map((question: Question) => (
                 <IsolatedQuestion
                   key={question.id}
                   question={question}
@@ -382,7 +382,7 @@ export function Questionnaire({
               onClick={async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                e.stopImmediatePropagation();
+                // e.stopImmediatePropagation(); // Not available on button click events
                 
                 console.log('Save button clicked on page:', currentPage);
                 setSaveStatus('saving');
@@ -398,13 +398,13 @@ export function Questionnaire({
                   console.log('Save: Input values:', cachedInputValues);
                   
                   Object.entries(cachedRadioValues).forEach(([questionId, value]) => {
-                    onAnswerChange(questionId, value);
+                    onAnswerChange(questionId, value as string);
                   });
                   Object.entries(cachedTrueFalseValues).forEach(([questionId, value]) => {
-                    onAnswerChange(questionId, value);
+                    onAnswerChange(questionId, value as string);
                   });
                   Object.entries(cachedInputValues).forEach(([questionId, value]) => {
-                    onAnswerChange(questionId, value);
+                    onAnswerChange(questionId, value as string);
                   });
                   
                   console.log('Save: Calling onSave()...');
@@ -469,13 +469,13 @@ export function Questionnaire({
                   console.log('Input values:', cachedInputValues);
                   
                   Object.entries(cachedRadioValues).forEach(([questionId, value]) => {
-                    onAnswerChange(questionId, value);
+                    onAnswerChange(questionId, value as string);
                   });
                   Object.entries(cachedTrueFalseValues).forEach(([questionId, value]) => {
-                    onAnswerChange(questionId, value);
+                    onAnswerChange(questionId, value as string);
                   });
                   Object.entries(cachedInputValues).forEach(([questionId, value]) => {
-                    onAnswerChange(questionId, value);
+                    onAnswerChange(questionId, value as string);
                   });
                   
                   // Small delay to ensure state updates before proceeding
@@ -507,13 +507,13 @@ export function Questionnaire({
                   const cachedInputValues = (window as any).inputValues || {};
                   
                   Object.entries(cachedRadioValues).forEach(([questionId, value]) => {
-                    onAnswerChange(questionId, value);
+                    onAnswerChange(questionId, value as string);
                   });
                   Object.entries(cachedTrueFalseValues).forEach(([questionId, value]) => {
-                    onAnswerChange(questionId, value);
+                    onAnswerChange(questionId, value as string);
                   });
                   Object.entries(cachedInputValues).forEach(([questionId, value]) => {
-                    onAnswerChange(questionId, value);
+                    onAnswerChange(questionId, value as string);
                   });
                   
                   const nextPage = currentPage + 1;
