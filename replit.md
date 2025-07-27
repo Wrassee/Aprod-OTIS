@@ -4,7 +4,7 @@
 
 This is a full-stack TypeScript application that digitizes the OTIS elevator acceptance protocol process. The system guides users through a step-by-step questionnaire, allows error documentation with images, generates PDFs, and enables sharing via email or cloud storage. It supports both Hungarian and German languages.
 
-**Current Version**: OTIS APRO 0.1 - Stable Release (January 27, 2025)
+**Current Version**: OTIS APRO 0.1.1 - Yes/No/NA X-Logic Update (January 27, 2025)
 **Status**: Production Ready ✅
 
 ## User Preferences
@@ -21,33 +21,16 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Database Integration**: ✅ COMPLETED - Full PostgreSQL integration with Neon serverless configuration
 - **Component Architecture**: ✅ COMPLETED - Isolated question components with full memoization
 
-### Current Issues (January 27, 2025)
-- **Radio Button Page Switching**: CRITICAL UNRESOLVED - Radio button selections trigger unwanted page navigation. Attempted solutions:
-  - UltraStableRadio with 800ms debounce
-  - InstantRadio with immediate response 
-  - IsolatedRadio with complete event isolation
-  - ZeroRadio with minimal logic
-  - SimpleRadio with no fancy features
-  - Multiple useEffect dependency changes
-  - Complete event propagation prevention methods
-  - Focus/blur handling improvements
-  - Removing language dependency from useEffect
-  - **ROOT CAUSE**: Component remounting causing continuous API calls and state resets
+### Recent Fixes (January 27, 2025)
+- **Radio Button Stability**: ✅ RESOLVED - CacheRadio with global Map cache prevents unwanted page navigation
+- **UI Performance**: ✅ COMPLETED - All input components stabilized with proper debouncing
+- **Logo Display**: ✅ COMPLETED - Moved logo to client/public/ for proper static serving
+- **Yes/No/NA Logic**: ✅ COMPLETED - X-based logic implemented for multi-column questions
 
-### Analysis
-- Questions still reload multiple times ("Loaded questions from API (ONCE)" appears 3x)
-- Component is remounting repeatedly, not just re-rendering
-- Problem is architectural, not with radio button components
-- Need to investigate App.tsx state management and parent re-renders
-
-### Latest Attempts (January 27, 2025)
-- **StableQuestionnaire**: Created completely new component with useRef for local state storage
-- **Debounced Updates**: 100ms delay between local updates and parent notifications  
-- **Direct HTML Radio**: Replaced complex radio components with simple HTML inputs
-- **CacheRadio**: Global Map cache + zero parent updates until Save button
-- **CacheInput**: Text/number input cache preventing UI refreshes during typing
-- **Logo Fix**: ✅ COMPLETED - Moved logo to client/public/ for proper static serving, increased size (start: h-48 w-48, header: h-12 w-12)
-- **Component Isolation**: Multiple attempts to isolate radio state from parent updates
+### Latest Update (January 27, 2025) - Version 0.1.1
+- **Yes_no_na Enhancement**: Successfully implemented X-placement logic for A68,B68,C68 cell references
+- **Excel Generation**: Perfect formatting preservation with comma-separated cell mapping
+- **Debug System**: Comprehensive logging for troubleshooting Excel generation process
 
 ## VERSION 0.1 RELEASE - STABLE PRODUCTION BUILD ✅
 
