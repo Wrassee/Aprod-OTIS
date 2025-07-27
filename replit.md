@@ -27,10 +27,11 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Logo Display**: ✅ COMPLETED - Moved logo to client/public/ for proper static serving
 - **Yes/No/NA Logic**: ✅ COMPLETED - X-based logic implemented for multi-column questions
 
-### Latest Update (January 27, 2025) - Version 0.1.1
-- **Yes_no_na Enhancement**: Successfully implemented X-placement logic for A68,B68,C68 cell references
-- **Excel Generation**: Perfect formatting preservation with comma-separated cell mapping
-- **Debug System**: Comprehensive logging for troubleshooting Excel generation process
+### Latest Update (January 27, 2025) - Version 0.1.2
+- **Excel Template Control**: Yes_no_na questions now controlled by Excel Template MultiCell column
+- **Smart X-Placement**: Single-cell (A68,B68,C68) or multi-cell (A75;A76;A77,B75;B76;B77,C75;C76;C77) based on template
+- **Template Syntax**: Added MultiCell column support in question Excel templates
+- **Flexible Configuration**: Each yes_no_na question individually configurable for single/multi-row behavior
 
 ## VERSION 0.1 RELEASE - STABLE PRODUCTION BUILD ✅
 
