@@ -19,7 +19,7 @@ function App() {
   const [currentScreen, setCurrentScreen] = useState<'start' | 'questionnaire' | 'signature' | 'completion' | 'admin' | 'protocol-preview'>('start');
   const [language, setLanguage] = useState<'hu' | 'de'>('hu');
   const [formData, setFormData] = useState<FormData>({
-    receptionDate: new Date().toISOString().split('T')[0],
+    receptionDate: new Date().toISOString().split('T')[0], // Always keep as ISO format for HTML date input
     answers: {},
     errors: [],
     signature: '',

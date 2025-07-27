@@ -8,6 +8,7 @@ import { IsolatedQuestion } from '@/components/isolated-question';
 import { ErrorList } from '@/components/error-list';
 import { QuestionGroupHeader } from '@/components/question-group-header';
 import { useLanguageContext } from '@/components/language-provider';
+import { formatDate } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, Save, Settings, Home } from 'lucide-react';
 import { getAllCachedValues } from '@/components/cache-radio';
 
@@ -258,12 +259,17 @@ export function Questionnaire({
             {/* Date Picker and Admin */}
             <div className="flex items-center space-x-4">
               <Label className="text-sm font-medium text-gray-600">{t.receptionDate}</Label>
-              <Input
-                type="date"
-                value={receptionDate}
-                onChange={(e) => onReceptionDateChange(e.target.value)}
-                className="w-auto"
-              />
+              <div className="flex items-center space-x-2">
+                <Input
+                  type="date"
+                  value={receptionDate}
+                  onChange={(e) => onReceptionDateChange(e.target.value)}
+                  className="w-auto"
+                />
+                <span className="text-sm text-gray-500 min-w-[100px]">
+                  {formatDate(new Date(receptionDate), contextLanguage)}
+                </span>
+              </div>
               {onAdminAccess && (
                 <Button
                   variant="ghost"

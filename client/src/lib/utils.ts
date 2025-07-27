@@ -22,3 +22,13 @@ export function formatDate(date: Date, language: 'hu' | 'de'): string {
     });
   }
 }
+
+export function formatDateForInput(date: Date): string {
+  // HTML date input always expects YYYY-MM-DD format (ISO 8601)
+  return date.toISOString().split('T')[0];
+}
+
+export function parseDateFromInput(dateString: string): Date {
+  // Parse YYYY-MM-DD format from HTML date input
+  return new Date(dateString + 'T00:00:00');
+}
