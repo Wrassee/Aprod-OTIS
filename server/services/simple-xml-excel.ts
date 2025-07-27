@@ -262,6 +262,22 @@ class SimpleXmlExcelService {
               });
             }
           }
+        } else if (config.type === 'true_false') {
+          // Handle true_false questions - convert to X/-
+          let cellValue = answer;
+          if (answer === 'true' || answer === true) {
+            cellValue = 'X';
+          } else if (answer === 'false' || answer === false) {
+            cellValue = '-';
+          }
+          
+          console.log(`Processing true_false question ${questionId}: ${answer} -> ${cellValue}, cellRef: ${config.cellReference}`);
+          
+          mappings.push({
+            cell: config.cellReference,
+            value: cellValue,
+            label: config.title || `Question ${questionId}`
+          });
         } else {
           // Handle other question types normally
           mappings.push({
