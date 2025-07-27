@@ -20,10 +20,8 @@ export function StartScreen({ onLanguageSelect }: StartScreenProps) {
       </div>
       
       {/* Slogan */}
-      <h1 className="text-3xl md:text-4xl font-light text-gray-700 mb-16 text-center tracking-wide leading-relaxed">
-        <span className="font-extralight text-gray-600 uppercase text-sm md:text-base tracking-widest">
-          {t.slogan}
-        </span>
+      <h1 className="text-6xl md:text-8xl font-bold text-gray-800 mb-16 text-center tracking-wide leading-relaxed">
+        Made to move you™
       </h1>
       
       {/* Language Selection */}
