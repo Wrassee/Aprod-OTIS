@@ -51,8 +51,10 @@ class ExcelParserService {
       const typeIndex = getColumnIndex(['type', 'input_type', 'field_type']);
       const requiredIndex = getColumnIndex(['required', 'mandatory', 'kötelező']);
       const placeholderIndex = getColumnIndex(['placeholder', 'hint', 'example']);
-      const cellRefIndex = getColumnIndex(['cell', 'cell_ref', 'reference', 'target_cell', 'cél', 'target', 'cel']);
-      const multiCellIndex = getColumnIndex(['multi_cell', 'multicell', 'több_sor', 'multi', 'multiple']);
+      // Direct index for "Cél" column (H = index 7)
+      const cellRefIndex = headerRow.findIndex((col: string) => col?.toString().trim() === 'Cél');
+      // Direct index for "MultiCell" column (I = index 8)
+      const multiCellIndex = headerRow.findIndex((col: string) => col?.toString().trim() === 'MultiCell');
       
       if (idIndex === -1 || titleIndex === -1 || typeIndex === -1) {
         throw new Error('Required columns not found: ID, Title, Type');
