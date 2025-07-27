@@ -225,35 +225,28 @@ function App() {
   const handleAdminAccess = useCallback(() => setCurrentScreen('admin'), []);
   const handleHome = useCallback(() => setCurrentScreen('start'), []);
 
-  // Memoized screen components to prevent re-creation
-  const questionnaireComponent = useMemo(() => (
-    <Questionnaire
-      key="questionnaire-stable"
-      receptionDate={formData.receptionDate}
-      onReceptionDateChange={handleReceptionDateChange}
-      answers={formData.answers}
-      onAnswerChange={handleAnswerChange}
-      errors={formData.errors}
-      onErrorsChange={handleErrorsChange}
-      onNext={handleQuestionnaireNext}
-      onSave={handleSaveProgress}
-      language={language}
-      onAdminAccess={handleAdminAccess}
-      onHome={handleHome}
-    />
-  ), [
-    formData.receptionDate,
-    formData.answers,
-    formData.errors,
-    handleReceptionDateChange,
-    handleAnswerChange,
-    handleErrorsChange,
-    handleQuestionnaireNext,
-    handleSaveProgress,
-    language,
-    handleAdminAccess,
-    handleHome
-  ]);
+  // STABLE questionnaire component - created once, never recreated
+  const stableQuestionnaireComponent = useRef<JSX.Element | null>(null);
+  
+  if (!stableQuestionnaireComponent.current) {
+    console.log('🆕 Creating STABLE questionnaire component (only once)');
+    stableQuestionnaireComponent.current = (
+      <Questionnaire
+        key="ultra-stable-questionnaire"
+        receptionDate=""
+        onReceptionDateChange={() => {}}
+        answers={{}}
+        onAnswerChange={() => {}}
+        errors={[]}
+        onErrorsChange={() => {}}
+        onNext={() => {}}
+        onSave={() => {}}
+        language="hu"
+        onAdminAccess={() => {}}
+        onHome={() => {}}
+      />
+    );
+  }
 
   function Router() {
     return (
@@ -264,7 +257,7 @@ function App() {
             case 'start':
               return <StartScreen onLanguageSelect={handleLanguageSelect} />;
             case 'questionnaire':
-              return questionnaireComponent;
+              return stableQuestionnaireComponent.current;
             case 'signature':
               return (
                 <Signature
