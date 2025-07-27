@@ -37,7 +37,7 @@ class ExcelParserService {
         return possibleNames.reduce((index, name) => {
           if (index === -1) {
             return headerRow.findIndex((col: string) => 
-              col?.toString().toLowerCase().includes(name.toLowerCase())
+              col?.toString().toLowerCase().trim().includes(name.toLowerCase())
             );
           }
           return index;
@@ -51,7 +51,7 @@ class ExcelParserService {
       const typeIndex = getColumnIndex(['type', 'input_type', 'field_type']);
       const requiredIndex = getColumnIndex(['required', 'mandatory', 'kötelező']);
       const placeholderIndex = getColumnIndex(['placeholder', 'hint', 'example']);
-      const cellRefIndex = getColumnIndex(['cell', 'cell_ref', 'reference', 'target_cell', 'cél', 'target']);
+      const cellRefIndex = getColumnIndex(['cell', 'cell_ref', 'reference', 'target_cell', 'cél', 'target', 'cel']);
       const multiCellIndex = getColumnIndex(['multi_cell', 'multicell', 'több_sor', 'multi', 'multiple']);
       
       if (idIndex === -1 || titleIndex === -1 || typeIndex === -1) {
