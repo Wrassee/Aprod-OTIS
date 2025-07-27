@@ -79,6 +79,7 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **XML-Based Manipulation**: Direct XML string replacement preserves 100% original template formatting
 - **Unicode Support**: Hungarian characters (ű,ő,á,é,í,ó,ü) display perfectly in Excel output  
 - **Cell Mapping**: All 10 questions correctly populate specific Excel cells (F9, Q9, G13, O13, G14, N14, O16, O17, O19, A68)
+- **Yes/No/NA Logic**: Yes_no_na type questions automatically place X in A/B/C columns (A=Igen, B=Nem, C=Nem alkalmazható)
 - **Template Integrity**: Complete template structure maintained during data insertion
 - **Format Preservation**: Original OTIS styling and formatting preserved in generated Excel files
 

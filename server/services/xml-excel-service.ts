@@ -113,19 +113,53 @@ class XmlExcelService {
     }
   }
 
-  private createCellMappings(formData: FormData, questionConfigs: any[], language: string) {
-    const mappings = [];
+  private createCellMappings(formData: FormData, questionConfigs: any[], language: string): any[] {
+    const mappings: any[] = [];
     
     // Add answers based on question configs
     Object.entries(formData.answers).forEach(([questionId, answer]) => {
       const config = questionConfigs.find(q => q.questionId === questionId);
       
       if (config && config.cellReference && answer !== '' && answer !== null && answer !== undefined) {
-        mappings.push({
-          cell: config.cellReference,
-          value: this.formatAnswer(answer, language),
-          label: config.title || `Question ${questionId}`
-        });
+        
+        // Handle yes_no_na questions specially - put X in appropriate column
+        if (config.type === 'yes_no_na') {
+          const { row, col } = this.parseCellReference(config.cellReference);
+          
+          // Calculate A, B, C columns based on the base cell reference
+          const baseColumnIndex = this.getColumnIndex(col);
+          const aColumn = this.getColumnName(baseColumnIndex);     // A oszlop (igen)
+          const bColumn = this.getColumnName(baseColumnIndex + 1); // B oszlop (nem)  
+          const cColumn = this.getColumnName(baseColumnIndex + 2); // C oszlop (nem alkalmazható)
+          
+          // Add X to the appropriate column based on answer
+          if (answer === 'yes') {
+            mappings.push({
+              cell: `${aColumn}${row}`,
+              value: 'X',
+              label: `${config.title} - Igen`
+            });
+          } else if (answer === 'no') {
+            mappings.push({
+              cell: `${bColumn}${row}`,
+              value: 'X', 
+              label: `${config.title} - Nem`
+            });
+          } else if (answer === 'na') {
+            mappings.push({
+              cell: `${cColumn}${row}`,
+              value: 'X',
+              label: `${config.title} - Nem alkalmazható`
+            });
+          }
+        } else {
+          // Handle other question types normally
+          mappings.push({
+            cell: config.cellReference,
+            value: this.formatAnswer(answer, language),
+            label: config.title || `Question ${questionId}`
+          });
+        }
       }
     });
     
@@ -212,6 +246,25 @@ class XmlExcelService {
       row: parseInt(match[2], 10),
       col: match[1]
     };
+  }
+
+  // Convert column name (A, B, C, etc.) to index (0, 1, 2, etc.)
+  private getColumnIndex(columnName: string): number {
+    let index = 0;
+    for (let i = 0; i < columnName.length; i++) {
+      index = index * 26 + (columnName.charCodeAt(i) - 'A'.charCodeAt(0) + 1);
+    }
+    return index - 1;
+  }
+
+  // Convert column index (0, 1, 2, etc.) to name (A, B, C, etc.)
+  private getColumnName(index: number): string {
+    let columnName = '';
+    while (index >= 0) {
+      columnName = String.fromCharCode(index % 26 + 'A'.charCodeAt(0)) + columnName;
+      index = Math.floor(index / 26) - 1;
+    }
+    return columnName;
   }
 
   private formatAnswer(value: any, language: string): string {
