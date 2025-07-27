@@ -100,7 +100,7 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Complete Data Flow**: ✅ VERIFIED - 22 questions successfully processed and saved to database with protocol ID
 - **Excel Generation Perfect**: ✅ CONFIRMED - 23 cell modifications with preserved formatting in generated Excel files
 - **User Validation**: ✅ "TELJES SIKER!" - Complete success confirmed by user testing
-- **Custom File Naming**: ✅ COMPLETED - Files now download as "AP" + Otis Lift-azonosító (question 7 value)
+- **Custom File Naming**: ✅ COMPLETED - Files now download as "AP_" + Otis Lift-azonosító (question 7 value)
 
 ### PDF Generation Implementation (January 27, 2025) - Version 0.1.9.2 - PERFECT EXCEL-TO-PDF
 - **LibreOffice Integration**: ✅ COMPLETED - True Excel-to-PDF conversion preserving 100% original OTIS formatting 

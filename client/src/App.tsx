@@ -186,9 +186,9 @@ function App() {
         // Get Otis Lift ID from all sources (cache + formData)
         const cachedInputValues = (window as any).stableInputValues || {};
         const otisLiftId = cachedInputValues['7'] || formData.answers['7'] || 'Unknown';
-        a.download = `AP${otisLiftId}.pdf`;
+        a.download = `AP_${otisLiftId}.pdf`;
         
-        console.log('PDF download filename:', `AP${otisLiftId}.pdf`);
+        console.log('PDF download filename:', `AP_${otisLiftId}.pdf`);
         
         document.body.appendChild(a);
         a.click();
@@ -217,9 +217,9 @@ function App() {
         // Get Otis Lift ID from all sources (cache + formData)
         const cachedInputValues = (window as any).stableInputValues || {};
         const otisLiftId = cachedInputValues['7'] || formData.answers['7'] || 'Unknown';
-        a.download = `AP${otisLiftId}.xlsx`;
+        a.download = `AP_${otisLiftId}.xlsx`;
         
-        console.log('Excel download filename:', `AP${otisLiftId}.xlsx`);
+        console.log('Excel download filename:', `AP_${otisLiftId}.xlsx`);
         
         document.body.appendChild(a);
         a.click();
