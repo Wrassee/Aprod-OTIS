@@ -124,6 +124,8 @@ class XmlExcelService {
         
         // Handle yes_no_na questions specially - put X in appropriate column
         if (config.type === 'yes_no_na') {
+          console.log(`Processing yes_no_na question ${questionId}: ${answer}, cellRef: ${config.cellReference}`);
+          
           const { row, col } = this.parseCellReference(config.cellReference);
           
           // Calculate A, B, C columns based on the base cell reference
@@ -132,20 +134,25 @@ class XmlExcelService {
           const bColumn = this.getColumnName(baseColumnIndex + 1); // B oszlop (nem)  
           const cColumn = this.getColumnName(baseColumnIndex + 2); // C oszlop (nem alkalmazható)
           
+          console.log(`Column calculation: base=${col}(${baseColumnIndex}) -> A=${aColumn}, B=${bColumn}, C=${cColumn}`);
+          
           // Add X to the appropriate column based on answer
           if (answer === 'yes') {
+            console.log(`Adding X to YES column: ${aColumn}${row}`);
             mappings.push({
               cell: `${aColumn}${row}`,
               value: 'X',
               label: `${config.title} - Igen`
             });
           } else if (answer === 'no') {
+            console.log(`Adding X to NO column: ${bColumn}${row}`);
             mappings.push({
               cell: `${bColumn}${row}`,
               value: 'X', 
               label: `${config.title} - Nem`
             });
           } else if (answer === 'na') {
+            console.log(`Adding X to NA column: ${cColumn}${row}`);
             mappings.push({
               cell: `${cColumn}${row}`,
               value: 'X',
