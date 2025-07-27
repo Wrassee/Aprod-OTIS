@@ -269,7 +269,7 @@ const Questionnaire = memo(function Questionnaire({
                   size="sm"
                   onClick={onHome}
                   className="text-gray-600 hover:text-gray-800 mr-4"
-                  title="Kezdőlap"
+                  title={language === 'de' ? 'Startseite' : 'Kezdőlap'}
                 >
                   <Home className="h-4 w-4" />
                 </Button>
@@ -460,7 +460,7 @@ const Questionnaire = memo(function Questionnaire({
               ) : saveStatus === 'error' ? (
                 <>
                   <X className="h-4 w-4 mr-2 text-red-600" />
-                  Hiba
+                  {t.error}
                 </>
               ) : (
                 <>
