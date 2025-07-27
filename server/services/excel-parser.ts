@@ -176,6 +176,9 @@ class ExcelParserService {
     if (['yes_no', 'yes_no_na', 'yesno', 'boolean', 'bool'].includes(type)) {
       return 'yes_no_na';
     }
+    if (['true_false', 'truefalse', 'true/false', 'binary'].includes(type)) {
+      return 'true_false';
+    }
     if (['number', 'numeric', 'num', 'int', 'integer', 'float'].includes(type)) {
       return 'number';
     }
