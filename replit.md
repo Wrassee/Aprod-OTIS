@@ -72,6 +72,7 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Schema Updates**: ✅ COMPLETED - Template language field supports "multilingual" value with proper defaults
 - **Display Logic**: ✅ COMPLETED - Admin template list shows "HU/DE" badge for multilingual templates
 - **Backward Compatibility**: ✅ MAINTAINED - Existing Hungarian/German specific templates still supported
+- **User Validation**: ✅ CONFIRMED - User successfully tested new upload flow and confirmed "Nagyszerű!" - system working perfectly with single Excel for both languages
 
 ## VERSION 0.1 RELEASE - STABLE PRODUCTION BUILD ✅
 
