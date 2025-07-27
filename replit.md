@@ -27,12 +27,13 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Logo Display**: ✅ COMPLETED - Moved logo to client/public/ for proper static serving
 - **Yes/No/NA Logic**: ✅ COMPLETED - X-based logic implemented for multi-column questions
 
-### Latest Update (January 27, 2025) - Version 0.1.5
-- **German UI Translation**: ✅ COMPLETED - Complete German language interface implemented
-- **Language Synchronization**: ✅ COMPLETED - Fixed language context sync between App.tsx and LanguageProvider
+### Latest Update (January 27, 2025) - Version 0.1.6
+- **Complete German UI Translation**: ✅ COMPLETED - All interface elements properly translated
+- **Language Synchronization**: ✅ COMPLETED - Fixed language context sync between App.tsx and LanguageProvider  
 - **Signature Canvas Translation**: ✅ COMPLETED - All signature elements including "Löschen" button and instruction text
-- **Template Management Fix**: ✅ COMPLETED - Admin panel shows all templates with HU/DE language badges
-- **Full German Interface**: ✅ COMPLETED - Every UI element properly translated including navigation, progress, and signatures
+- **Completion Page Translation**: ✅ COMPLETED - Excel/PDF download buttons and home button properly translated
+- **Date Formatting**: ✅ COMPLETED - German DD.MM.YYYY and Hungarian YYYY.MM.DD localized formats
+- **Official OTIS Branding**: ✅ COMPLETED - "Made to move you" slogan styled according to official guidelines
 
 ## VERSION 0.1 RELEASE - STABLE PRODUCTION BUILD ✅
 
