@@ -387,9 +387,18 @@ export function Questionnaire({
                 onClick={() => {
                   // Sync all cached values before completing
                   const cachedRadioValues = getAllCachedValues();
+                  const cachedTrueFalseValues = getAllTrueFalseValues();
                   const cachedInputValues = (window as any).inputValues || {};
                   
+                  console.log('Complete button: Syncing cached values...');
+                  console.log('Radio values:', cachedRadioValues);
+                  console.log('True/False values:', cachedTrueFalseValues);
+                  console.log('Input values:', cachedInputValues);
+                  
                   Object.entries(cachedRadioValues).forEach(([questionId, value]) => {
+                    onAnswerChange(questionId, value);
+                  });
+                  Object.entries(cachedTrueFalseValues).forEach(([questionId, value]) => {
                     onAnswerChange(questionId, value);
                   });
                   Object.entries(cachedInputValues).forEach(([questionId, value]) => {
@@ -418,9 +427,13 @@ export function Questionnaire({
                   
                   // Sync cached values before moving to next page
                   const cachedRadioValues = getAllCachedValues();
+                  const cachedTrueFalseValues = getAllTrueFalseValues();
                   const cachedInputValues = (window as any).inputValues || {};
                   
                   Object.entries(cachedRadioValues).forEach(([questionId, value]) => {
+                    onAnswerChange(questionId, value);
+                  });
+                  Object.entries(cachedTrueFalseValues).forEach(([questionId, value]) => {
                     onAnswerChange(questionId, value);
                   });
                   Object.entries(cachedInputValues).forEach(([questionId, value]) => {
