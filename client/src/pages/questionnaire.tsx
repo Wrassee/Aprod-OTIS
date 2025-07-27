@@ -41,10 +41,14 @@ function Questionnaire({
   onHome,
 }: QuestionnaireProps) {
   const { t, language: contextLanguage } = useLanguageContext();
+  
+  // Debug: Log when component mounts/unmounts
+  console.log('🔄 Questionnaire component rendered/mounted');
+  
   const [currentPage, setCurrentPage] = useState(() => {
     const saved = localStorage.getItem('questionnaire-current-page');
     const page = saved ? parseInt(saved, 10) : 0;
-    console.log('Initial currentPage loaded from localStorage:', page);
+    console.log('📁 Initial currentPage loaded from localStorage:', page);
     return page;
   });
 

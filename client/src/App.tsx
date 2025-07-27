@@ -51,16 +51,16 @@ function App() {
     localStorage.setItem('questionnaire-current-page', '0');
   };
 
-  const handleSaveProgress = () => {
+  const handleSaveProgress = useCallback(() => {
     // Manual save to localStorage
     try {
       localStorage.setItem('otis-protocol-form-data', JSON.stringify(formData));
-      console.log('Progress saved');
+      console.log('🔧 Progress saved - App.tsx handleSaveProgress');
     } catch (error) {
       console.error('Error saving to localStorage:', error);
       throw error; // Re-throw so the save button can show error state
     }
-  };
+  }, [formData]);
 
   const handleQuestionnaireNext = () => {
     setCurrentScreen('signature');
@@ -226,6 +226,7 @@ function App() {
             case 'questionnaire':
               return (
                 <Questionnaire
+                  key="questionnaire-stable"
                   receptionDate={formData.receptionDate}
                   onReceptionDateChange={handleReceptionDateChange}
                   answers={formData.answers}
