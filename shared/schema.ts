@@ -88,7 +88,7 @@ export const questionConfigs = pgTable("question_configs", {
   type: text("type").notNull(),
   required: boolean("required").notNull().default(true),
   placeholder: text("placeholder"),
-  cellReference: text("cell_reference"), // B5, C10, etc.
+  cellReference: text("cell_reference"), // B5, C10, etc. For yes_no_na: comma-separated A5,B5,C5
   sheetName: text("sheet_name").default("Sheet1"),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
 });

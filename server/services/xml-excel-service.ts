@@ -126,35 +126,42 @@ class XmlExcelService {
         if (config.type === 'yes_no_na') {
           console.log(`Processing yes_no_na question ${questionId}: ${answer}, cellRef: ${config.cellReference}`);
           
-          const { row, col } = this.parseCellReference(config.cellReference);
+          // Parse comma-separated cell references (A68,B68,C68)
+          const cellRefs = config.cellReference.split(',').map((cell: string) => cell.trim());
           
-          // Calculate A, B, C columns based on the base cell reference
-          const baseColumnIndex = this.getColumnIndex(col);
-          const aColumn = this.getColumnName(baseColumnIndex);     // A oszlop (igen)
-          const bColumn = this.getColumnName(baseColumnIndex + 1); // B oszlop (nem)  
-          const cColumn = this.getColumnName(baseColumnIndex + 2); // C oszlop (nem alkalmazható)
+          if (cellRefs.length !== 3) {
+            console.error(`Yes_no_na question ${questionId} must have exactly 3 cell references (A,B,C), got: ${cellRefs}`);
+            // Fallback to old logic if format is wrong
+            mappings.push({
+              cell: config.cellReference,
+              value: this.formatAnswer(answer, language),
+              label: config.title || `Question ${questionId}`
+            });
+            return;
+          }
           
-          console.log(`Column calculation: base=${col}(${baseColumnIndex}) -> A=${aColumn}, B=${bColumn}, C=${cColumn}`);
+          const [yesCell, noCell, naCell] = cellRefs;
+          console.log(`Cell mapping: YES=${yesCell}, NO=${noCell}, NA=${naCell}`);
           
           // Add X to the appropriate column based on answer
           if (answer === 'yes') {
-            console.log(`Adding X to YES column: ${aColumn}${row}`);
+            console.log(`Adding X to YES cell: ${yesCell}`);
             mappings.push({
-              cell: `${aColumn}${row}`,
+              cell: yesCell,
               value: 'X',
               label: `${config.title} - Igen`
             });
           } else if (answer === 'no') {
-            console.log(`Adding X to NO column: ${bColumn}${row}`);
+            console.log(`Adding X to NO cell: ${noCell}`);
             mappings.push({
-              cell: `${bColumn}${row}`,
+              cell: noCell,
               value: 'X', 
               label: `${config.title} - Nem`
             });
           } else if (answer === 'na') {
-            console.log(`Adding X to NA column: ${cColumn}${row}`);
+            console.log(`Adding X to NA cell: ${naCell}`);
             mappings.push({
-              cell: `${cColumn}${row}`,
+              cell: naCell,
               value: 'X',
               label: `${config.title} - Nem alkalmazható`
             });
@@ -255,24 +262,7 @@ class XmlExcelService {
     };
   }
 
-  // Convert column name (A, B, C, etc.) to index (0, 1, 2, etc.)
-  private getColumnIndex(columnName: string): number {
-    let index = 0;
-    for (let i = 0; i < columnName.length; i++) {
-      index = index * 26 + (columnName.charCodeAt(i) - 'A'.charCodeAt(0) + 1);
-    }
-    return index - 1;
-  }
 
-  // Convert column index (0, 1, 2, etc.) to name (A, B, C, etc.)
-  private getColumnName(index: number): string {
-    let columnName = '';
-    while (index >= 0) {
-      columnName = String.fromCharCode(index % 26 + 'A'.charCodeAt(0)) + columnName;
-      index = Math.floor(index / 26) - 1;
-    }
-    return columnName;
-  }
 
   private formatAnswer(value: any, language: string): string {
     if (typeof value === 'boolean') {
