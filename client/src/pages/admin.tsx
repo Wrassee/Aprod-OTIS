@@ -6,9 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useLanguageContext } from '@/components/language-provider';
 import { formatDate } from '@/lib/utils';
-import { Upload, Settings, FileSpreadsheet, CheckCircle, XCircle, Eye, Edit, Home, Trash2 } from 'lucide-react';
+import { Upload, Settings, FileSpreadsheet, CheckCircle, XCircle, Eye, Edit, Home, Trash2, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Template {
@@ -31,6 +33,8 @@ export function Admin({ onBack, onHome }: AdminProps) {
   const { toast } = useToast();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(false);
+  const [previewData, setPreviewData] = useState<any>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [uploadForm, setUploadForm] = useState({
     name: '',
     type: 'questions',
@@ -142,10 +146,22 @@ export function Admin({ onBack, onHome }: AdminProps) {
       if (response.ok) {
         const data = await response.json();
         console.log('Template preview:', data);
-        // TODO: Show preview modal with sheets and cell references
+        setPreviewData(data);
+        setPreviewOpen(true);
+      } else {
+        toast({
+          title: t.error,
+          description: 'Failed to load template preview',
+          variant: 'destructive',
+        });
       }
     } catch (error) {
       console.error('Error previewing template:', error);
+      toast({
+        title: t.error,
+        description: 'Error loading template preview',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -262,14 +278,79 @@ export function Admin({ onBack, onHome }: AdminProps) {
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handlePreview(template.id)}
-                            title="Előnézet"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                          <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handlePreview(template.id)}
+                                title="Előnézet"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-4xl max-h-[80vh]">
+                              <DialogHeader>
+                                <DialogTitle>Template Előnézet</DialogTitle>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                {previewData && (
+                                  <>
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <Card>
+                                        <CardHeader>
+                                          <CardTitle className="text-sm">Munkafüzet lapok</CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                          <div className="flex flex-wrap gap-2">
+                                            {previewData.sheets?.map((sheet: string, index: number) => (
+                                              <Badge key={index} variant="outline">
+                                                {sheet}
+                                              </Badge>
+                                            )) || <p className="text-gray-500">Nincs lap</p>}
+                                          </div>
+                                        </CardContent>
+                                      </Card>
+                                      <Card>
+                                        <CardHeader>
+                                          <CardTitle className="text-sm">Cella referenciák száma</CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                          <div className="text-2xl font-bold text-otis-blue">
+                                            {previewData.cellReferences?.length || 0}
+                                          </div>
+                                          <p className="text-sm text-gray-500">
+                                            elérhető cella
+                                          </p>
+                                        </CardContent>
+                                      </Card>
+                                    </div>
+                                    <Card>
+                                      <CardHeader>
+                                        <CardTitle className="text-sm">Cella referenciák (első 50)</CardTitle>
+                                      </CardHeader>
+                                      <CardContent>
+                                        <ScrollArea className="h-48">
+                                          <div className="grid grid-cols-4 gap-2">
+                                            {previewData.cellReferences?.slice(0, 50).map((cellRef: string, index: number) => (
+                                              <Badge key={index} variant="secondary" className="text-xs">
+                                                {cellRef}
+                                              </Badge>
+                                            )) || <p className="text-gray-500">Nincs cella referencia</p>}
+                                          </div>
+                                          {previewData.cellReferences?.length > 50 && (
+                                            <p className="text-sm text-gray-500 mt-2">
+                                              ...és még {previewData.cellReferences.length - 50} cella
+                                            </p>
+                                          )}
+                                        </ScrollArea>
+                                      </CardContent>
+                                    </Card>
+                                  </>
+                                )}
+                              </div>
+                            </DialogContent>
+                          </Dialog>
                           {!template.isActive && (
                             <Button
                               size="sm"
