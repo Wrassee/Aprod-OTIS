@@ -9,7 +9,7 @@ import { TrueFalseGroup } from '@/components/true-false-group';
 import { ErrorList } from '@/components/error-list';
 import { QuestionGroupHeader } from '@/components/question-group-header';
 import { useLanguageContext } from '@/components/language-provider';
-import { ArrowLeft, ArrowRight, Save, Settings, Home } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Save, Settings, Home, Check, X } from 'lucide-react';
 import { getAllCachedValues } from '@/components/cache-radio';
 import { getAllTrueFalseValues } from '@/components/true-false-radio';
 
@@ -200,6 +200,8 @@ export function Questionnaire({
   }, [onErrorsChange]);
 
   const [canProceedState, setCanProceedState] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
   
   const checkCanProceed = () => {
     const requiredQuestions = currentQuestions.filter(q => q.required);
@@ -285,7 +287,15 @@ export function Questionnaire({
           {/* Progress Bar */}
           <div className="mt-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-600">{t.progress}</span>
+              <div className="flex items-center space-x-3">
+                <span className="text-sm font-medium text-gray-600">{t.progress}</span>
+                {lastSaved && saveStatus === 'idle' && (
+                  <span className="text-xs text-green-600 flex items-center bg-green-50 px-2 py-1 rounded-full">
+                    <Check className="h-3 w-3 mr-1" />
+                    {t.autoSaved}
+                  </span>
+                )}
+              </div>
               <span className="text-sm font-medium text-otis-blue">
                 {currentPage + 1} / {totalPages}
               </span>
@@ -358,28 +368,64 @@ export function Questionnaire({
           <div className="flex space-x-4">
             <Button
               variant="outline"
-              onClick={() => {
-                // Sync all cached values to parent
-                const cachedRadioValues = getAllCachedValues();
-                const cachedTrueFalseValues = getAllTrueFalseValues();
-                const cachedInputValues = (window as any).inputValues || {};
-                
-                Object.entries(cachedRadioValues).forEach(([questionId, value]) => {
-                  onAnswerChange(questionId, value);
-                });
-                Object.entries(cachedTrueFalseValues).forEach(([questionId, value]) => {
-                  onAnswerChange(questionId, value);
-                });
-                Object.entries(cachedInputValues).forEach(([questionId, value]) => {
-                  onAnswerChange(questionId, value);
-                });
-                
-                onSave();
+              onClick={async () => {
+                setSaveStatus('saving');
+                try {
+                  // Sync all cached values to parent
+                  const cachedRadioValues = getAllCachedValues();
+                  const cachedTrueFalseValues = getAllTrueFalseValues();
+                  const cachedInputValues = (window as any).inputValues || {};
+                  
+                  Object.entries(cachedRadioValues).forEach(([questionId, value]) => {
+                    onAnswerChange(questionId, value);
+                  });
+                  Object.entries(cachedTrueFalseValues).forEach(([questionId, value]) => {
+                    onAnswerChange(questionId, value);
+                  });
+                  Object.entries(cachedInputValues).forEach(([questionId, value]) => {
+                    onAnswerChange(questionId, value);
+                  });
+                  
+                  await onSave();
+                  setSaveStatus('saved');
+                  setLastSaved(new Date());
+                  
+                  // Auto-clear saved status after 3 seconds
+                  setTimeout(() => setSaveStatus('idle'), 3000);
+                } catch (error) {
+                  setSaveStatus('error');
+                  console.error('Save failed:', error);
+                  setTimeout(() => setSaveStatus('idle'), 3000);
+                }
               }}
-              className="flex items-center"
+              disabled={saveStatus === 'saving'}
+              className={`flex items-center ${
+                saveStatus === 'saved' ? 'bg-green-100 border-green-300 text-green-700' :
+                saveStatus === 'error' ? 'bg-red-100 border-red-300 text-red-700' :
+                ''
+              }`}
             >
-              <Save className="h-4 w-4 mr-2" />
-              {t.save}
+              {saveStatus === 'saving' ? (
+                <>
+                  <div className="animate-spin h-4 w-4 mr-2 border-2 border-gray-300 border-t-blue-600 rounded-full"></div>
+                  {t.saving}
+                </>
+              ) : saveStatus === 'saved' ? (
+                <>
+                  <Check className="h-4 w-4 mr-2 text-green-600" />
+                  {t.saved}
+                </>
+              ) : saveStatus === 'error' ? (
+                <>
+                  <X className="h-4 w-4 mr-2 text-red-600" />
+                  Hiba
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  {t.save}
+                </>
+              )}
             </Button>
             
             {isLastPage ? (

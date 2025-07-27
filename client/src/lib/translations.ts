@@ -13,6 +13,9 @@ export interface Translation {
   previous: string;
   next: string;
   save: string;
+  saved: string;
+  saving: string;
+  autoSaved: string;
   back: string;
   complete: string;
   
@@ -109,6 +112,9 @@ export const translations: Record<string, Translation> = {
     previous: "Előző",
     next: "Következő",
     save: "Mentés",
+    saved: "Mentve",
+    saving: "Mentés...",
+    autoSaved: "Automatikusan mentve",
     back: "Vissza",
     complete: "Protokoll befejezése",
     
@@ -203,6 +209,9 @@ export const translations: Record<string, Translation> = {
     previous: "Zurück",
     next: "Weiter",
     save: "Speichern",
+    saved: "Gespeichert",
+    saving: "Speichern...",
+    autoSaved: "Automatisch gespeichert",
     back: "Zurück",
     complete: "Protokoll abschließen",
     
