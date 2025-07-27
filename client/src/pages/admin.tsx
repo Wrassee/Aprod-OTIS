@@ -177,7 +177,8 @@ export function Admin({ onBack, onHome }: AdminProps) {
     }
   };
 
-  const filteredTemplates = templates.filter(t => t.language === language);
+  // Show all templates but group by language
+  const filteredTemplates = templates;
 
   return (
     <div className="min-h-screen bg-light-surface">
@@ -231,7 +232,7 @@ export function Admin({ onBack, onHome }: AdminProps) {
                   {filteredTemplates.length === 0 ? (
                     <div className="text-center py-8 text-gray-500">
                       <FileSpreadsheet className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                      <p>No templates uploaded for {language.toUpperCase()}</p>
+                      <p>No templates uploaded</p>
                     </div>
                   ) : (
                     filteredTemplates.map((template) => (
@@ -244,6 +245,9 @@ export function Admin({ onBack, onHome }: AdminProps) {
                             </Badge>
                             <Badge variant="outline">
                               {template.type === 'questions' ? t.questionsTemplate : t.protocolTemplate}
+                            </Badge>
+                            <Badge variant="outline" className="bg-gray-100">
+                              {template.language.toUpperCase()}
                             </Badge>
                           </div>
                           <p className="text-sm text-gray-600">{template.fileName}</p>
