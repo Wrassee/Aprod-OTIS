@@ -266,6 +266,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               placeholder: question.placeholder || null,
               cellReference: question.cellReference || null,
               sheetName: question.sheetName || null,
+              multiCell: question.multiCell || false,
             });
           }
         } catch (parseError) {

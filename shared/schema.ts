@@ -88,8 +88,9 @@ export const questionConfigs = pgTable("question_configs", {
   type: text("type").notNull(),
   required: boolean("required").notNull().default(true),
   placeholder: text("placeholder"),
-  cellReference: text("cell_reference"), // B5, C10, etc. For yes_no_na: comma-separated A5,B5,C5
+  cellReference: text("cell_reference"), // B5, C10, etc. For yes_no_na: comma-separated A5,B5,C5 or multi-row A5;A6;A7,B5;B6;B7,C5;C6;C7
   sheetName: text("sheet_name").default("Sheet1"),
+  multiCell: boolean("multi_cell").notNull().default(false), // Controls multi-row X placement for yes_no_na
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
 });
 

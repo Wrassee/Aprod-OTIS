@@ -11,6 +11,7 @@ export interface ParsedQuestion {
   placeholder?: string;
   cellReference?: string;
   sheetName?: string;
+  multiCell?: boolean; // New field to control multi-cell behavior for yes_no_na
 }
 
 class ExcelParserService {
@@ -25,10 +26,10 @@ class ExcelParserService {
       
       const questions: ParsedQuestion[] = [];
       
-      // Expected columns: ID, Title_EN, Title_HU, Title_DE, Type, Required, Placeholder, CellReference
+      // Expected columns: ID, Title_EN, Title_HU, Title_DE, Type, Required, Placeholder, CellReference, MultiCell
       const headerRow = data[0];
       if (!headerRow || headerRow.length < 4) {
-        throw new Error('Invalid Excel format. Expected columns: ID, Title_EN, Title_HU, Title_DE, Type, Required, Placeholder, CellReference');
+        throw new Error('Invalid Excel format. Expected columns: ID, Title_EN, Title_HU, Title_DE, Type, Required, Placeholder, CellReference, MultiCell');
       }
       
       // Find column indices
@@ -51,6 +52,7 @@ class ExcelParserService {
       const requiredIndex = getColumnIndex(['required', 'mandatory', 'kötelező']);
       const placeholderIndex = getColumnIndex(['placeholder', 'hint', 'example']);
       const cellRefIndex = getColumnIndex(['cell', 'cell_ref', 'reference', 'target_cell', 'cél', 'target']);
+      const multiCellIndex = getColumnIndex(['multi_cell', 'multicell', 'több_sor', 'multi', 'multiple']);
       
       if (idIndex === -1 || titleIndex === -1 || typeIndex === -1) {
         throw new Error('Required columns not found: ID, Title, Type');
@@ -74,6 +76,7 @@ class ExcelParserService {
           placeholder: placeholderIndex !== -1 ? row[placeholderIndex]?.toString() : undefined,
           cellReference: cellRefIndex !== -1 ? row[cellRefIndex]?.toString() : undefined,
           sheetName: sheetName,
+          multiCell: multiCellIndex !== -1 ? this.parseBoolean(row[multiCellIndex]) : false,
         };
         
         questions.push(question);

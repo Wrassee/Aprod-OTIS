@@ -173,7 +173,7 @@ class SimpleXmlExcelService {
         
         // Handle yes_no_na questions specially - put X in appropriate column(s)
         if (config.type === 'yes_no_na') {
-          console.log(`Processing yes_no_na question ${questionId}: ${answer}, cellRef: ${config.cellReference}`);
+          console.log(`Processing yes_no_na question ${questionId}: ${answer}, cellRef: ${config.cellReference}, multiCell: ${config.multiCell}`);
           
           // Parse comma-separated cell references (A68,B68,C68 or A75;A76;A77,B75;B76;B77,C75;C76;C77)
           const cellRefs = config.cellReference.split(',').map((cell: string) => cell.trim());
@@ -191,45 +191,76 @@ class SimpleXmlExcelService {
           
           const [yesCells, noCells, naCells] = cellRefs;
           
-          // Parse multiple cells per column (semicolon-separated: A75;A76;A77)
-          const parseMultipleCells = (cellGroup: string): string[] => {
-            return cellGroup.split(';').map(cell => cell.trim()).filter(cell => cell.length > 0);
-          };
-          
-          const yesCellList = parseMultipleCells(yesCells);
-          const noCellList = parseMultipleCells(noCells);
-          const naCellList = parseMultipleCells(naCells);
-          
-          console.log(`Multi-cell mapping: YES=[${yesCellList.join(', ')}], NO=[${noCellList.join(', ')}], NA=[${naCellList.join(', ')}]`);
-          
-          // Add X to the appropriate column(s) based on answer
-          if (answer === 'yes') {
-            yesCellList.forEach(cell => {
-              console.log(`Adding X to YES cell: ${cell}`);
-              mappings.push({
-                cell: cell,
-                value: 'X',
-                label: `${config.title} - Igen (${cell})`
+          // Check if multiCell mode is enabled (controlled by Excel template)
+          if (config.multiCell) {
+            console.log(`Multi-cell mode ENABLED for question ${questionId}`);
+            
+            // Parse multiple cells per column (semicolon-separated: A75;A76;A77)
+            const parseMultipleCells = (cellGroup: string): string[] => {
+              return cellGroup.split(';').map(cell => cell.trim()).filter(cell => cell.length > 0);
+            };
+            
+            const yesCellList = parseMultipleCells(yesCells);
+            const noCellList = parseMultipleCells(noCells);
+            const naCellList = parseMultipleCells(naCells);
+            
+            console.log(`Multi-cell mapping: YES=[${yesCellList.join(', ')}], NO=[${noCellList.join(', ')}], NA=[${naCellList.join(', ')}]`);
+            
+            // Add X to the appropriate column(s) based on answer
+            if (answer === 'yes') {
+              yesCellList.forEach(cell => {
+                console.log(`Adding X to YES cell: ${cell}`);
+                mappings.push({
+                  cell: cell,
+                  value: 'X',
+                  label: `${config.title} - Igen (${cell})`
+                });
               });
-            });
-          } else if (answer === 'no') {
-            noCellList.forEach(cell => {
-              console.log(`Adding X to NO cell: ${cell}`);
+            } else if (answer === 'no') {
+              noCellList.forEach(cell => {
+                console.log(`Adding X to NO cell: ${cell}`);
+                mappings.push({
+                  cell: cell,
+                  value: 'X', 
+                  label: `${config.title} - Nem (${cell})`
+                });
+              });
+            } else if (answer === 'na') {
+              naCellList.forEach(cell => {
+                console.log(`Adding X to NA cell: ${cell}`);
+                mappings.push({
+                  cell: cell,
+                  value: 'X',
+                  label: `${config.title} - Nem alkalmazható (${cell})`
+                });
+              });
+            }
+          } else {
+            console.log(`Single-cell mode for question ${questionId}`);
+            
+            // Single cell mode - use first cell only
+            if (answer === 'yes') {
+              console.log(`Adding X to single YES cell: ${yesCells}`);
               mappings.push({
-                cell: cell,
+                cell: yesCells,
+                value: 'X',
+                label: `${config.title} - Igen`
+              });
+            } else if (answer === 'no') {
+              console.log(`Adding X to single NO cell: ${noCells}`);
+              mappings.push({
+                cell: noCells,
                 value: 'X', 
-                label: `${config.title} - Nem (${cell})`
+                label: `${config.title} - Nem`
               });
-            });
-          } else if (answer === 'na') {
-            naCellList.forEach(cell => {
-              console.log(`Adding X to NA cell: ${cell}`);
+            } else if (answer === 'na') {
+              console.log(`Adding X to single NA cell: ${naCells}`);
               mappings.push({
-                cell: cell,
+                cell: naCells,
                 value: 'X',
-                label: `${config.title} - Nem alkalmazható (${cell})`
+                label: `${config.title} - Nem alkalmazható`
               });
-            });
+            }
           }
         } else {
           // Handle other question types normally
