@@ -60,7 +60,7 @@ export function Questionnaire({
     return () => clearTimeout(timeoutId);
   }, [currentPage]);
 
-  // Load questions from API/database ONCE - no dependencies to prevent re-renders
+  // Load questions from API/database with proper dependency management
   useEffect(() => {
     const loadQuestions = async () => {
       try {
@@ -69,7 +69,7 @@ export function Questionnaire({
         
         if (response.ok) {
           const questionsData = await response.json();
-          console.log('Loaded questions from API (ONCE):', questionsData.length);
+          console.log('Questions loaded for language:', language, 'count:', questionsData.length);
           setAllQuestions(questionsData);
         } else {
           console.warn('No active template found, using fallback questions');

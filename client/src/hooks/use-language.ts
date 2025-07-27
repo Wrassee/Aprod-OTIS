@@ -29,19 +29,13 @@ export function useLanguage() {
       }
     };
     
-    // Also check periodically for language changes
-    const interval = setInterval(() => {
-      const currentSaved = localStorage.getItem('otis-protocol-language') as 'hu' | 'de';
-      if (currentSaved && currentSaved !== language && (currentSaved === 'hu' || currentSaved === 'de')) {
-        setLanguage(currentSaved);
-      }
-    }, 500);
+    // Disabled periodic checks to prevent unnecessary re-renders
+    // Language changes are handled through storage events and initial load only
     
     window.addEventListener('storage', handleStorageChange);
     
     return () => {
       window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
     };
   }, [language]);
 
