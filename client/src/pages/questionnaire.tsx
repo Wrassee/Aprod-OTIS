@@ -42,26 +42,28 @@ const Questionnaire = memo(function Questionnaire({
 }: QuestionnaireProps) {
   const { t, language: contextLanguage } = useLanguageContext();
   
-  // Debug: Log when component mounts/unmounts - this should only happen ONCE if component is stable
-  console.log('🔄 Questionnaire component rendered/mounted');
+  // Debug: Check if this is a real mount or just re-render
+  const mountCountRef = useRef(0);
+  mountCountRef.current += 1;
+  console.log('🔄 Questionnaire component rendered/mounted - RENDER COUNT:', mountCountRef.current);
   
-  const [currentPage, setCurrentPage] = useState(() => {
+  // Use a stable ref for currentPage to prevent re-mounting
+  const currentPageRef = useRef(() => {
     const saved = localStorage.getItem('questionnaire-current-page');
-    const page = saved ? parseInt(saved, 10) : 0;
-    console.log('📁 Initial currentPage loaded from localStorage:', page);
-    return page;
+    return saved ? parseInt(saved, 10) : 0;
   });
+  const [currentPage, setCurrentPage] = useState(currentPageRef.current);
+  
+  console.log('📁 Current page:', currentPage);
 
   const [allQuestions, setAllQuestions] = useState<Question[]>([]);
   const [questionsLoading, setQuestionsLoading] = useState(true);
   const [cacheUpdateTrigger, setCacheUpdateTrigger] = useState(0);
 
-  // Save current page to localStorage - debounced
+  // Save current page to localStorage - immediate with ref update
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      localStorage.setItem('questionnaire-current-page', currentPage.toString());
-    }, 500);
-    return () => clearTimeout(timeoutId);
+    currentPageRef.current = currentPage;
+    localStorage.setItem('questionnaire-current-page', currentPage.toString());
   }, [currentPage]);
 
   // Load questions from API/database with proper dependency management
