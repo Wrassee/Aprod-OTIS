@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { SimpleSignatureCanvas } from '@/components/simple-signature-canvas';
 import { MegaStableInput } from '@/components/mega-stable-input';
 import { useLanguageContext } from '@/components/language-provider';
+import { formatDate } from '@/lib/utils';
 import { ArrowLeft, Check, Calendar } from 'lucide-react';
 
 interface SignatureProps {
@@ -22,8 +23,8 @@ export function Signature({
   onBack,
   onComplete,
 }: SignatureProps) {
-  const { t } = useLanguageContext();
-  const currentDate = new Date().toLocaleDateString();
+  const { t, language } = useLanguageContext();
+  const currentDate = formatDate(new Date(), language);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const canComplete = signature.length > 0;

@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguageContext } from '@/components/language-provider';
+import { formatDate } from '@/lib/utils';
 import { Upload, Settings, FileSpreadsheet, CheckCircle, XCircle, Eye, Edit, Home, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -252,7 +253,7 @@ export function Admin({ onBack, onHome }: AdminProps) {
                           </div>
                           <p className="text-sm text-gray-600">{template.fileName}</p>
                           <p className="text-xs text-gray-500">
-                            {new Date(template.uploadedAt).toLocaleDateString()}
+                            {formatDate(new Date(template.uploadedAt), language)}
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
