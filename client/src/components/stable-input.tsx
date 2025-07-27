@@ -46,6 +46,13 @@ export function StableInput({ questionId, type, placeholder, initialValue, onVal
       ref={inputRef}
       type={type}
       onChange={handleChange}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+      }}
       placeholder={placeholder}
       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-transparent"
       style={{ 

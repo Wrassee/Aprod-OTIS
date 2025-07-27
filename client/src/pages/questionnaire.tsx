@@ -235,7 +235,7 @@ export function Questionnaire({
   const isLastPage = currentPage === totalPages - 1;
 
   return (
-    <div className="min-h-screen bg-light-surface">
+    <div className="min-h-screen bg-light-surface" onSubmit={(e) => e.preventDefault()}>
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-6 py-4">
@@ -267,7 +267,16 @@ export function Questionnaire({
               <Input
                 type="date"
                 value={receptionDate}
-                onChange={(e) => onReceptionDateChange(e.target.value)}
+                onChange={(e) => {
+                  e.preventDefault();
+                  onReceptionDateChange(e.target.value);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }
+                }}
                 className="w-auto"
               />
               {onAdminAccess && (
@@ -306,7 +315,7 @@ export function Questionnaire({
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className="max-w-7xl mx-auto px-6 py-8" onSubmit={(e) => e.preventDefault()}>
         {/* Group Header */}
         {questionGroups.length > 0 && currentGroup && (
           <QuestionGroupHeader
@@ -354,7 +363,7 @@ export function Questionnaire({
         </div>
 
         {/* Navigation */}
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center" onSubmit={(e) => e.preventDefault()}>
           <Button
             variant="outline"
             onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
@@ -366,12 +375,15 @@ export function Questionnaire({
           </Button>
           
           <div className="flex space-x-4">
-            <Button
+            <button
               type="button"
-              variant="outline"
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
+              onMouseDown={(e) => e.preventDefault()}
+              onTouchStart={(e) => e.preventDefault()}
               onClick={async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                e.stopImmediatePropagation();
                 
                 console.log('Save button clicked on page:', currentPage);
                 setSaveStatus('saving');
@@ -404,6 +416,7 @@ export function Questionnaire({
                   
                   // Auto-clear saved status after 3 seconds
                   setTimeout(() => setSaveStatus('idle'), 3000);
+                  
                 } catch (error) {
                   console.error('Save: Failed with error:', error);
                   setSaveStatus('error');
@@ -438,7 +451,7 @@ export function Questionnaire({
                   {t.save}
                 </>
               )}
-            </Button>
+            </button>
             
             {isLastPage ? (
               <Button
