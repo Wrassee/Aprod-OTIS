@@ -166,13 +166,11 @@ const Questionnaire = memo(function Questionnaire({
     };
   }, [allQuestions, currentPage]);
 
-  // Listen for cache changes to update canProceed state
+  // Listen for cache changes to trigger re-calculation
   useEffect(() => {
     const handleCacheChange = () => {
       console.log('Cache change detected, checking can proceed...');
-      const newCanProceed = checkCanProceed();
-      console.log('Setting canProceedState to:', newCanProceed);
-      setCanProceedState(newCanProceed);
+      setCacheUpdateTrigger(prev => prev + 1);
     };
 
     window.addEventListener('radio-change', handleCacheChange);
@@ -205,7 +203,6 @@ const Questionnaire = memo(function Questionnaire({
     onErrorsChange((prev: ProtocolError[]) => prev.filter((error: ProtocolError) => error.id !== id));
   }, [onErrorsChange]);
 
-  const [canProceedState, setCanProceedState] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   
@@ -232,11 +229,10 @@ const Questionnaire = memo(function Questionnaire({
     return result;
   };
   
-  // Update canProceed state when dependencies change - REMOVED DEPENDENCY ARRAY
-  useEffect(() => {
-    const newCanProceed = checkCanProceed();
-    setCanProceedState(newCanProceed);
-  });
+  // Calculate canProceed directly without useEffect
+  const canProceedState = useMemo(() => {
+    return checkCanProceed();
+  }, [currentQuestions, answers, cacheUpdateTrigger]);
 
   const isLastPage = currentPage === totalPages - 1;
 

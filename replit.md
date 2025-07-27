@@ -82,13 +82,14 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **System Verification**: ✅ CONFIRMED - Excel generation now working with 21 question configs loaded and proper XML cell modifications
 - **Technical Details**: ✅ DOCUMENTED - XML approach successfully modifies cells (e.g., F9 = "Debug Test" with exact style preservation)
 
-### Component Re-mounting Issue Debug (January 27, 2025) - Critical Bug Investigation
-- **Problem Identified**: ❌ ONGOING - Save button causes Questionnaire component to re-mount on pages 2-3, causing page refresh and data loss
-- **Root Cause Discovery**: ✅ IDENTIFIED - wouter Route component function recreates Questionnaire component on every App re-render
-- **Multiple Fix Attempts**: ❌ UNSUCCESSFUL - React.memo, useCallback, useMemo, formDataRef approaches failed to prevent re-mounting
-- **Current Status**: 🔄 IN PROGRESS - Testing useRef-based persistent component instance to prevent recreation
-- **Debug Evidence**: ✅ CONFIRMED - "🔄 Questionnaire component rendered/mounted" appears after every save, indicating complete component recreation
-- **User Impact**: ❌ CRITICAL - Users cannot reliably save progress on questionnaire pages 2-3 due to component instability
+### Component Re-mounting Issue Debug (January 27, 2025) - Critical Bug Investigation - FINAL ATTEMPT
+- **Problem Identified**: ❌ ONGOING - Save button causes Questionnaire component to re-mount on ALL pages, causing page refresh and data loss
+- **Root Cause Discovery**: ✅ IDENTIFIED - Every useEffect with dependency arrays triggers component re-renders during save operations
+- **Multiple Fix Attempts**: ❌ UNSUCCESSFUL - React.memo, useCallback, useMemo, formDataRef, persistent instances ALL failed
+- **Current Status**: 🔄 FINAL ATTEMPT - Removing ALL useEffect dependency arrays and converting to useMemo-based calculations
+- **Debug Evidence**: ✅ CONFIRMED - RENDER COUNT resets to 1 on every save, proving complete component re-mount
+- **User Impact**: ❌ CRITICAL - Application unusable on pages 2-3, first page also affected now
+- **Technical Finding**: useEffect dependencies are the primary cause of the re-mounting issue
 
 ### PDF Generation Implementation (January 27, 2025) - Version 0.1.9.2 - PERFECT EXCEL-TO-PDF
 - **LibreOffice Integration**: ✅ COMPLETED - True Excel-to-PDF conversion preserving 100% original OTIS formatting 
