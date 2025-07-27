@@ -62,11 +62,11 @@ const IsolatedQuestionComponent = memo(({
       case 'number':
         return (
           <StableInput
+            questionId={question.id}
             type="number"
-            value={value?.toString() || ''}
-            onChange={(newValue) => onChange(parseFloat(newValue) || 0)}
+            initialValue={value?.toString() || ''}
+            onValueChange={(newValue) => onChange(parseFloat(newValue) || 0)}
             placeholder={question.placeholder || '0'}
-            className="w-full"
           />
         );
         
@@ -74,11 +74,11 @@ const IsolatedQuestionComponent = memo(({
       default:
         return (
           <StableInput
+            questionId={question.id}
             type="text"
-            value={value?.toString() || ''}
-            onChange={(newValue) => onChange(newValue)}
+            initialValue={value?.toString() || ''}
+            onValueChange={(newValue) => onChange(newValue)}
             placeholder={question.placeholder || t.enterText || 'Szöveg megadása'}
-            className="w-full"
           />
         );
     }
