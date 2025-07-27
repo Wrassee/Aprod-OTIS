@@ -33,12 +33,20 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Excel Integration**: ✅ COMPLETED - True="X", False="-" cell population working perfectly
 - **Template Syntax Support**: ✅ COMPLETED - Excel parser recognizes "true_false" type in question templates
 - **Database Integration**: ✅ COMPLETED - Question configs support true_false type with proper cell references
+- **True/False Radio Stability**: ✅ COMPLETED - Applied CacheRadio pattern to eliminate page refreshing/flickering
 - **Complete German UI Translation**: ✅ COMPLETED - All interface elements properly translated
 - **Language Synchronization**: ✅ COMPLETED - Fixed language context sync between App.tsx and LanguageProvider  
 - **Signature Canvas Translation**: ✅ COMPLETED - All signature elements including "Löschen" button and instruction text
 - **Completion Page Translation**: ✅ COMPLETED - Excel/PDF download buttons and home button properly translated
 - **Date Formatting**: ✅ COMPLETED - German DD.MM.YYYY and Hungarian YYYY.MM.DD localized formats
 - **Official OTIS Branding**: ✅ COMPLETED - "Made to move you" slogan styled according to official guidelines
+
+### Recent Fixes (January 27, 2025) - True/False Radio Button Stability
+- **Problem Identified**: ✅ RESOLVED - True/false radio buttons were causing page refreshing and flickering similar to previous yes_no_na issue
+- **Solution Applied**: ✅ COMPLETED - Implemented exact CacheRadio pattern with useState, useEffect, and global Map cache
+- **User Validation**: ✅ CONFIRMED - User confirmed "Most tökéletes!" after applying CacheRadio solution
+- **Technical Implementation**: ✅ COMPLETED - useState for localValue, global trueFalseCache Map, e.stopPropagation() in onChange handlers
+- **Excel Integration**: ✅ VERIFIED - True/false values properly saved to Excel with "true"/"false" string values in Q25-Q31 cells
 
 ## VERSION 0.1 RELEASE - STABLE PRODUCTION BUILD ✅
 
