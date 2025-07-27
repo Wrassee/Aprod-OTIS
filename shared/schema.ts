@@ -88,10 +88,7 @@ export const questionConfigs = pgTable("question_configs", {
   type: text("type").notNull(),
   required: boolean("required").notNull().default(true),
   placeholder: text("placeholder"),
-  cellReference: text("cell_reference"), // B5, C10, etc. (for text/number) or base cell for yes_no_na
-  cellReferenceYes: text("cell_reference_yes"), // For yes_no_na: "yes" answer cell (B column)
-  cellReferenceNo: text("cell_reference_no"), // For yes_no_na: "no" answer cell (C column)  
-  cellReferenceNa: text("cell_reference_na"), // For yes_no_na: "na" answer cell (D column)
+  cellReference: text("cell_reference"), // B5, C10, etc.
   sheetName: text("sheet_name").default("Sheet1"),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
 });
