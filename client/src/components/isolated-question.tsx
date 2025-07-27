@@ -53,9 +53,9 @@ const IsolatedQuestionComponent = memo(({
         return (
           <TrueFalseRadio
             questionId={question.id}
+            questionTitle={question.title}
             value={value?.toString() || ''}
             onChange={(newValue) => onChange(newValue as AnswerValue)}
-            groupSize={question.groupSize || 1}
           />
         );
         

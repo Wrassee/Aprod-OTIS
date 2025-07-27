@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Label } from '@/components/ui/label';
 import { IsolatedQuestion } from '@/components/isolated-question';
+import { TrueFalseGroup } from '@/components/true-false-group';
 import { ErrorList } from '@/components/error-list';
 import { QuestionGroupHeader } from '@/components/question-group-header';
 import { useLanguageContext } from '@/components/language-provider';
@@ -304,16 +305,29 @@ export function Questionnaire({
           />
         )}
 
-        {/* Question Grid (2x2 Layout) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {currentQuestions.map((question) => (
-            <IsolatedQuestion
-              key={question.id}
-              question={question}
-              value={answers[question.id]}
-              onChange={(value) => onAnswerChange(question.id, value)}
+        {/* Question Content */}
+        <div className="mb-8">
+          {/* Check if current group has only true_false questions */}
+          {currentQuestions.length > 0 && currentQuestions.every(q => q.type === 'true_false') ? (
+            <TrueFalseGroup
+              questions={currentQuestions}
+              values={answers}
+              onChange={onAnswerChange}
+              groupName={currentGroup?.name || 'Kérdések'}
             />
-          ))}
+          ) : (
+            /* Regular Question Grid (2x2 Layout) for non-true_false questions */
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {currentQuestions.map((question) => (
+                <IsolatedQuestion
+                  key={question.id}
+                  question={question}
+                  value={answers[question.id]}
+                  onChange={(value) => onAnswerChange(question.id, value)}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Error List Section */}
