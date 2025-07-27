@@ -225,66 +225,74 @@ function App() {
   const handleAdminAccess = useCallback(() => setCurrentScreen('admin'), []);
   const handleHome = useCallback(() => setCurrentScreen('start'), []);
 
-  // Create a stable component function for the Route
-  const renderScreen = useCallback(() => {
-    console.log('🏠 STABLE Route component function called - currentScreen:', currentScreen);
-    switch (currentScreen) {
-      case 'start':
-        return <StartScreen onLanguageSelect={handleLanguageSelect} />;
-      case 'questionnaire':
-        return (
-          <Questionnaire
-            key="questionnaire-fixed"
-            receptionDate={formData.receptionDate}
-            onReceptionDateChange={handleReceptionDateChange}
-            answers={formData.answers}
-            onAnswerChange={handleAnswerChange}
-            errors={formData.errors}
-            onErrorsChange={handleErrorsChange}
-            onNext={handleQuestionnaireNext}
-            onSave={handleSaveProgress}
-            language={language}
-            onAdminAccess={handleAdminAccess}
-            onHome={handleHome}
-          />
-        );
-      case 'signature':
-        return (
-          <Signature
-            signature={formData.signature || ''}
-            onSignatureChange={(signature) => setFormData(prev => ({ ...prev, signature }))}
-            signatureName={formData.signatureName || ''}
-            onSignatureNameChange={(signatureName) => setFormData(prev => ({ ...prev, signatureName }))}
-            onBack={handleSignatureBack}
-            onComplete={handleSignatureComplete}
-          />
-        );
-      case 'completion':
-        return (
-          <Completion
-            onEmailPDF={handleEmailPDF}
-            onSaveToCloud={handleSaveToCloud}
-            onDownloadPDF={handleDownloadPDF}
-            onDownloadExcel={handleDownloadExcel}
-            onViewProtocol={handleViewProtocol}
-            onStartNew={handleStartNew}
-            onGoHome={handleGoHome}
-            onSettings={handleSettings}
-          />
-        );
-      case 'admin':
-        return <Admin onBack={() => setCurrentScreen('questionnaire')} onHome={() => setCurrentScreen('start')} />;
-      case 'protocol-preview':
-        return <ProtocolPreview onBack={() => setCurrentScreen('completion')} />;
-      default:
-        return <StartScreen onLanguageSelect={handleLanguageSelect} />;
-    }
-  }, [currentScreen, handleLanguageSelect, handleSignatureBack, handleSignatureComplete, handleEmailPDF, handleSaveToCloud, handleDownloadPDF, handleDownloadExcel, handleViewProtocol, handleStartNew, handleGoHome, handleSettings]);
+  // Store questionnaire instance to prevent re-creation
+  let persistentQuestionnaire: JSX.Element | null = null;
 
   function Router() {
     return (
       <Switch>
-        <Route path="/" component={renderScreen} />
+        <Route path="/" component={() => {
+          console.log('🏠 Route component function called - currentScreen:', currentScreen);
+          
+          // Create questionnaire only once and reuse it
+          if (currentScreen === 'questionnaire') {
+            if (!persistentQuestionnaire) {
+              console.log('🆕 Creating persistent questionnaire instance');
+              persistentQuestionnaire = (
+                <Questionnaire
+                  key="persistent-questionnaire"
+                  receptionDate={formData.receptionDate}
+                  onReceptionDateChange={handleReceptionDateChange}
+                  answers={formData.answers}
+                  onAnswerChange={handleAnswerChange}
+                  errors={formData.errors}
+                  onErrorsChange={handleErrorsChange}
+                  onNext={handleQuestionnaireNext}
+                  onSave={handleSaveProgress}
+                  language={language}
+                  onAdminAccess={handleAdminAccess}
+                  onHome={handleHome}
+                />
+              );
+            }
+            return persistentQuestionnaire;
+          }
+          
+          switch (currentScreen) {
+            case 'start':
+              return <StartScreen onLanguageSelect={handleLanguageSelect} />;
+            case 'signature':
+              return (
+                <Signature
+                  signature={formData.signature || ''}
+                  onSignatureChange={(signature) => setFormData(prev => ({ ...prev, signature }))}
+                  signatureName={formData.signatureName || ''}
+                  onSignatureNameChange={(signatureName) => setFormData(prev => ({ ...prev, signatureName }))}
+                  onBack={handleSignatureBack}
+                  onComplete={handleSignatureComplete}
+                />
+              );
+            case 'completion':
+              return (
+                <Completion
+                  onEmailPDF={handleEmailPDF}
+                  onSaveToCloud={handleSaveToCloud}
+                  onDownloadPDF={handleDownloadPDF}
+                  onDownloadExcel={handleDownloadExcel}
+                  onViewProtocol={handleViewProtocol}
+                  onStartNew={handleStartNew}
+                  onGoHome={handleGoHome}
+                  onSettings={handleSettings}
+                />
+              );
+            case 'admin':
+              return <Admin onBack={() => setCurrentScreen('questionnaire')} onHome={() => setCurrentScreen('start')} />;
+            case 'protocol-preview':
+              return <ProtocolPreview onBack={() => setCurrentScreen('completion')} />;
+            default:
+              return <StartScreen onLanguageSelect={handleLanguageSelect} />;
+          }
+        }} />
         <Route component={NotFound} />
       </Switch>
     );
