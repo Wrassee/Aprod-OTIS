@@ -225,39 +225,29 @@ function App() {
   const handleAdminAccess = useCallback(() => setCurrentScreen('admin'), []);
   const handleHome = useCallback(() => setCurrentScreen('start'), []);
 
-  // Store questionnaire instance to prevent re-creation using useRef
-  const persistentQuestionnaireRef = useRef<JSX.Element | null>(null);
-
   function Router() {
     return (
       <Switch>
         <Route path="/" component={() => {
           console.log('🏠 Route component function called - currentScreen:', currentScreen);
           
-          // Create questionnaire only once and reuse it
           if (currentScreen === 'questionnaire') {
-            if (!persistentQuestionnaireRef.current) {
-              console.log('🆕 Creating TRULY persistent questionnaire instance with useRef');
-              persistentQuestionnaireRef.current = (
-                <Questionnaire
-                  key="truly-persistent-questionnaire"
-                  receptionDate={formData.receptionDate}
-                  onReceptionDateChange={handleReceptionDateChange}
-                  answers={formData.answers}
-                  onAnswerChange={handleAnswerChange}
-                  errors={formData.errors}
-                  onErrorsChange={handleErrorsChange}
-                  onNext={handleQuestionnaireNext}
-                  onSave={handleSaveProgress}
-                  language={language}
-                  onAdminAccess={handleAdminAccess}
-                  onHome={handleHome}
-                />
-              );
-            } else {
-              console.log('♻️ Reusing existing questionnaire instance - NO re-mount!');
-            }
-            return persistentQuestionnaireRef.current;
+            return (
+              <Questionnaire
+                key="stable-questionnaire-key"
+                receptionDate={formData.receptionDate}
+                onReceptionDateChange={handleReceptionDateChange}
+                answers={formData.answers}
+                onAnswerChange={handleAnswerChange}
+                errors={formData.errors}
+                onErrorsChange={handleErrorsChange}
+                onNext={handleQuestionnaireNext}
+                onSave={handleSaveProgress}
+                language={language}
+                onAdminAccess={handleAdminAccess}
+                onHome={handleHome}
+              />
+            );
           }
           
           switch (currentScreen) {

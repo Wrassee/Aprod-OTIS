@@ -66,7 +66,7 @@ const Questionnaire = memo(function Questionnaire({
     localStorage.setItem('questionnaire-current-page', currentPage.toString());
   }, [currentPage]);
 
-  // Load questions from API/database with proper dependency management
+  // Load questions ONCE on mount only - no dependency array to prevent re-runs
   useEffect(() => {
     const loadQuestions = async () => {
       try {
@@ -232,11 +232,11 @@ const Questionnaire = memo(function Questionnaire({
     return result;
   };
   
-  // Update canProceed state when dependencies change
+  // Update canProceed state when dependencies change - REMOVED DEPENDENCY ARRAY
   useEffect(() => {
     const newCanProceed = checkCanProceed();
     setCanProceedState(newCanProceed);
-  }, [currentQuestions, answers]);
+  });
 
   const isLastPage = currentPage === totalPages - 1;
 
