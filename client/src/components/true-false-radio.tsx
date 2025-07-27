@@ -1,5 +1,4 @@
-import { memo, useState, useEffect } from 'react';
-import { useLanguageContext } from './language-provider';
+import { memo, useRef, useCallback } from 'react';
 
 interface TrueFalseRadioProps {
   questionId: string;
@@ -8,18 +7,38 @@ interface TrueFalseRadioProps {
   onChange: (value: string) => void;
 }
 
+// Global cache for true/false values to prevent re-renders
+const trueFalseCache = new Map<string, string>();
+
 export const TrueFalseRadio = memo(({ questionId, questionTitle, value, onChange }: TrueFalseRadioProps) => {
-  const { t } = useLanguageContext();
-  const [localValue, setLocalValue] = useState(value);
+  const trueRadioRef = useRef<HTMLInputElement>(null);
+  const falseRadioRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    setLocalValue(value);
-  }, [value]);
+  // Initialize cache if empty
+  if (!trueFalseCache.has(questionId) && value) {
+    trueFalseCache.set(questionId, value);
+  }
 
-  const handleChange = (newValue: string) => {
-    setLocalValue(newValue);
+  const currentValue = trueFalseCache.get(questionId) || value || '';
+
+  const handleChange = useCallback((newValue: string) => {
+    // Update cache immediately
+    trueFalseCache.set(questionId, newValue);
+    
+    // Update DOM directly to prevent re-renders
+    if (trueRadioRef.current && falseRadioRef.current) {
+      trueRadioRef.current.checked = newValue === 'true';
+      falseRadioRef.current.checked = newValue === 'false';
+    }
+    
+    // Notify parent component
     onChange(newValue);
-  };
+    
+    // Dispatch custom event to trigger validation check
+    window.dispatchEvent(new CustomEvent('radio-change', { 
+      detail: { questionId, value: newValue }
+    }));
+  }, [questionId, onChange]);
 
   return (
     <div className="grid grid-cols-[1fr_100px_100px] gap-4 items-center py-2 border-b border-gray-100 last:border-b-0">
@@ -31,12 +50,14 @@ export const TrueFalseRadio = memo(({ questionId, questionTitle, value, onChange
       {/* True Option - Middle Column */}
       <div className="flex justify-center">
         <input
+          ref={trueRadioRef}
           type="radio"
           id={`${questionId}-true`}
           name={questionId}
           value="true"
-          checked={localValue === 'true'}
+          defaultChecked={currentValue === 'true'}
           onChange={(e) => {
+            e.preventDefault();
             if (e.target.checked) {
               handleChange('true');
             }
@@ -48,12 +69,14 @@ export const TrueFalseRadio = memo(({ questionId, questionTitle, value, onChange
       {/* False Option - Right Column */}
       <div className="flex justify-center">
         <input
+          ref={falseRadioRef}
           type="radio"
           id={`${questionId}-false`}
           name={questionId}
           value="false"
-          checked={localValue === 'false'}
+          defaultChecked={currentValue === 'false'}
           onChange={(e) => {
+            e.preventDefault();
             if (e.target.checked) {
               handleChange('false');
             }
@@ -66,3 +89,12 @@ export const TrueFalseRadio = memo(({ questionId, questionTitle, value, onChange
 });
 
 TrueFalseRadio.displayName = 'TrueFalseRadio';
+
+// Export function to get all cached true/false values
+export const getAllTrueFalseValues = (): Record<string, string> => {
+  const result: Record<string, string> = {};
+  trueFalseCache.forEach((value, key) => {
+    result[key] = value;
+  });
+  return result;
+};

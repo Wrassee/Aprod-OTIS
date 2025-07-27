@@ -11,6 +11,7 @@ import { QuestionGroupHeader } from '@/components/question-group-header';
 import { useLanguageContext } from '@/components/language-provider';
 import { ArrowLeft, ArrowRight, Save, Settings, Home } from 'lucide-react';
 import { getAllCachedValues } from '@/components/cache-radio';
+import { getAllTrueFalseValues } from '@/components/true-false-radio';
 
 interface QuestionnaireProps {
   receptionDate: string;
@@ -207,14 +208,16 @@ export function Questionnaire({
     
     // Check both answers prop and cached values
     const cachedRadioValues = getAllCachedValues();
+    const cachedTrueFalseValues = getAllTrueFalseValues();
     const cachedInputValues = (window as any).inputValues || {};
     
     const result = requiredQuestions.every(q => {
       const hasAnswer = answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== '';
       const hasCachedRadio = cachedRadioValues[q.id] !== undefined && cachedRadioValues[q.id] !== '';
+      const hasCachedTrueFalse = cachedTrueFalseValues[q.id] !== undefined && cachedTrueFalseValues[q.id] !== '';
       const hasCachedInput = cachedInputValues[q.id] !== undefined && cachedInputValues[q.id] !== '';
       
-      return hasAnswer || hasCachedRadio || hasCachedInput;
+      return hasAnswer || hasCachedRadio || hasCachedTrueFalse || hasCachedInput;
     });
     
     console.log('Can proceed check result:', result, 'Required questions:', requiredQuestions.length, 'Current page:', currentPage);
@@ -358,9 +361,13 @@ export function Questionnaire({
               onClick={() => {
                 // Sync all cached values to parent
                 const cachedRadioValues = getAllCachedValues();
+                const cachedTrueFalseValues = getAllTrueFalseValues();
                 const cachedInputValues = (window as any).inputValues || {};
                 
                 Object.entries(cachedRadioValues).forEach(([questionId, value]) => {
+                  onAnswerChange(questionId, value);
+                });
+                Object.entries(cachedTrueFalseValues).forEach(([questionId, value]) => {
                   onAnswerChange(questionId, value);
                 });
                 Object.entries(cachedInputValues).forEach(([questionId, value]) => {
