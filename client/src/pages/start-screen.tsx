@@ -20,8 +20,8 @@ export function StartScreen({ onLanguageSelect }: StartScreenProps) {
       </div>
       
       {/* Slogan */}
-      <h1 className="text-5xl md:text-6xl font-light text-gray-700 mb-16 text-center tracking-wide leading-relaxed">
-        <span className="font-extralight text-gray-600 uppercase text-lg md:text-xl tracking-widest">
+      <h1 className="text-5xl md:text-6xl font-bold text-gray-700 mb-16 text-center tracking-wide leading-relaxed">
+        <span className="font-bold text-gray-600 uppercase text-lg md:text-xl tracking-widest">
           {t.slogan}<sup className="text-xs ml-1">™</sup>
         </span>
       </h1>
