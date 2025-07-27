@@ -170,11 +170,59 @@ class SimpleXmlExcelService {
       const config = questionConfigs.find(q => q.questionId === questionId);
       
       if (config && config.cellReference && answer !== '' && answer !== null && answer !== undefined) {
-        mappings.push({
-          cell: config.cellReference,
-          value: this.formatAnswer(answer, language),
-          label: config.title || `Question ${questionId}`
-        });
+        
+        // Handle yes_no_na questions specially - put X in appropriate column
+        if (config.type === 'yes_no_na') {
+          console.log(`Processing yes_no_na question ${questionId}: ${answer}, cellRef: ${config.cellReference}`);
+          
+          // Parse comma-separated cell references (A68,B68,C68)
+          const cellRefs = config.cellReference.split(',').map((cell: string) => cell.trim());
+          
+          if (cellRefs.length !== 3) {
+            console.error(`Yes_no_na question ${questionId} must have exactly 3 cell references (A,B,C), got: ${cellRefs}`);
+            // Fallback to old logic if format is wrong
+            mappings.push({
+              cell: config.cellReference,
+              value: this.formatAnswer(answer, language),
+              label: config.title || `Question ${questionId}`
+            });
+            return;
+          }
+          
+          const [yesCell, noCell, naCell] = cellRefs;
+          console.log(`Cell mapping: YES=${yesCell}, NO=${noCell}, NA=${naCell}`);
+          
+          // Add X to the appropriate column based on answer
+          if (answer === 'yes') {
+            console.log(`Adding X to YES cell: ${yesCell}`);
+            mappings.push({
+              cell: yesCell,
+              value: 'X',
+              label: `${config.title} - Igen`
+            });
+          } else if (answer === 'no') {
+            console.log(`Adding X to NO cell: ${noCell}`);
+            mappings.push({
+              cell: noCell,
+              value: 'X', 
+              label: `${config.title} - Nem`
+            });
+          } else if (answer === 'na') {
+            console.log(`Adding X to NA cell: ${naCell}`);
+            mappings.push({
+              cell: naCell,
+              value: 'X',
+              label: `${config.title} - Nem alkalmazható`
+            });
+          }
+        } else {
+          // Handle other question types normally
+          mappings.push({
+            cell: config.cellReference,
+            value: this.formatAnswer(answer, language),
+            label: config.title || `Question ${questionId}`
+          });
+        }
       }
     });
     
