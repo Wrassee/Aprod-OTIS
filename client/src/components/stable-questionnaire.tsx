@@ -258,9 +258,9 @@ export function StableQuestionnaire({
 
         {/* Error Management */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-          <h3 className="text-lg font-medium text-gray-800 mb-4">Hibák kezelése</h3>
+          <h3 className="text-lg font-medium text-gray-800 mb-4">{language === 'de' ? 'Fehlerverwaltung' : 'Hibák kezelése'}</h3>
           {errors.length === 0 ? (
-            <p className="text-gray-500">Nincsenek hibák.</p>
+            <p className="text-gray-500">{language === 'de' ? 'Keine Fehler.' : 'Nincsenek hibák.'}</p>
           ) : (
             <div className="space-y-2">
               {errors.map((error) => (
@@ -282,7 +282,7 @@ export function StableQuestionnaire({
             className="flex items-center space-x-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span>Előző</span>
+            <span>{language === 'de' ? 'Zurück' : 'Előző'}</span>
           </Button>
 
           <div className="flex space-x-4">
@@ -292,7 +292,7 @@ export function StableQuestionnaire({
               className="flex items-center space-x-2"
             >
               <Save className="h-4 w-4" />
-              <span>Mentés</span>
+              <span>{language === 'de' ? 'Speichern' : 'Mentés'}</span>
             </Button>
 
             {isLastPage ? (
@@ -301,7 +301,7 @@ export function StableQuestionnaire({
                 disabled={!canProceed()}
                 className="bg-otis-blue hover:bg-otis-blue/90"
               >
-                Folytatás
+                {language === 'de' ? 'Fortfahren' : 'Folytatás'}
               </Button>
             ) : (
               <Button
@@ -309,7 +309,7 @@ export function StableQuestionnaire({
                 disabled={!canProceed()}
                 className="flex items-center space-x-2 bg-otis-blue hover:bg-otis-blue/90"
               >
-                <span>Következő</span>
+                <span>{language === 'de' ? 'Weiter' : 'Következő'}</span>
                 <ArrowRight className="h-4 w-4" />
               </Button>
             )}
