@@ -12,7 +12,8 @@ export interface ParsedQuestion {
   cellReference?: string;
   sheetName?: string;
   multiCell?: boolean; // New field to control multi-cell behavior for yes_no_na
-  groupName?: string; // Group/block name for organizing questions
+  groupName?: string; // Group/block name for organizing questions (Hungarian)
+  groupNameDe?: string; // German group/block name
   groupOrder?: number; // Order within the group
 }
 
@@ -59,6 +60,7 @@ class ExcelParserService {
       const multiCellIndex = headerRow.findIndex((col: string) => col?.toString().trim() === 'MultiCell');
       // Group and Order columns
       const groupIndex = getColumnIndex(['group', 'csoport', 'blokk', 'kategória']);
+      const groupDeIndex = getColumnIndex(['group_de', 'gruppe_de', 'german_group', 'deutsch_gruppe']);
       const orderIndex = getColumnIndex(['order', 'sorrend', 'rang']);
       
       if (idIndex === -1 || titleIndex === -1 || typeIndex === -1) {
@@ -85,6 +87,7 @@ class ExcelParserService {
           sheetName: sheetName,
           multiCell: multiCellIndex !== -1 ? this.parseBoolean(row[multiCellIndex]) : false,
           groupName: groupIndex !== -1 ? row[groupIndex]?.toString() : undefined,
+          groupNameDe: groupDeIndex !== -1 ? row[groupDeIndex]?.toString() : undefined,
           groupOrder: orderIndex !== -1 ? parseInt(row[orderIndex]?.toString()) || 0 : 0,
         };
         

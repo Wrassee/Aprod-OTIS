@@ -92,6 +92,7 @@ export const questionConfigs = pgTable("question_configs", {
   sheetName: text("sheet_name").default("Sheet1"),
   multiCell: boolean("multi_cell").notNull().default(false), // Controls multi-row X placement for yes_no_na
   groupName: text("group_name"), // Block group name for organizing questions (e.g., "Alapadatok", "Gépház", "Ajtók")
+  groupNameDe: text("group_name_de"), // German group name (e.g., "Grunddaten", "Maschinenraum", "Türen")
   groupOrder: integer("group_order").default(0), // Order within the group
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
 });

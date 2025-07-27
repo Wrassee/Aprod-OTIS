@@ -268,6 +268,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               sheetName: question.sheetName || null,
               multiCell: question.multiCell || false,
               groupName: question.groupName || null,
+              groupNameDe: question.groupNameDe || null,
               groupOrder: question.groupOrder || 0,
             });
           }
@@ -395,7 +396,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         placeholder: config.placeholder || undefined,
         cellReference: config.cellReference || undefined,
         sheetName: config.sheetName || undefined,
-        groupName: config.groupName || undefined,
+        groupName: language === 'de' && config.groupNameDe ? config.groupNameDe : config.groupName || undefined,
         groupOrder: config.groupOrder || 0,
       }));
 

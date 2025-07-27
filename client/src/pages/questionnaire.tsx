@@ -300,6 +300,7 @@ export function Questionnaire({
             questionCount={currentGroup.questionCount}
             totalGroups={questionGroups.length}
             currentGroupIndex={currentPage}
+            language={language}
           />
         )}
 
