@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react';
 import { Question, AnswerValue, ProtocolError } from '@shared/schema';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,7 +27,7 @@ interface QuestionnaireProps {
   onHome?: () => void;
 }
 
-export function Questionnaire({
+function Questionnaire({
   receptionDate,
   onReceptionDateChange,
   answers,
@@ -538,3 +538,6 @@ export function Questionnaire({
     </div>
   );
 }
+
+export const MemoizedQuestionnaire = memo(Questionnaire);
+export { MemoizedQuestionnaire as Questionnaire };
