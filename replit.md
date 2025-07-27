@@ -27,12 +27,13 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Logo Display**: ✅ COMPLETED - Moved logo to client/public/ for proper static serving
 - **Yes/No/NA Logic**: ✅ COMPLETED - X-based logic implemented for multi-column questions
 
-### Latest Update (January 27, 2025) - Version 0.1.2
-- **Excel Template Control**: Yes_no_na questions now controlled by Excel Template MultiCell column  
-- **Smart x-Placement**: Single-cell (A68,B68,C68) or multi-cell (A75;A76;A77,B75;B76;B77,C75;C76;C77) based on template
-- **Template Syntax**: Added MultiCell column support in question Excel templates
-- **Flexible Configuration**: Each yes_no_na question individually configurable for single/multi-row behavior
-- **Lower Case x**: All yes_no_na responses now use lowercase "x" instead of uppercase "X"
+### Latest Update (January 27, 2025) - Version 0.1.3
+- **Question Grouping/Blocks**: ✅ COMPLETED - Questions organized into blocks with group headers above progress bar
+- **Excel Group Control**: Group names and order defined in Excel template columns (J=Group, K=Order)
+- **Block Navigation**: Each question group displays on separate page with group header showing name and question count
+- **Database Schema**: Added groupName and groupOrder fields to question_configs table
+- **Current Groups**: Alapadatok, Projekt adatok, Ellenőrzés, Motor és Gépház blocks implemented
+- **Template Flexibility**: Blocks fully configurable via Excel template Group/Order columns
 
 ## VERSION 0.1 RELEASE - STABLE PRODUCTION BUILD ✅
 
