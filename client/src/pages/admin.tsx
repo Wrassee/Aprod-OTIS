@@ -38,7 +38,7 @@ export function Admin({ onBack, onHome }: AdminProps) {
   const [uploadForm, setUploadForm] = useState({
     name: '',
     type: 'questions',
-    language: 'hu',
+    language: 'multilingual',
     file: null as File | null,
   });
 
@@ -98,7 +98,7 @@ export function Admin({ onBack, onHome }: AdminProps) {
           title: t.success,
           description: 'Template uploaded successfully',
         });
-        setUploadForm({ name: '', type: 'questions', language: 'hu', file: null });
+        setUploadForm({ name: '', type: 'questions', language: 'multilingual', file: null });
         fetchTemplates();
       } else {
         throw new Error('Upload failed');
@@ -279,7 +279,7 @@ export function Admin({ onBack, onHome }: AdminProps) {
                               {template.type === 'questions' ? t.questionsTemplate : t.protocolTemplate}
                             </Badge>
                             <Badge variant="outline" className="bg-gray-100">
-                              {template.language.toUpperCase()}
+                              {template.language === 'multilingual' ? 'HU/DE' : template.language.toUpperCase()}
                             </Badge>
                           </div>
                           <p className="text-sm text-gray-600">{template.fileName}</p>
@@ -459,15 +459,16 @@ export function Admin({ onBack, onHome }: AdminProps) {
 
                 {/* Language */}
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">Language</Label>
+                  <Label className="text-sm font-medium text-gray-700">Nyelvek</Label>
                   <Select 
                     value={uploadForm.language} 
-                    onValueChange={(value) => setUploadForm({ ...uploadForm, language: value as 'hu' | 'de' })}
+                    onValueChange={(value) => setUploadForm({ ...uploadForm, language: value as 'multilingual' | 'hu' | 'de' })}
                   >
                     <SelectTrigger className="mt-2">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="multilingual">Multilingual (HU/DE)</SelectItem>
                       <SelectItem value="hu">Hungarian</SelectItem>
                       <SelectItem value="de">German</SelectItem>
                     </SelectContent>

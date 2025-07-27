@@ -377,9 +377,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/questions/:language", async (req, res) => {
     try {
       const { language } = req.params;
-      const questionsTemplate = await storage.getActiveTemplate('questions', language);
+      
+      // First try to find multilingual template, then language-specific
+      let questionsTemplate = await storage.getActiveTemplate('questions', 'multilingual');
+      if (!questionsTemplate) {
+        questionsTemplate = await storage.getActiveTemplate('questions', language);
+      }
       
       if (!questionsTemplate) {
+        console.warn(`No active template found, using fallback questions`);
         return res.status(404).json({ message: "No active questions template found for this language" });
       }
 

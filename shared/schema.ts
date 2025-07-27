@@ -66,7 +66,7 @@ export const templates = pgTable("templates", {
   type: text("type").notNull(), // "questions" or "protocol"
   fileName: text("file_name").notNull(),
   filePath: text("file_path").notNull(),
-  language: text("language").notNull(),
+  language: text("language").notNull().default("multilingual"), // "hu", "de", or "multilingual"
   uploadedAt: timestamp("uploaded_at").notNull().default(sql`now()`),
   isActive: boolean("is_active").notNull().default(false),
 });
