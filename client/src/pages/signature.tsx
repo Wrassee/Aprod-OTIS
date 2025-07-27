@@ -94,13 +94,13 @@ export function Signature({
           {/* Optional Name Input */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Nyomtatott név (opcionális):
+              {t.printedName}:
             </label>
             <div className="relative">
               <input
                 ref={inputRef}
                 type="text"
-                placeholder="Teljes név"
+                placeholder={t.printedName}
                 key="signature-name-stable"
                 className="w-full h-12 px-4 text-lg border-2 border-gray-300 rounded-lg focus:border-otis-blue focus:outline-none bg-white"
                 style={{ 
