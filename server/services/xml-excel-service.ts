@@ -132,22 +132,25 @@ class XmlExcelService {
     // Add answers based on question configs
     Object.entries(formData.answers).forEach(([questionId, answer]) => {
       const config = questionConfigs.find(q => q.questionId === questionId);
-      console.log(`Processing question ${questionId}: answer="${answer}", config found: ${!!config}`);
+      console.log(`=== PROCESSING QUESTION ${questionId}: answer="${answer}", config found: ${!!config} ===`);
       
       if (config && answer !== '' && answer !== null && answer !== undefined) {
-        console.log(`Config type: ${config.type}`);
+        console.log(`=== CONFIG TYPE: ${config.type} ===`);
         if (config.type === 'yes_no_na') {
-          console.log(`Processing yes_no_na question ${questionId}`);
+          console.log(`=== HANDLING YES_NO_NA QUESTION ${questionId} ===`);
           // Handle yes_no_na type with three cells
           this.handleYesNoNaMappings(mappings, config, answer, questionId);
         } else if (config.cellReference) {
-          // Handle text/number types with single cell
+          // Handle text/number types with single cell - SKIP formatAnswer for yes_no_na
+          console.log(`=== HANDLING REGULAR QUESTION ${questionId} ===`);
           mappings.push({
             cell: config.cellReference,
             value: this.formatAnswer(answer, language),
             label: config.title || `Question ${questionId}`
           });
         }
+      } else {
+        console.log(`=== SKIPPING QUESTION ${questionId}: empty answer or no config ===`);
       }
     });
     
@@ -169,8 +172,8 @@ class XmlExcelService {
     const noCellRef = config.cellReferenceNo;
     const naCellRef = config.cellReferenceNa;
     
-    console.log(`Handling yes_no_na question ${questionId}: answer="${answer}"`);
-    console.log(`Config:`, JSON.stringify({
+    console.log(`=== HANDLING YES_NO_NA QUESTION ${questionId}: answer="${answer}" ===`);
+    console.log(`=== CONFIG ===:`, JSON.stringify({
       questionId: config.questionId,
       type: config.type,
       cellRef: config.cellReference,
@@ -178,7 +181,7 @@ class XmlExcelService {
       noRef: config.cellReferenceNo,
       naRef: config.cellReferenceNa
     }));
-    console.log(`Cells - Yes(A): ${yesCellRef}, No(B): ${noCellRef}, NA(C): ${naCellRef}`);
+    console.log(`=== CELLS - Yes(A): ${yesCellRef}, No(B): ${noCellRef}, NA(C): ${naCellRef} ===`);
     
     // Clear all three cells first (set to empty string)
     if (yesCellRef) {
