@@ -367,8 +367,12 @@ export function Questionnaire({
           
           <div className="flex space-x-4">
             <Button
+              type="button"
               variant="outline"
-              onClick={async () => {
+              onClick={async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
                 console.log('Save button clicked on page:', currentPage);
                 setSaveStatus('saving');
                 try {
@@ -438,7 +442,10 @@ export function Questionnaire({
             
             {isLastPage ? (
               <Button
-                onClick={() => {
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   // Sync all cached values before completing
                   const cachedRadioValues = getAllCachedValues();
                   const cachedTrueFalseValues = getAllTrueFalseValues();
@@ -476,7 +483,10 @@ export function Questionnaire({
               </Button>
             ) : (
               <Button
-                onClick={() => {
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   console.log('Next button clicked, canProceedState:', canProceedState);
                   
                   // Sync cached values before moving to next page
