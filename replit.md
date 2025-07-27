@@ -4,7 +4,7 @@
 
 This is a full-stack TypeScript application that digitizes the OTIS elevator acceptance protocol process. The system guides users through a step-by-step questionnaire, allows error documentation with images, generates PDFs, and enables sharing via email or cloud storage. It supports both Hungarian and German languages.
 
-**Current Version**: OTIS APRO 0.1.9 - Unified Multilingual Templates (January 27, 2025)
+**Current Version**: OTIS APRO 0.1.9.1 - Excel Generation Hotfix (January 27, 2025)
 **Status**: Production Ready ✅
 
 ## User Preferences
@@ -73,6 +73,14 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Display Logic**: ✅ COMPLETED - Admin template list shows "HU/DE" badge for multilingual templates
 - **Backward Compatibility**: ✅ MAINTAINED - Existing Hungarian/German specific templates still supported
 - **User Validation**: ✅ CONFIRMED - User successfully tested new upload flow and confirmed "Nagyszerű!" - system working perfectly with single Excel for both languages
+
+### Critical Excel Generation Fix (January 27, 2025) - Hotfix 0.1.9.1
+- **Problem Identified**: ✅ RESOLVED - Excel generation broke after multilingual implementation due to template lookup failures
+- **Simple XML Service Fix**: ✅ COMPLETED - Added multilingual template priority logic to both protocol and questions template lookups  
+- **Excel Service Fallback**: ✅ COMPLETED - Enhanced fallback mechanism to support multilingual templates
+- **Question Config Mapping**: ✅ RESOLVED - Fixed question ID matching logic for proper cell reference mapping
+- **System Verification**: ✅ CONFIRMED - Excel generation now working with 21 question configs loaded and proper XML cell modifications
+- **Technical Details**: ✅ DOCUMENTED - XML approach successfully modifies cells (e.g., F9 = "Debug Test" with exact style preservation)
 
 ## VERSION 0.1 RELEASE - STABLE PRODUCTION BUILD ✅
 

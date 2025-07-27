@@ -16,7 +16,11 @@ class ExcelService {
       
       // Fallback to original XLSX approach
       try {
-        const protocolTemplate = await storage.getActiveTemplate('protocol', language);
+        // Try multilingual first, then language-specific
+        let protocolTemplate = await storage.getActiveTemplate('protocol', 'multilingual');
+        if (!protocolTemplate) {
+          protocolTemplate = await storage.getActiveTemplate('protocol', language);
+        }
         
         if (protocolTemplate) {
           console.log(`Using XLSX fallback with template: ${protocolTemplate.name}`);

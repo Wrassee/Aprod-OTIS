@@ -6,8 +6,11 @@ import type { FormData } from '../../client/src/lib/types';
 class SimpleXmlExcelService {
   async generateExcelFromTemplate(formData: FormData, language: string): Promise<Buffer> {
     try {
-      // Get the active protocol template
-      const protocolTemplate = await storage.getActiveTemplate('protocol', language);
+      // Get the active protocol template - try multilingual first, then language-specific
+      let protocolTemplate = await storage.getActiveTemplate('protocol', 'multilingual');
+      if (!protocolTemplate) {
+        protocolTemplate = await storage.getActiveTemplate('protocol', language);
+      }
       
       if (!protocolTemplate) {
         throw new Error('No active protocol template found');
@@ -18,13 +21,18 @@ class SimpleXmlExcelService {
       // Read template file
       const templateBuffer = fs.readFileSync(protocolTemplate.filePath);
       
-      // Get question configs for cell mapping
-      const questionsTemplate = await storage.getActiveTemplate('questions', language);
+      // Get question configs for cell mapping - try multilingual first
+      let questionsTemplate = await storage.getActiveTemplate('questions', 'multilingual');
+      if (!questionsTemplate) {
+        questionsTemplate = await storage.getActiveTemplate('questions', language);
+      }
+      
       let questionConfigs: any[] = [];
       
       if (questionsTemplate) {
         questionConfigs = await storage.getQuestionConfigsByTemplate(questionsTemplate.id);
         console.log('Loaded question configs for XML:', questionConfigs.length);
+        console.log('Question config IDs:', questionConfigs.map(q => q.questionId));
       }
 
       // Process with simple string replacement in XML
@@ -167,9 +175,12 @@ class SimpleXmlExcelService {
     
     // Add answers based on question configs
     Object.entries(formData.answers).forEach(([questionId, answer]) => {
-      const config = questionConfigs.find(q => q.questionId === questionId);
+      const config = questionConfigs.find(q => q.questionId === questionId || q.questionId === String(questionId));
       
       console.log(`DEBUG: Processing question ${questionId}, config found:`, !!config, `answer:`, answer);
+      if (!config) {
+        console.log(`DEBUG: Available question IDs:`, questionConfigs.map(q => q.questionId));
+      }
       
       if (config && config.cellReference && answer !== '' && answer !== null && answer !== undefined) {
         
