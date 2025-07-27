@@ -182,7 +182,14 @@ function App() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'acceptance-protocol.pdf';
+        
+        // Get Otis Lift ID from all sources (cache + formData)
+        const cachedInputValues = (window as any).stableInputValues || {};
+        const otisLiftId = cachedInputValues['7'] || formData.answers['7'] || 'Unknown';
+        a.download = `AP${otisLiftId}.pdf`;
+        
+        console.log('PDF download filename:', `AP${otisLiftId}.pdf`);
+        
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
@@ -206,7 +213,14 @@ function App() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'acceptance-protocol.xlsx';
+        
+        // Get Otis Lift ID from all sources (cache + formData)
+        const cachedInputValues = (window as any).stableInputValues || {};
+        const otisLiftId = cachedInputValues['7'] || formData.answers['7'] || 'Unknown';
+        a.download = `AP${otisLiftId}.xlsx`;
+        
+        console.log('Excel download filename:', `AP${otisLiftId}.xlsx`);
+        
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
