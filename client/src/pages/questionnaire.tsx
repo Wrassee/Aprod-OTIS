@@ -399,19 +399,21 @@ const Questionnaire = memo(function Questionnaire({
                   console.log('Save: True/False values:', cachedTrueFalseValues);
                   console.log('Save: Input values:', cachedInputValues);
                   
-                  Object.entries(cachedRadioValues).forEach(([questionId, value]) => {
-                    onAnswerChange(questionId, value as string);
-                  });
-                  Object.entries(cachedTrueFalseValues).forEach(([questionId, value]) => {
-                    onAnswerChange(questionId, value as string);
-                  });
-                  Object.entries(cachedInputValues).forEach(([questionId, value]) => {
-                    onAnswerChange(questionId, value as string);
-                  });
+                  // DON'T call onAnswerChange - it causes re-mounting!
+                  // Instead save directly to localStorage
+                  const currentFormData = JSON.parse(localStorage.getItem('otis-protocol-form-data') || '{"answers":{}}');
+                  const updatedFormData = {
+                    ...currentFormData,
+                    answers: {
+                      ...currentFormData.answers,
+                      ...cachedRadioValues,
+                      ...cachedTrueFalseValues,
+                      ...cachedInputValues,
+                    }
+                  };
                   
-                  console.log('Save: Calling onSave()...');
-                  await onSave();
-                  console.log('Save: onSave() completed successfully');
+                  localStorage.setItem('otis-protocol-form-data', JSON.stringify(updatedFormData));
+                  console.log('Save: Data saved directly to localStorage - NO React state updates');
                   setSaveStatus('saved');
                   setLastSaved(new Date());
                   

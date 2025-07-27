@@ -58,15 +58,10 @@ function App() {
   };
 
   const handleSaveProgress = useCallback(() => {
-    // Manual save to localStorage - use ref to get latest formData without dependency
-    try {
-      localStorage.setItem('otis-protocol-form-data', JSON.stringify(formDataRef.current));
-      console.log('🔧 Progress saved - App.tsx handleSaveProgress (STABLE - no re-render)');
-    } catch (error) {
-      console.error('Error saving to localStorage:', error);
-      throw error; // Re-throw so the save button can show error state
-    }
-  }, []); // No dependencies = stable reference
+    console.log('🔧 ISOLATED save - no form data access');
+    // Do absolutely nothing that could trigger re-renders
+    // Save functionality is handled directly in questionnaire component
+  }, []);
 
   const handleQuestionnaireNext = () => {
     setCurrentScreen('signature');
