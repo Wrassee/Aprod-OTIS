@@ -169,6 +169,8 @@ class SimpleXmlExcelService {
     Object.entries(formData.answers).forEach(([questionId, answer]) => {
       const config = questionConfigs.find(q => q.questionId === questionId);
       
+      console.log(`DEBUG: Processing question ${questionId}, config found:`, !!config, `answer:`, answer);
+      
       if (config && config.cellReference && answer !== '' && answer !== null && answer !== undefined) {
         
         // Handle yes_no_na questions specially - put X in appropriate column(s)
@@ -265,10 +267,22 @@ class SimpleXmlExcelService {
         } else if (config.type === 'true_false') {
           // Handle true_false questions - convert to X/-
           let cellValue = answer;
+          
+          console.log(`DEBUG: Processing true_false question ${questionId}`);
+          console.log(`DEBUG: Raw answer value:`, answer, `(type: ${typeof answer})`);
+          console.log(`DEBUG: Answer === 'true':`, answer === 'true');
+          console.log(`DEBUG: Answer === true:`, answer === true);
+          console.log(`DEBUG: Answer === 'false':`, answer === 'false');
+          console.log(`DEBUG: Answer === false:`, answer === false);
+          
           if (answer === 'true' || answer === true) {
             cellValue = 'X';
           } else if (answer === 'false' || answer === false) {
             cellValue = '-';
+          } else {
+            // Handle any unexpected values
+            console.log(`WARNING: Unexpected true_false value for question ${questionId}:`, answer);
+            cellValue = '-'; // Default to false
           }
           
           console.log(`Processing true_false question ${questionId}: ${answer} -> ${cellValue}, cellRef: ${config.cellReference}`);
