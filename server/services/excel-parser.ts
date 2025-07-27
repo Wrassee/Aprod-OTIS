@@ -203,6 +203,10 @@ class ExcelParserService {
         if (answer === 'no') return 'No';
         if (answer === 'na') return 'N/A';
         return answer;
+      case 'true_false':
+        if (answer === 'true') return 'X';
+        if (answer === 'false') return '-';
+        return answer;
       case 'number':
         return typeof answer === 'number' ? answer : parseFloat(answer) || 0;
       case 'text':

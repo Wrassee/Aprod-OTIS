@@ -24,11 +24,12 @@ export type InsertProtocol = z.infer<typeof insertProtocolSchema>;
 export type Protocol = typeof protocols.$inferSelect;
 
 // Question types
-export const QuestionType = z.enum(["yes_no_na", "number", "text"]);
+export const QuestionType = z.enum(["yes_no_na", "number", "text", "true_false"]);
 export type QuestionType = z.infer<typeof QuestionType>;
 
 export const AnswerValue = z.union([
   z.enum(["yes", "no", "na"]),
+  z.enum(["true", "false"]),
   z.number(),
   z.string(),
 ]);
@@ -52,8 +53,9 @@ export const Question = z.object({
   type: QuestionType,
   required: z.boolean().default(true),
   placeholder: z.string().optional(),
-  cellReference: z.string().optional(), // Excel cell reference like "B5"
+  cellReference: z.string().optional(), // Excel cell reference like "B5" or "A5;B5" for true_false pairs
   sheetName: z.string().optional(), // Sheet name in Excel file
+  groupSize: z.number().optional(), // For true_false type: how many questions in this group
 });
 export type Question = z.infer<typeof Question>;
 

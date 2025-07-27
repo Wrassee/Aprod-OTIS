@@ -1,8 +1,9 @@
-import { memo, useCallback, useRef, useEffect } from 'react';
+import { memo, useCallback } from 'react';
 import { Question, AnswerValue } from '@shared/schema';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CacheRadio } from './cache-radio';
+import { TrueFalseRadio } from './true-false-radio';
 import { Camera, Image } from 'lucide-react';
 import { useLanguageContext } from './language-provider';
 import { StableInput } from './stable-input';
@@ -47,121 +48,105 @@ const IsolatedQuestionComponent = memo(({
             options={radioOptions}
           />
         );
-
+        
+      case 'true_false':
+        return (
+          <TrueFalseRadio
+            questionId={question.id}
+            value={value?.toString() || ''}
+            onChange={(newValue) => onChange(newValue as AnswerValue)}
+            groupSize={question.groupSize || 1}
+          />
+        );
+        
       case 'number':
-        return <StableNativeInput 
-          questionId={question.id}
-          type="number"
-          placeholder={question.placeholder || "Enter number"}
-          initialValue={value?.toString() || ''}
-        />;
-
+        return (
+          <StableInput
+            type="number"
+            value={value?.toString() || ''}
+            onChange={(newValue) => onChange(parseFloat(newValue) || 0)}
+            placeholder={question.placeholder || '0'}
+            className="w-full"
+          />
+        );
+        
       case 'text':
-        return <StableNativeInput 
-          questionId={question.id}
-          type="text" 
-          placeholder={question.placeholder || "Enter text"}
-          initialValue={value?.toString() || ''}
-        />;
-
       default:
-        return null;
+        return (
+          <StableInput
+            type="text"
+            value={value?.toString() || ''}
+            onChange={(newValue) => onChange(newValue)}
+            placeholder={question.placeholder || t.enterText || 'Szöveg megadása'}
+            className="w-full"
+          />
+        );
     }
   }, [question, value, onChange, t]);
 
   return (
-    <Card className="question-card bg-white border border-gray-200 shadow-sm">
-      <CardContent className="question-block p-6">
-        <div className="flex items-start justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-800">
-            {question.title}
-          </h3>
-          <div className="flex space-x-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-gray-400 hover:text-otis-blue"
-              onClick={() => document.getElementById(`image-upload-${question.id}`)?.click()}
-            >
-              <Camera className="h-5 w-5" />
-            </Button>
-            <input
-              id={`image-upload-${question.id}`}
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={handleImageUpload}
-            />
+    <Card className="w-full">
+      <CardContent className="p-6">
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-medium text-gray-800 mb-3">
+              {question.title}
+              {question.required && <span className="text-red-500 ml-1">*</span>}
+            </h3>
+            
+            {renderInput()}
           </div>
-        </div>
-
-        {renderInput()}
-
-        {/* Image Preview */}
-        {images.length > 0 && (
-          <div className="mt-4">
-            <div className="flex space-x-2">
-              {images.map((image, index) => (
-                <div key={index} className="w-16 h-16 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden">
-                  <img src={image} alt="Uploaded" className="w-full h-full object-cover" />
+          
+          {/* Image upload section */}
+          {onImageUpload && (
+            <div className="border-t pt-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-medium text-gray-700">
+                  {t.attachPhotos || 'Fotók csatolása'}
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => document.getElementById(`file-${question.id}`)?.click()}
+                >
+                  <Camera className="h-4 w-4 mr-2" />
+                  {t.selectFiles || 'Fájlok kiválasztása'}
+                </Button>
+              </div>
+              
+              <input
+                id={`file-${question.id}`}
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+              
+              {images.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-3">
+                  {images.map((image, index) => (
+                    <div key={index} className="relative">
+                      <img
+                        src={image}
+                        alt={`Uploaded ${index + 1}`}
+                        className="w-full h-20 object-cover rounded border"
+                      />
+                      <div className="absolute top-1 right-1 bg-white rounded-full p-1">
+                        <Image className="h-3 w-3 text-gray-500" />
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </CardContent>
     </Card>
   );
 });
 
-IsolatedQuestionComponent.displayName = 'IsolatedQuestion';
-
-// Stable input component that uses refs and native DOM events
-function StableNativeInput({ questionId, type, placeholder, initialValue }: {
-  questionId: string;
-  type: string;
-  placeholder: string;
-  initialValue: string;
-}) {
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const input = inputRef.current;
-    if (!input) return;
-
-    // Set initial value
-    input.value = initialValue;
-
-    const handleInput = (e: Event) => {
-      const target = e.target as HTMLInputElement;
-      const newValue = target.value;
-      console.log(`${type} input typing: ${questionId} = ${newValue}`);
-      
-      // Store globally without React updates
-      if (!(window as any).inputValues) {
-        (window as any).inputValues = {};
-      }
-      (window as any).inputValues[questionId] = newValue;
-    };
-
-    // Add native DOM event listener
-    input.addEventListener('input', handleInput);
-    
-    return () => {
-      input.removeEventListener('input', handleInput);
-    };
-  }, [questionId, type, initialValue]);
-
-  return (
-    <input
-      ref={inputRef}
-      type={type}
-      placeholder={placeholder}
-      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-transparent"
-      style={{ fontSize: '16px' }}
-    />
-  );
-}
-
-export { IsolatedQuestionComponent as IsolatedQuestion };
+export const IsolatedQuestion = memo(IsolatedQuestionComponent);
+IsolatedQuestion.displayName = 'IsolatedQuestion';
