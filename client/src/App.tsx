@@ -26,27 +26,8 @@ function App() {
     signatureName: '',
   });
 
-  // Auto-save form data to localStorage with debouncing - only save on real changes
-  useEffect(() => {
-    if (currentScreen === 'start') return;
-    
-    const timeoutId = setTimeout(() => {
-      try {
-        const currentSaved = localStorage.getItem('otis-protocol-form-data');
-        const newData = JSON.stringify(formData);
-        
-        // Only save if data actually changed
-        if (currentSaved !== newData) {
-          localStorage.setItem('otis-protocol-form-data', newData);
-          console.log('Form data saved to localStorage');
-        }
-      } catch (error) {
-        console.error('Error saving to localStorage:', error);
-      }
-    }, 3000); // Further increased to 3 seconds
-
-    return () => clearTimeout(timeoutId);
-  }, [formData, currentScreen]);
+  // Disabled auto-save to prevent component re-mounting during manual saves
+  // Manual save through the Save button only
 
   // Load saved form data on initialization
   useEffect(() => {
@@ -71,8 +52,14 @@ function App() {
   };
 
   const handleSaveProgress = () => {
-    // Form data is already auto-saved to localStorage
-    console.log('Progress saved');
+    // Manual save to localStorage
+    try {
+      localStorage.setItem('otis-protocol-form-data', JSON.stringify(formData));
+      console.log('Progress saved');
+    } catch (error) {
+      console.error('Error saving to localStorage:', error);
+      throw error; // Re-throw so the save button can show error state
+    }
   };
 
   const handleQuestionnaireNext = () => {
