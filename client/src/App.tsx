@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -25,6 +25,12 @@ function App() {
     signature: '',
     signatureName: '',
   });
+  const formDataRef = useRef(formData);
+  
+  // Keep ref updated with latest formData
+  useEffect(() => {
+    formDataRef.current = formData;
+  }, [formData]);
 
   // Disabled auto-save to prevent component re-mounting during manual saves
   // Manual save through the Save button only
@@ -52,15 +58,15 @@ function App() {
   };
 
   const handleSaveProgress = useCallback(() => {
-    // Manual save to localStorage
+    // Manual save to localStorage - use ref to get latest formData without dependency
     try {
-      localStorage.setItem('otis-protocol-form-data', JSON.stringify(formData));
-      console.log('🔧 Progress saved - App.tsx handleSaveProgress');
+      localStorage.setItem('otis-protocol-form-data', JSON.stringify(formDataRef.current));
+      console.log('🔧 Progress saved - App.tsx handleSaveProgress (STABLE - no re-render)');
     } catch (error) {
       console.error('Error saving to localStorage:', error);
       throw error; // Re-throw so the save button can show error state
     }
-  }, [formData]);
+  }, []); // No dependencies = stable reference
 
   const handleQuestionnaireNext = () => {
     setCurrentScreen('signature');
