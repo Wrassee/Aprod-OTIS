@@ -267,6 +267,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               cellReference: question.cellReference || null,
               sheetName: question.sheetName || null,
               multiCell: question.multiCell || false,
+              groupName: question.groupName || null,
+              groupOrder: question.groupOrder || 0,
             });
           }
         } catch (parseError) {
@@ -382,7 +384,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const questionConfigs = await storage.getQuestionConfigsByTemplate(questionsTemplate.id);
       
-      // Convert to frontend Question format
+      // Convert to frontend Question format with groups
       const questions = questionConfigs.map(config => ({
         id: config.questionId,
         title: language === 'hu' && config.titleHu ? config.titleHu : 
@@ -393,6 +395,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         placeholder: config.placeholder || undefined,
         cellReference: config.cellReference || undefined,
         sheetName: config.sheetName || undefined,
+        groupName: config.groupName || undefined,
+        groupOrder: config.groupOrder || 0,
       }));
 
       res.json(questions);

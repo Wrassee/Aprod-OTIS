@@ -12,6 +12,8 @@ export interface ParsedQuestion {
   cellReference?: string;
   sheetName?: string;
   multiCell?: boolean; // New field to control multi-cell behavior for yes_no_na
+  groupName?: string; // Group/block name for organizing questions
+  groupOrder?: number; // Order within the group
 }
 
 class ExcelParserService {
@@ -26,10 +28,10 @@ class ExcelParserService {
       
       const questions: ParsedQuestion[] = [];
       
-      // Expected columns: ID, Title_EN, Title_HU, Title_DE, Type, Required, Placeholder, CellReference, MultiCell
+      // Expected columns: ID, Title_EN, Title_HU, Title_DE, Type, Required, Placeholder, CellReference, MultiCell, Group, Order
       const headerRow = data[0];
       if (!headerRow || headerRow.length < 4) {
-        throw new Error('Invalid Excel format. Expected columns: ID, Title_EN, Title_HU, Title_DE, Type, Required, Placeholder, CellReference, MultiCell');
+        throw new Error('Invalid Excel format. Expected columns: ID, Title_EN, Title_HU, Title_DE, Type, Required, Placeholder, CellReference, MultiCell, Group, Order');
       }
       
       // Find column indices
@@ -55,6 +57,9 @@ class ExcelParserService {
       const cellRefIndex = headerRow.findIndex((col: string) => col?.toString().trim() === 'Cél');
       // Direct index for "MultiCell" column (I = index 8)
       const multiCellIndex = headerRow.findIndex((col: string) => col?.toString().trim() === 'MultiCell');
+      // Group and Order columns
+      const groupIndex = getColumnIndex(['group', 'csoport', 'blokk', 'kategória']);
+      const orderIndex = getColumnIndex(['order', 'sorrend', 'rang']);
       
       if (idIndex === -1 || titleIndex === -1 || typeIndex === -1) {
         throw new Error('Required columns not found: ID, Title, Type');
@@ -79,6 +84,8 @@ class ExcelParserService {
           cellReference: cellRefIndex !== -1 ? row[cellRefIndex]?.toString() : undefined,
           sheetName: sheetName,
           multiCell: multiCellIndex !== -1 ? this.parseBoolean(row[multiCellIndex]) : false,
+          groupName: groupIndex !== -1 ? row[groupIndex]?.toString() : undefined,
+          groupOrder: orderIndex !== -1 ? parseInt(row[orderIndex]?.toString()) || 0 : 0,
         };
         
         questions.push(question);

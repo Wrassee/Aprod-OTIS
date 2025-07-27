@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Label } from '@/components/ui/label';
 import { IsolatedQuestion } from '@/components/isolated-question';
 import { ErrorList } from '@/components/error-list';
+import { QuestionGroupHeader } from '@/components/question-group-header';
 import { useLanguageContext } from '@/components/language-provider';
 import { ArrowLeft, ArrowRight, Save, Settings, Home } from 'lucide-react';
 import { getAllCachedValues } from '@/components/cache-radio';
@@ -119,18 +120,42 @@ export function Questionnaire({
     loadQuestions();
   }, []); // Load questions only once on mount
 
-  // Memoized calculations to prevent unnecessary re-renders
-  const questionsPerPage = 4;
-  
-  const { totalPages, currentQuestions, progress } = useMemo(() => {
-    const total = Math.ceil(allQuestions.length / questionsPerPage);
-    const current = allQuestions.slice(
-      currentPage * questionsPerPage,
-      (currentPage + 1) * questionsPerPage
-    );
-    const prog = ((currentPage + 1) / total) * 100;
+  // Group questions by groupName and organize by groups
+  const { questionGroups, totalPages, currentQuestions, progress, currentGroup } = useMemo(() => {
+    // Group questions by groupName
+    const groups = allQuestions.reduce((acc, question) => {
+      const groupName = question.groupName || 'Egyéb';
+      if (!acc[groupName]) {
+        acc[groupName] = [];
+      }
+      acc[groupName].push(question);
+      return acc;
+    }, {} as Record<string, Question[]>);
+
+    // Sort questions within each group by groupOrder
+    Object.keys(groups).forEach(groupName => {
+      groups[groupName].sort((a, b) => (a.groupOrder || 0) - (b.groupOrder || 0));
+    });
+
+    // Convert to array format for pagination
+    const groupsArray = Object.entries(groups).map(([name, questions]) => ({
+      name,
+      questions,
+      questionCount: questions.length
+    }));
+
+    // Calculate pagination based on groups (1 group per page)
+    const total = groupsArray.length;
+    const currentGroupData = groupsArray[currentPage] || { name: 'Egyéb', questions: [], questionCount: 0 };
+    const prog = total > 0 ? ((currentPage + 1) / total) * 100 : 0;
     
-    return { totalPages: total, currentQuestions: current, progress: prog };
+    return { 
+      questionGroups: groupsArray, 
+      totalPages: total, 
+      currentQuestions: currentGroupData.questions, 
+      progress: prog,
+      currentGroup: currentGroupData
+    };
   }, [allQuestions, currentPage]);
 
   // Listen for cache changes to update canProceed state
@@ -268,6 +293,16 @@ export function Questionnaire({
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-8">
+        {/* Group Header */}
+        {questionGroups.length > 0 && currentGroup && (
+          <QuestionGroupHeader
+            groupName={currentGroup.name}
+            questionCount={currentGroup.questionCount}
+            totalGroups={questionGroups.length}
+            currentGroupIndex={currentPage}
+          />
+        )}
+
         {/* Question Grid (2x2 Layout) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {currentQuestions.map((question) => (

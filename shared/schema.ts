@@ -1,5 +1,5 @@
 import { sql, relations } from "drizzle-orm";
-import { pgTable, text, varchar, jsonb, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, jsonb, timestamp, boolean, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -91,6 +91,8 @@ export const questionConfigs = pgTable("question_configs", {
   cellReference: text("cell_reference"), // B5, C10, etc. For yes_no_na: comma-separated A5,B5,C5 or multi-row A5;A6;A7,B5;B6;B7,C5;C6;C7
   sheetName: text("sheet_name").default("Sheet1"),
   multiCell: boolean("multi_cell").notNull().default(false), // Controls multi-row X placement for yes_no_na
+  groupName: text("group_name"), // Block group name for organizing questions (e.g., "Alapadatok", "Gépház", "Ajtók")
+  groupOrder: integer("group_order").default(0), // Order within the group
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
 });
 
@@ -113,3 +115,14 @@ export const questionConfigsRelations = relations(questionConfigs, ({ one }) => 
     references: [templates.id],
   }),
 }));
+
+// Question interface for frontend use
+export interface Question {
+  id: string;
+  title: string;
+  type: QuestionType;
+  required?: boolean;
+  placeholder?: string;
+  groupName?: string;
+  groupOrder?: number;
+}
