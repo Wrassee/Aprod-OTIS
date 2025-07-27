@@ -142,11 +142,21 @@ export function Admin({ onBack, onHome }: AdminProps) {
 
   const handlePreview = async (templateId: string) => {
     try {
-      const response = await fetch(`/api/admin/templates/${templateId}/preview`);
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Template preview:', data);
-        setPreviewData(data);
+      const [templateResponse, questionsResponse] = await Promise.all([
+        fetch(`/api/admin/templates/${templateId}/preview`),
+        fetch('/api/questions/hu')
+      ]);
+      
+      if (templateResponse.ok) {
+        const templateData = await templateResponse.json();
+        let questionsData = [];
+        
+        if (questionsResponse.ok) {
+          questionsData = await questionsResponse.json();
+        }
+        
+        console.log('Template preview:', templateData);
+        setPreviewData({ ...templateData, questions: questionsData });
         setPreviewOpen(true);
       } else {
         toast({
@@ -289,14 +299,14 @@ export function Admin({ onBack, onHome }: AdminProps) {
                                 <Eye className="h-4 w-4" />
                               </Button>
                             </DialogTrigger>
-                            <DialogContent className="max-w-4xl max-h-[80vh]">
+                            <DialogContent className="max-w-6xl max-h-[80vh]">
                               <DialogHeader>
-                                <DialogTitle>Template Előnézet</DialogTitle>
+                                <DialogTitle>Template Előnézet - Kérdések és Cella Hozzárendelések</DialogTitle>
                               </DialogHeader>
                               <div className="space-y-4">
                                 {previewData && (
                                   <>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-3 gap-4">
                                       <Card>
                                         <CardHeader>
                                           <CardTitle className="text-sm">Munkafüzet lapok</CardTitle>
@@ -313,10 +323,23 @@ export function Admin({ onBack, onHome }: AdminProps) {
                                       </Card>
                                       <Card>
                                         <CardHeader>
-                                          <CardTitle className="text-sm">Cella referenciák száma</CardTitle>
+                                          <CardTitle className="text-sm">Kérdések száma</CardTitle>
                                         </CardHeader>
                                         <CardContent>
                                           <div className="text-2xl font-bold text-otis-blue">
+                                            {previewData.questions?.length || 0}
+                                          </div>
+                                          <p className="text-sm text-gray-500">
+                                            aktív kérdés
+                                          </p>
+                                        </CardContent>
+                                      </Card>
+                                      <Card>
+                                        <CardHeader>
+                                          <CardTitle className="text-sm">Cellák száma</CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                          <div className="text-2xl font-bold text-gray-600">
                                             {previewData.cellReferences?.length || 0}
                                           </div>
                                           <p className="text-sm text-gray-500">
@@ -325,23 +348,41 @@ export function Admin({ onBack, onHome }: AdminProps) {
                                         </CardContent>
                                       </Card>
                                     </div>
+                                    
+                                    {/* Questions and Cell Mappings */}
                                     <Card>
                                       <CardHeader>
-                                        <CardTitle className="text-sm">Cella referenciák (első 50)</CardTitle>
+                                        <CardTitle className="text-sm">Kérdések és Excel Cella Hozzárendelések</CardTitle>
                                       </CardHeader>
                                       <CardContent>
-                                        <ScrollArea className="h-48">
-                                          <div className="grid grid-cols-4 gap-2">
-                                            {previewData.cellReferences?.slice(0, 50).map((cellRef: string, index: number) => (
-                                              <Badge key={index} variant="secondary" className="text-xs">
-                                                {cellRef}
-                                              </Badge>
-                                            )) || <p className="text-gray-500">Nincs cella referencia</p>}
-                                          </div>
-                                          {previewData.cellReferences?.length > 50 && (
-                                            <p className="text-sm text-gray-500 mt-2">
-                                              ...és még {previewData.cellReferences.length - 50} cella
-                                            </p>
+                                        <ScrollArea className="h-64">
+                                          {previewData.questions?.length > 0 ? (
+                                            <div className="space-y-3">
+                                              {previewData.questions.map((question: any, index: number) => (
+                                                <div key={index} className="border border-gray-200 rounded-lg p-3">
+                                                  <div className="grid grid-cols-4 gap-3 items-center">
+                                                    <div>
+                                                      <Badge variant="secondary" className="text-xs">
+                                                        ID: {question.id}
+                                                      </Badge>
+                                                    </div>
+                                                    <div className="col-span-2">
+                                                      <p className="font-medium text-sm">{question.title}</p>
+                                                      <p className="text-xs text-gray-500">
+                                                        Típus: {question.type} | Csoport: {question.groupName || 'N/A'}
+                                                      </p>
+                                                    </div>
+                                                    <div>
+                                                      <Badge variant="outline" className="text-xs font-mono">
+                                                        {question.cellReference || 'Nincs cella'}
+                                                      </Badge>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          ) : (
+                                            <p className="text-gray-500 text-center py-8">Nincs kérdés definiálva</p>
                                           )}
                                         </ScrollArea>
                                       </CardContent>
