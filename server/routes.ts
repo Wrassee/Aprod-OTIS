@@ -109,8 +109,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate Excel from template
       const excelBuffer = await excelService.generateExcel(formData, language);
       
-      // Generate PDF from Excel with language support
-      const pdfBuffer = await pdfService.generatePDF(excelBuffer, language);
+      // Generate PDF from Excel
+      const pdfBuffer = await pdfService.generatePDF(excelBuffer);
       
       // Generate error list PDF if errors exist
       let errorListPdf = null;
@@ -139,9 +139,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { formData, language } = req.body;
       
-      // Generate Excel and PDF with language support
+      // Generate Excel and PDF
       const excelBuffer = await excelService.generateExcel(formData, language);
-      const pdfBuffer = await pdfService.generatePDF(excelBuffer, language);
+      const pdfBuffer = await pdfService.generatePDF(excelBuffer);
       
       // TODO: Implement Google Drive upload
       // This would require Google Drive API integration
@@ -179,8 +179,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate Excel from template
       const excelBuffer = await excelService.generateExcel(formData, language);
       
-      // Generate PDF from Excel with OTIS branding
-      const pdfBuffer = await pdfService.generatePDF(excelBuffer, language);
+      // Generate PDF from Excel
+      const pdfBuffer = await pdfService.generatePDF(excelBuffer);
       
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', 'attachment; filename=acceptance-protocol.pdf');

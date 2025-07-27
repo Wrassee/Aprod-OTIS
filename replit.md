@@ -4,7 +4,7 @@
 
 This is a full-stack TypeScript application that digitizes the OTIS elevator acceptance protocol process. The system guides users through a step-by-step questionnaire, allows error documentation with images, generates PDFs, and enables sharing via email or cloud storage. It supports both Hungarian and German languages.
 
-**Current Version**: OTIS APRO 0.2.0 - Professional PDF Generation (January 27, 2025)
+**Current Version**: OTIS APRO 0.1.9 - Unified Multilingual Templates (January 27, 2025)
 **Status**: Production Ready ✅
 
 ## User Preferences
@@ -64,15 +64,15 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Error Handling**: ✅ COMPLETED - Comprehensive error handling with user-friendly error states
 - **User Request**: ✅ CONFIRMED - User requested "Mentsük el ezt a verziót!" confirming satisfaction with save functionality
 
-### Professional PDF Generation System (January 27, 2025) - Version 0.2.0
-- **OTIS Branded PDF Generation**: ✅ COMPLETED - Professional PDF generation with official OTIS corporate design and "Made to Move You" slogan
-- **Puppeteer Integration**: ✅ COMPLETED - Advanced PDF rendering with Chrome browser engine for high-quality output
-- **Enhanced Fallback System**: ✅ COMPLETED - Reliable enhanced fallback PDF generator with OTIS branding when Puppeteer fails
-- **Multi-language PDF Support**: ✅ COMPLETED - Hungarian and German localized PDF templates with proper formatting
-- **Excel to PDF Conversion**: ✅ COMPLETED - Direct conversion from populated Excel templates to professional PDF documents
-- **Replit Compatibility**: ✅ COMPLETED - Chrome dependencies and sandbox settings optimized for Replit environment
-- **PDF Download Functionality**: ✅ COMPLETED - Full end-to-end PDF download workflow integrated in completion page
-- **Error Handling**: ✅ COMPLETED - Comprehensive error handling with graceful fallback to ensure PDF generation always succeeds
+### Unified Multilingual Template System (January 27, 2025) - Version 0.1.9
+- **Problem Identified**: ✅ SOLVED - User questioned why separate Hungarian/German templates needed when one Excel contains both languages
+- **Multilingual Template Support**: ✅ COMPLETED - Templates now support "multilingual" language option for both HU/DE from single Excel
+- **API Logic Enhancement**: ✅ COMPLETED - /api/questions/:language endpoint prioritizes multilingual templates over language-specific ones
+- **Admin UI Updates**: ✅ COMPLETED - Upload form shows "Többnyelvű (HU/DE)" option as default
+- **Schema Updates**: ✅ COMPLETED - Template language field supports "multilingual" value with proper defaults
+- **Display Logic**: ✅ COMPLETED - Admin template list shows "HU/DE" badge for multilingual templates
+- **Backward Compatibility**: ✅ MAINTAINED - Existing Hungarian/German specific templates still supported
+- **User Validation**: ✅ CONFIRMED - User successfully tested new upload flow and confirmed "Nagyszerű!" - system working perfectly with single Excel for both languages
 
 ## VERSION 0.1 RELEASE - STABLE PRODUCTION BUILD ✅
 
