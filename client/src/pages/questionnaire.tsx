@@ -304,8 +304,8 @@ export function Questionnaire({
           />
         )}
 
-        {/* Question Grid (2x2 Layout) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        {/* Questions Layout - Single Column */}
+        <div className="space-y-6 mb-8">
           {currentQuestions.map((question) => (
             <IsolatedQuestion
               key={question.id}
