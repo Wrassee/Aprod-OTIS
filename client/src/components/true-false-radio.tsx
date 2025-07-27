@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useState, useEffect } from 'react';
 
 interface TrueFalseRadioProps {
   questionId: string;
@@ -7,35 +7,31 @@ interface TrueFalseRadioProps {
   onChange: (value: string) => void;
 }
 
-// Global cache for true/false values - same pattern as CacheRadio
+// Global cache for true/false values - exact copy of CacheRadio pattern
 const trueFalseCache = new Map<string, string>();
 
 export const TrueFalseRadio = memo(({ questionId, questionTitle, value, onChange }: TrueFalseRadioProps) => {
-  // Initialize cache if needed
-  if (!trueFalseCache.has(questionId) && value) {
-    trueFalseCache.set(questionId, value);
-  }
+  const [localValue, setLocalValue] = useState(() => {
+    // Get from cache or use initial value
+    return trueFalseCache.get(questionId) || value;
+  });
 
-  const currentValue = trueFalseCache.get(questionId) || value || '';
+  // Sync with initial value only if cache is empty
+  useEffect(() => {
+    if (!trueFalseCache.has(questionId) && value) {
+      setLocalValue(value);
+      trueFalseCache.set(questionId, value);
+    }
+  }, [questionId, value]);
 
-  const handleClick = (newValue: string) => {
-    // Update cache immediately
+  const handleChange = (newValue: string) => {
+    setLocalValue(newValue);
     trueFalseCache.set(questionId, newValue);
     
-    // Update DOM directly
-    const trueRadio = document.getElementById(`${questionId}-true`) as HTMLInputElement;
-    const falseRadio = document.getElementById(`${questionId}-false`) as HTMLInputElement;
+    console.log(`True/False changed: ${questionId} = ${newValue}`);
     
-    if (trueRadio && falseRadio) {
-      trueRadio.checked = newValue === 'true';
-      falseRadio.checked = newValue === 'false';
-    }
-    
-    // Notify parent
-    onChange(newValue);
-    
-    // Dispatch event for validation
-    window.dispatchEvent(new CustomEvent('radio-change', { 
+    // Dispatch custom event for save button to pick up
+    window.dispatchEvent(new CustomEvent('radio-change', {
       detail: { questionId, value: newValue }
     }));
   };
@@ -54,9 +50,13 @@ export const TrueFalseRadio = memo(({ questionId, questionTitle, value, onChange
           id={`${questionId}-true`}
           name={questionId}
           value="true"
-          defaultChecked={currentValue === 'true'}
-          onClick={() => handleClick('true')}
-          onChange={() => {}} // Prevent React warnings
+          checked={localValue === 'true'}
+          onChange={(e) => {
+            e.stopPropagation();
+            if (e.target.checked) {
+              handleChange('true');
+            }
+          }}
           className="w-5 h-5 text-green-600 bg-gray-100 border-gray-300 focus:ring-green-500 focus:ring-2 cursor-pointer"
         />
       </div>
@@ -68,9 +68,13 @@ export const TrueFalseRadio = memo(({ questionId, questionTitle, value, onChange
           id={`${questionId}-false`}
           name={questionId}
           value="false"
-          defaultChecked={currentValue === 'false'}
-          onClick={() => handleClick('false')}
-          onChange={() => {}} // Prevent React warnings
+          checked={localValue === 'false'}
+          onChange={(e) => {
+            e.stopPropagation();
+            if (e.target.checked) {
+              handleChange('false');
+            }
+          }}
           className="w-5 h-5 text-red-600 bg-gray-100 border-gray-300 focus:ring-red-500 focus:ring-2 cursor-pointer"
         />
       </div>
