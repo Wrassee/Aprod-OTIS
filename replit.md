@@ -4,7 +4,7 @@
 
 This is a full-stack TypeScript application that digitizes the OTIS elevator acceptance protocol process. The system guides users through a step-by-step questionnaire, allows error documentation with images, generates PDFs, and enables sharing via email or cloud storage. It supports both Hungarian and German languages.
 
-**Current Version**: OTIS APRO 0.1.1 - Yes/No/NA X-Logic Update (January 27, 2025)
+**Current Version**: OTIS APRO 0.1.7 - True/False Binary Input Update (January 27, 2025)
 **Status**: Production Ready ✅
 
 ## User Preferences
@@ -27,7 +27,12 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Logo Display**: ✅ COMPLETED - Moved logo to client/public/ for proper static serving
 - **Yes/No/NA Logic**: ✅ COMPLETED - X-based logic implemented for multi-column questions
 
-### Latest Update (January 27, 2025) - Version 0.1.6
+### Latest Update (January 27, 2025) - Version 0.1.7
+- **True/False Question Type**: ✅ COMPLETED - New binary choice input with Excel "X"/"-" output
+- **TrueFalseRadio Component**: ✅ COMPLETED - Elegant two-column interface with multilingual labels
+- **Excel Integration**: ✅ COMPLETED - True="X", False="-" cell population working perfectly
+- **Template Syntax Support**: ✅ COMPLETED - Excel parser recognizes "true_false" type in question templates
+- **Database Integration**: ✅ COMPLETED - Question configs support true_false type with proper cell references
 - **Complete German UI Translation**: ✅ COMPLETED - All interface elements properly translated
 - **Language Synchronization**: ✅ COMPLETED - Fixed language context sync between App.tsx and LanguageProvider  
 - **Signature Canvas Translation**: ✅ COMPLETED - All signature elements including "Löschen" button and instruction text
