@@ -63,6 +63,8 @@ function App() {
 
   const handleLanguageSelect = (selectedLanguage: 'hu' | 'de') => {
     setLanguage(selectedLanguage);
+    // Save language to localStorage so LanguageProvider can use it
+    localStorage.setItem('otis-protocol-language', selectedLanguage);
     setCurrentScreen('questionnaire');
     // Clear navigation state for new session - reset to page 0
     localStorage.setItem('questionnaire-current-page', '0');
