@@ -317,7 +317,7 @@ export function Admin({ onBack, onHome }: AdminProps) {
                                               <Badge key={index} variant="outline">
                                                 {sheet}
                                               </Badge>
-                                            )) || <p className="text-gray-500">Nincs lap</p>}
+                                            )) || <p className="text-gray-500">{language === 'de' ? 'Kein Blatt' : 'Nincs lap'}</p>}
                                           </div>
                                         </CardContent>
                                       </Card>
@@ -330,7 +330,7 @@ export function Admin({ onBack, onHome }: AdminProps) {
                                             {previewData.questions?.length || 0}
                                           </div>
                                           <p className="text-sm text-gray-500">
-                                            aktív kérdés
+                                            {language === 'de' ? 'aktive Frage' : 'aktív kérdés'}
                                           </p>
                                         </CardContent>
                                       </Card>
@@ -352,7 +352,9 @@ export function Admin({ onBack, onHome }: AdminProps) {
                                     {/* Questions and Cell Mappings */}
                                     <Card>
                                       <CardHeader>
-                                        <CardTitle className="text-sm">Kérdések és Excel Cella Hozzárendelések</CardTitle>
+                                        <CardTitle className="text-sm">
+                                          {language === 'de' ? 'Fragen und Excel-Zellzuordnungen' : 'Kérdések és Excel Cella Hozzárendelések'}
+                                        </CardTitle>
                                       </CardHeader>
                                       <CardContent>
                                         <ScrollArea className="h-64">
@@ -369,12 +371,15 @@ export function Admin({ onBack, onHome }: AdminProps) {
                                                     <div className="col-span-2">
                                                       <p className="font-medium text-sm">{question.title}</p>
                                                       <p className="text-xs text-gray-500">
-                                                        Típus: {question.type} | Csoport: {question.groupName || 'N/A'}
+                                                        {language === 'de' ? 
+                                                          `Typ: ${question.type} | Gruppe: ${question.groupName || 'N/A'}` :
+                                                          `Típus: ${question.type} | Csoport: ${question.groupName || 'N/A'}`
+                                                        }
                                                       </p>
                                                     </div>
                                                     <div>
                                                       <Badge variant="outline" className="text-xs font-mono">
-                                                        {question.cellReference || 'Nincs cella'}
+                                                        {question.cellReference || (language === 'de' ? 'Keine Zelle' : 'Nincs cella')}
                                                       </Badge>
                                                     </div>
                                                   </div>
@@ -382,7 +387,9 @@ export function Admin({ onBack, onHome }: AdminProps) {
                                               ))}
                                             </div>
                                           ) : (
-                                            <p className="text-gray-500 text-center py-8">Nincs kérdés definiálva</p>
+                                            <p className="text-gray-500 text-center py-8">
+                                              {language === 'de' ? 'Keine Fragen definiert' : 'Nincs kérdés definiálva'}
+                                            </p>
                                           )}
                                         </ScrollArea>
                                       </CardContent>
@@ -406,7 +413,7 @@ export function Admin({ onBack, onHome }: AdminProps) {
                             size="sm"
                             onClick={() => handleDelete(template.id, template.name)}
                             className="text-red-600 hover:text-red-800 hover:bg-red-50"
-                            title="Törlés"
+                            title={language === 'de' ? 'Löschen' : 'Törlés'}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -435,7 +442,7 @@ export function Admin({ onBack, onHome }: AdminProps) {
                   <Input
                     value={uploadForm.name}
                     onChange={(e) => setUploadForm({ ...uploadForm, name: e.target.value })}
-                    placeholder="Enter template name"
+                    placeholder={language === 'de' ? 'Vorlagenname eingeben' : 'Enter template name'}
                     className="mt-2"
                   />
                 </div>
@@ -459,7 +466,9 @@ export function Admin({ onBack, onHome }: AdminProps) {
 
                 {/* Language */}
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">Nyelvek</Label>
+                  <Label className="text-sm font-medium text-gray-700">
+                    {language === 'de' ? 'Sprachen' : 'Nyelvek'}
+                  </Label>
                   <Select 
                     value={uploadForm.language} 
                     onValueChange={(value) => setUploadForm({ ...uploadForm, language: value as 'multilingual' | 'hu' | 'de' })}
@@ -468,9 +477,15 @@ export function Admin({ onBack, onHome }: AdminProps) {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="multilingual">Multilingual (HU/DE)</SelectItem>
-                      <SelectItem value="hu">Hungarian</SelectItem>
-                      <SelectItem value="de">German</SelectItem>
+                      <SelectItem value="multilingual">
+                        {language === 'de' ? 'Mehrsprachig (HU/DE)' : 'Multilingual (HU/DE)'}
+                      </SelectItem>
+                      <SelectItem value="hu">
+                        {language === 'de' ? 'Ungarisch' : 'Hungarian'}
+                      </SelectItem>
+                      <SelectItem value="de">
+                        {language === 'de' ? 'Deutsch' : 'German'}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
