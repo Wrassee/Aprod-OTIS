@@ -16,6 +16,7 @@ export function useLanguage() {
   useEffect(() => {
     const saved = localStorage.getItem('otis-protocol-language') as 'hu' | 'de';
     if (saved && (saved === 'hu' || saved === 'de')) {
+      console.log('Loading saved language:', saved);
       setLanguage(saved);
     }
     
@@ -37,7 +38,7 @@ export function useLanguage() {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, [language]);
+  }, []);
 
   return {
     language,

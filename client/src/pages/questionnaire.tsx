@@ -43,6 +43,14 @@ const Questionnaire = memo(function Questionnaire({
 }: QuestionnaireProps) {
   const { t, language: contextLanguage } = useLanguageContext();
   
+  // Debug: Show current language and translations
+  console.log('🌍 Questionnaire Language Debug:', {
+    contextLanguage,
+    propLanguage: language,
+    titleTranslation: t.title,
+    progressTranslation: t.progress
+  });
+  
   // Debug: Check if this is a real mount or just re-render
   const mountCountRef = useRef(0);
   mountCountRef.current += 1;
@@ -560,3 +568,6 @@ const Questionnaire = memo(function Questionnaire({
 });
 
 export default Questionnaire;
+
+// Debug - log current language context
+console.log('Current Questionnaire component - Language context:', window.localStorage.getItem('otis-protocol-language'));
