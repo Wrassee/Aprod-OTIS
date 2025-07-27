@@ -49,12 +49,17 @@ function App() {
   }, []);
 
   const handleLanguageSelect = (selectedLanguage: 'hu' | 'de') => {
+    console.log('🌍 App.tsx - Language selected:', selectedLanguage);
     setLanguage(selectedLanguage);
     // Save language to localStorage so LanguageProvider can use it
     localStorage.setItem('otis-protocol-language', selectedLanguage);
+    console.log('🌍 App.tsx - Language saved to localStorage:', localStorage.getItem('otis-protocol-language'));
     setCurrentScreen('questionnaire');
     // Clear navigation state for new session - reset to page 0
     localStorage.setItem('questionnaire-current-page', '0');
+    
+    // Force LanguageProvider to update by triggering a manual check
+    window.dispatchEvent(new Event('storage'));
   };
 
   const handleSaveProgress = useCallback(() => {

@@ -14,31 +14,38 @@ export function useLanguage() {
 
   // Load saved language on initialization and listen for storage changes
   useEffect(() => {
-    const saved = localStorage.getItem('otis-protocol-language') as 'hu' | 'de';
-    if (saved && (saved === 'hu' || saved === 'de')) {
-      console.log('Loading saved language:', saved);
-      setLanguage(saved);
-    }
+    const checkLanguage = () => {
+      const saved = localStorage.getItem('otis-protocol-language') as 'hu' | 'de';
+      if (saved && (saved === 'hu' || saved === 'de') && saved !== language) {
+        console.log('Loading/updating saved language:', saved, 'current:', language);
+        setLanguage(saved);
+      }
+    };
+    
+    // Check immediately
+    checkLanguage();
+    
+    // Check periodically to catch localStorage changes
+    const interval = setInterval(checkLanguage, 500);
     
     // Listen for localStorage changes from other parts of the app
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'otis-protocol-language' && e.newValue) {
         const newLang = e.newValue as 'hu' | 'de';
         if (newLang === 'hu' || newLang === 'de') {
+          console.log('Storage event language change:', newLang);
           setLanguage(newLang);
         }
       }
     };
     
-    // Disabled periodic checks to prevent unnecessary re-renders
-    // Language changes are handled through storage events and initial load only
-    
     window.addEventListener('storage', handleStorageChange);
     
     return () => {
+      clearInterval(interval);
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, []);
+  }, [language]);
 
   return {
     language,
