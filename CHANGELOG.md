@@ -1,5 +1,19 @@
 # OTIS APRO - Changelog
 
+## [0.1.1] - 2025-01-27 - YES/NO/NA X-LOGIC UPDATE ✅
+
+### ✅ Új funkció: Yes_No_NA kérdések X-alapú kezelése
+- **Excel oszlop logika**: Yes_no_na típusú kérdések X-et helyeznek a megfelelő oszlopba
+- **Cellakonfigurálás**: Vesszővel elválasztott cellareferencék támogatása (A68,B68,C68)
+- **Automatikus leképezés**: "igen"→A oszlop, "nem"→B oszlop, "na"→C oszlop
+- **Formázás megőrzés**: Eredeti Excel stílus tökéletes megőrzése X-ekkel
+- **Debug támogatás**: Részletes logolás a troubleshootinghoz
+
+### 🔧 Technikai javítások
+- **Simple XML Excel Service**: Yes_no_na logika implementálása
+- **Adatbázis séma**: Cell reference mező dokumentálása comma-separated formátumhoz
+- **Hibakezelés**: Fallback logika helytelen cellareference formátum esetén
+
 ## [0.1.0] - 2025-01-27 - STABLE PRODUCTION RELEASE ✅
 
 ### 🎉 First Stable Release
