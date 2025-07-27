@@ -225,8 +225,8 @@ function App() {
   const handleAdminAccess = useCallback(() => setCurrentScreen('admin'), []);
   const handleHome = useCallback(() => setCurrentScreen('start'), []);
 
-  // Store questionnaire instance to prevent re-creation
-  let persistentQuestionnaire: JSX.Element | null = null;
+  // Store questionnaire instance to prevent re-creation using useRef
+  const persistentQuestionnaireRef = useRef<JSX.Element | null>(null);
 
   function Router() {
     return (
@@ -236,11 +236,11 @@ function App() {
           
           // Create questionnaire only once and reuse it
           if (currentScreen === 'questionnaire') {
-            if (!persistentQuestionnaire) {
-              console.log('🆕 Creating persistent questionnaire instance');
-              persistentQuestionnaire = (
+            if (!persistentQuestionnaireRef.current) {
+              console.log('🆕 Creating TRULY persistent questionnaire instance with useRef');
+              persistentQuestionnaireRef.current = (
                 <Questionnaire
-                  key="persistent-questionnaire"
+                  key="truly-persistent-questionnaire"
                   receptionDate={formData.receptionDate}
                   onReceptionDateChange={handleReceptionDateChange}
                   answers={formData.answers}
@@ -254,8 +254,10 @@ function App() {
                   onHome={handleHome}
                 />
               );
+            } else {
+              console.log('♻️ Reusing existing questionnaire instance - NO re-mount!');
             }
-            return persistentQuestionnaire;
+            return persistentQuestionnaireRef.current;
           }
           
           switch (currentScreen) {

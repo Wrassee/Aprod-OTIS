@@ -82,6 +82,14 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **System Verification**: ✅ CONFIRMED - Excel generation now working with 21 question configs loaded and proper XML cell modifications
 - **Technical Details**: ✅ DOCUMENTED - XML approach successfully modifies cells (e.g., F9 = "Debug Test" with exact style preservation)
 
+### Component Re-mounting Issue Debug (January 27, 2025) - Critical Bug Investigation
+- **Problem Identified**: ❌ ONGOING - Save button causes Questionnaire component to re-mount on pages 2-3, causing page refresh and data loss
+- **Root Cause Discovery**: ✅ IDENTIFIED - wouter Route component function recreates Questionnaire component on every App re-render
+- **Multiple Fix Attempts**: ❌ UNSUCCESSFUL - React.memo, useCallback, useMemo, formDataRef approaches failed to prevent re-mounting
+- **Current Status**: 🔄 IN PROGRESS - Testing useRef-based persistent component instance to prevent recreation
+- **Debug Evidence**: ✅ CONFIRMED - "🔄 Questionnaire component rendered/mounted" appears after every save, indicating complete component recreation
+- **User Impact**: ❌ CRITICAL - Users cannot reliably save progress on questionnaire pages 2-3 due to component instability
+
 ### PDF Generation Implementation (January 27, 2025) - Version 0.1.9.2 - PERFECT EXCEL-TO-PDF
 - **LibreOffice Integration**: ✅ COMPLETED - True Excel-to-PDF conversion preserving 100% original OTIS formatting 
 - **Excel Format Preservation**: ✅ COMPLETED - PDF maintains exact Excel appearance, styling, and layout (522KB output)
