@@ -28,10 +28,11 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Yes/No/NA Logic**: ✅ COMPLETED - X-based logic implemented for multi-column questions
 
 ### Latest Update (January 27, 2025) - Version 0.1.2
-- **Excel Template Control**: Yes_no_na questions now controlled by Excel Template MultiCell column
-- **Smart X-Placement**: Single-cell (A68,B68,C68) or multi-cell (A75;A76;A77,B75;B76;B77,C75;C76;C77) based on template
+- **Excel Template Control**: Yes_no_na questions now controlled by Excel Template MultiCell column  
+- **Smart x-Placement**: Single-cell (A68,B68,C68) or multi-cell (A75;A76;A77,B75;B76;B77,C75;C76;C77) based on template
 - **Template Syntax**: Added MultiCell column support in question Excel templates
 - **Flexible Configuration**: Each yes_no_na question individually configurable for single/multi-row behavior
+- **Lower Case x**: All yes_no_na responses now use lowercase "x" instead of uppercase "X"
 
 ## VERSION 0.1 RELEASE - STABLE PRODUCTION BUILD ✅
 

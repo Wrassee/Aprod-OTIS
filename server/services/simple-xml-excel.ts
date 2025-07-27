@@ -209,28 +209,28 @@ class SimpleXmlExcelService {
             // Add X to the appropriate column(s) based on answer
             if (answer === 'yes') {
               yesCellList.forEach(cell => {
-                console.log(`Adding X to YES cell: ${cell}`);
+                console.log(`Adding x to YES cell: ${cell}`);
                 mappings.push({
                   cell: cell,
-                  value: 'X',
+                  value: 'x',
                   label: `${config.title} - Igen (${cell})`
                 });
               });
             } else if (answer === 'no') {
               noCellList.forEach(cell => {
-                console.log(`Adding X to NO cell: ${cell}`);
+                console.log(`Adding x to NO cell: ${cell}`);
                 mappings.push({
                   cell: cell,
-                  value: 'X', 
+                  value: 'x', 
                   label: `${config.title} - Nem (${cell})`
                 });
               });
             } else if (answer === 'na') {
               naCellList.forEach(cell => {
-                console.log(`Adding X to NA cell: ${cell}`);
+                console.log(`Adding x to NA cell: ${cell}`);
                 mappings.push({
                   cell: cell,
-                  value: 'X',
+                  value: 'x',
                   label: `${config.title} - Nem alkalmazható (${cell})`
                 });
               });
@@ -240,24 +240,24 @@ class SimpleXmlExcelService {
             
             // Single cell mode - use first cell only
             if (answer === 'yes') {
-              console.log(`Adding X to single YES cell: ${yesCells}`);
+              console.log(`Adding x to single YES cell: ${yesCells}`);
               mappings.push({
                 cell: yesCells,
-                value: 'X',
+                value: 'x',
                 label: `${config.title} - Igen`
               });
             } else if (answer === 'no') {
-              console.log(`Adding X to single NO cell: ${noCells}`);
+              console.log(`Adding x to single NO cell: ${noCells}`);
               mappings.push({
                 cell: noCells,
-                value: 'X', 
+                value: 'x', 
                 label: `${config.title} - Nem`
               });
             } else if (answer === 'na') {
-              console.log(`Adding X to single NA cell: ${naCells}`);
+              console.log(`Adding x to single NA cell: ${naCells}`);
               mappings.push({
                 cell: naCells,
-                value: 'X',
+                value: 'x',
                 label: `${config.title} - Nem alkalmazható`
               });
             }
