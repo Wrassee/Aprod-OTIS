@@ -18,8 +18,30 @@ export function MeasurementBlock({ questions, values, onChange }: MeasurementBlo
   const { language } = useLanguageContext();
   const [measurementTrigger, setMeasurementTrigger] = useState(0);
 
-  // Remove real-time event listeners that cause React re-renders
-  // Calculations will happen on Save/Next button clicks instead
+  // Get current measurement values with proper trigger updates
+  const currentMeasurementValues = useMemo(() => {
+    const cached = getAllMeasurementValues();
+    const stableCache = (window as any).stableInputValues || {};
+    
+    const combined: Record<string, number> = {};
+    
+    // Combine all sources - prioritize stableInputValues (most recent)
+    Object.keys(cached).forEach((key: string) => {
+      const value = parseFloat(cached[key].toString());
+      if (!isNaN(value)) {
+        combined[key] = value;
+      }
+    });
+    
+    Object.keys(stableCache).forEach((key: string) => {
+      const value = parseFloat(stableCache[key]);
+      if (!isNaN(value)) {
+        combined[key] = value;
+      }
+    });
+
+    return combined;
+  }, [measurementTrigger]);
 
   // Separate measurement and calculated questions
   const measurementQuestions = questions.filter(q => q.type === 'measurement');
@@ -62,9 +84,8 @@ export function MeasurementBlock({ questions, values, onChange }: MeasurementBlo
       let hasAllInputs = true;
 
       // Replace input references with actual values
-      const currentValues = getCurrentMeasurementValues();
       inputIds.forEach((inputId: string) => {
-        const value = currentValues[inputId];
+        const value = currentMeasurementValues[inputId];
         if (value !== undefined) {
           // Replace both 'inputX' and 'X' patterns in formula
           formula = formula.replace(new RegExp(`input${inputId}`, 'g'), value.toString());
@@ -158,8 +179,12 @@ export function MeasurementBlock({ questions, values, onChange }: MeasurementBlo
                         if (!isNaN(numValue)) {
                           (window as any).measurementValues[question.id] = numValue;
                           
-                          // DO NOT trigger events that cause React re-renders during typing!
-                          // window.dispatchEvent(new CustomEvent('measurement-change'));
+                          // Use debounced calculation updates to prevent excessive re-renders
+                          clearTimeout((window as any)[`calc-timeout-${question.id}`]);
+                          (window as any)[`calc-timeout-${question.id}`] = setTimeout(() => {
+                            // Trigger calculation update after 200ms of no typing
+                            setMeasurementTrigger(prev => prev + 1);
+                          }, 200);
                         }
                         
                         // DO NOT call onChange during typing - it causes React re-renders!
@@ -203,8 +228,8 @@ export function MeasurementBlock({ questions, values, onChange }: MeasurementBlo
                   }
                   (window as any).calculatedValues[question.id] = calculatedValue;
                   
-                  // Also call onChange to update parent state
-                  onChange(question.id, calculatedValue);
+                  // Don't call onChange during render - it causes React warnings
+                  // onChange will be called during Save/Next button processing
                 }
 
                 return (
