@@ -12,9 +12,11 @@ import { useLanguageContext } from '@/components/language-provider';
 import { ArrowLeft, ArrowRight, Save, Settings, Home, Check, X } from 'lucide-react';
 import { getAllCachedValues } from '@/components/cache-radio';
 import { getAllTrueFalseValues } from '@/components/true-false-radio';
-import { getAllStableInputValues } from '@/components/stable-input';
-import { getAllMeasurementValues } from '@/components/measurement-question';
+import { getAllStableInputValues, StableInput } from '@/components/stable-input';
+import { getAllMeasurementValues, MeasurementQuestion } from '@/components/measurement-question';
 import { CalculatedResult } from '@/components/calculated-result';
+import { CacheRadio } from '@/components/cache-radio';
+import { TrueFalseRadio } from '@/components/true-false-radio';
 
 interface QuestionnaireProps {
   receptionDate: string;
@@ -411,35 +413,146 @@ const Questionnaire = memo(function Questionnaire({
               groupName={currentGroup?.name || 'Kérdések'}
             />
           ) : (
-            /* Regular Question Grid (2x2 Layout) for non-true_false questions */
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {(currentQuestions as Question[]).map((question: Question) => {
-                // Handle calculated questions specially
-                if (question.type === 'calculated') {
-                  return (
-                    <CalculatedResult
-                      key={question.id}
-                      question={question}
-                      inputValues={measurementValues}
-                    />
-                  );
-                }
-                
-                return (
-                  <IsolatedQuestion
-                    key={question.id}
-                    question={question}
-                    value={answers[question.id]}
-                    onChange={(value) => {
-                      onAnswerChange(question.id, value);
-                      // If this is a measurement question, also update measurementValues
-                      if (question.type === 'measurement' && typeof value === 'number') {
-                        setMeasurementValues(prev => ({ ...prev, [question.id]: value }));
-                      }
-                    }}
-                  />
-                );
-              })}
+            /* Table-like Layout: Questions on left, Answers on right */
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Left side - Questions list */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">
+                    Kérdések
+                  </h3>
+                  {(currentQuestions as Question[]).map((question: Question, index: number) => (
+                    <div key={`q-${question.id}`} className="flex items-start gap-3 py-3 border-b border-gray-100 last:border-b-0">
+                      <div className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-sm font-medium">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <h4 className="text-sm font-medium text-gray-900">
+                          {question.title}
+                          {question.required && <span className="text-red-500 ml-1">*</span>}
+                        </h4>
+                        {question.placeholder && (
+                          <p className="text-xs text-gray-600">{question.placeholder}</p>
+                        )}
+                        {question.unit && (
+                          <p className="text-xs text-gray-500">
+                            Egység: {question.unit}
+                          </p>
+                        )}
+                        {(question.minValue !== undefined || question.maxValue !== undefined) && (
+                          <p className="text-xs text-gray-500">
+                            Tartomány: 
+                            {question.minValue !== undefined ? ` ${question.minValue}` : ' -∞'} - 
+                            {question.maxValue !== undefined ? `${question.maxValue}` : '+∞'} 
+                            {question.unit || ''}
+                          </p>
+                        )}
+                        {question.type === 'calculated' && question.calculationFormula && (
+                          <p className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                            Számított érték
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Right side - Answer inputs */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">
+                    Válaszok
+                  </h3>
+                  {(currentQuestions as Question[]).map((question: Question, index: number) => {
+                    const combinedAnswers = { 
+                      ...answers, 
+                      ...getAllStableInputValues(),
+                      ...getAllMeasurementValues(),
+                      ...measurementValues
+                    };
+                    
+                    return (
+                      <div key={`a-${question.id}`} className="flex items-center gap-3 py-3 border-b border-gray-100 last:border-b-0 min-h-[60px]">
+                        <div className="flex-shrink-0 w-8 h-8 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center text-sm font-medium">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1">
+                          {question.type === 'text' && (
+                            <StableInput
+                              questionId={question.id}
+                              type="text"
+                              initialValue={combinedAnswers[question.id]?.toString() || ''}
+                              onValueChange={(value) => onAnswerChange(question.id, value)}
+                              placeholder={question.placeholder || ''}
+                              className="w-full"
+                            />
+                          )}
+
+                          {question.type === 'number' && (
+                            <StableInput
+                              questionId={question.id}
+                              type="number"
+                              initialValue={combinedAnswers[question.id]?.toString() || ''}
+                              onValueChange={(value) => onAnswerChange(question.id, parseFloat(value) || 0)}
+                              placeholder={question.placeholder || '0'}
+                              className="w-full"
+                            />
+                          )}
+
+                          {question.type === 'email' && (
+                            <StableInput
+                              questionId={question.id}
+                              type="email"
+                              initialValue={combinedAnswers[question.id]?.toString() || ''}
+                              onValueChange={(value) => onAnswerChange(question.id, value)}
+                              placeholder={question.placeholder || ''}
+                              className="w-full"
+                            />
+                          )}
+
+                          {question.type === 'yes_no_na' && (
+                            <CacheRadio
+                              questionId={question.id}
+                              initialValue={combinedAnswers[question.id]?.toString() || ''}
+                              options={[
+                                { value: 'yes', label: t.yes, id: `${question.id}-yes` },
+                                { value: 'no', label: t.no, id: `${question.id}-no` },
+                                { value: 'na', label: t.notApplicable, id: `${question.id}-na` }
+                              ]}
+                            />
+                          )}
+
+                          {question.type === 'true_false' && (
+                            <TrueFalseRadio
+                              questionId={question.id}
+                              questionTitle={question.title}
+                              value={combinedAnswers[question.id]?.toString() || ''}
+                              onChange={(value) => onAnswerChange(question.id, value)}
+                            />
+                          )}
+
+                          {question.type === 'measurement' && (
+                            <MeasurementQuestion
+                              question={question}
+                              value={typeof combinedAnswers[question.id] === 'number' ? combinedAnswers[question.id] : undefined}
+                              onChange={(value) => {
+                                onAnswerChange(question.id, value);
+                                setMeasurementValues(prev => ({ ...prev, [question.id]: value }));
+                              }}
+                            />
+                          )}
+
+                          {question.type === 'calculated' && (
+                            <CalculatedResult
+                              question={question}
+                              inputValues={combinedAnswers}
+                            />
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           )}
         </div>
