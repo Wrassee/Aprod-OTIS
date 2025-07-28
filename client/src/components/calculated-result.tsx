@@ -19,12 +19,23 @@ export function CalculatedResult({ question, inputValues }: CalculatedResultProp
   // Listen for measurement changes to recalculate
   useEffect(() => {
     const handleMeasurementChange = () => {
+      console.log(`[CalculatedResult ${question.id}] Measurement change detected, recalculating...`);
+      setMeasurementTrigger(prev => prev + 1);
+    };
+
+    const handleInputChange = () => {
+      console.log(`[CalculatedResult ${question.id}] Input change detected, recalculating...`);
       setMeasurementTrigger(prev => prev + 1);
     };
 
     window.addEventListener('measurement-change', handleMeasurementChange);
-    return () => window.removeEventListener('measurement-change', handleMeasurementChange);
-  }, []);
+    window.addEventListener('input-change', handleInputChange);
+    
+    return () => {
+      window.removeEventListener('measurement-change', handleMeasurementChange);
+      window.removeEventListener('input-change', handleInputChange);
+    };
+  }, [question.id]);
 
   const calculationResult = useMemo(() => {
     if (!question.calculationFormula || !question.calculationInputs) {
@@ -36,9 +47,34 @@ export function CalculatedResult({ question, inputValues }: CalculatedResultProp
       let formula = question.calculationFormula;
       let hasAllInputs = true;
 
-      // Get current measurement values from cache AND props
+      // Get current measurement values from ALL cache sources
       const cachedMeasurements = getAllMeasurementValues();
-      const allInputValues = { ...inputValues, ...cachedMeasurements };
+      const stableInputCache = (window as any).stableInputValues || {};
+      
+      // Combine all sources and convert to numbers
+      const allInputValues: Record<string, number> = {};
+      
+      // Add from props
+      Object.entries(inputValues || {}).forEach(([key, value]) => {
+        if (typeof value === 'number' && !isNaN(value)) {
+          allInputValues[key] = value;
+        }
+      });
+      
+      // Add from measurement cache
+      Object.entries(cachedMeasurements).forEach(([key, value]) => {
+        if (typeof value === 'number' && !isNaN(value)) {
+          allInputValues[key] = value;
+        }
+      });
+      
+      // Add from stable input cache (convert strings to numbers)
+      Object.entries(stableInputCache).forEach(([key, value]) => {
+        const numValue = parseFloat(value as string);
+        if (!isNaN(numValue)) {
+          allInputValues[key] = numValue;
+        }
+      });
 
       console.log(`[CalculatedResult ${question.id}] Input IDs:`, inputIds);
       console.log(`[CalculatedResult ${question.id}] All input values:`, allInputValues);
