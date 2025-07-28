@@ -1,27 +1,56 @@
-# Gyors Excel teszt létrehozása mérési kérdésekkel
+# EXCEL TEMPLATE OSZLOP PÉLDA - EGYSZERŰ VERZIÓ
 
-Hozz létre egy Excel fájlt ezzel a szerkezettel:
+## 📊 Az Excel "questions" lap így néz ki:
 
-## 1. Munkálap neve: "questions" (fontos!)
+```
+| A | B              | C               | D          | E            | F  | G       | H     | I    | J    | K            | L | M    | N           |
+|---|----------------|-----------------|------------|--------------|----|---------|---------|----|------|-------------|---|------|-------------|
+| 1 | Átvevő neve    | Name Abnehmer   | text       | F9           |    |         |      |    |    | Általános   | 1 | true | Teljes név  |
+| 2 | Szerelő neve   | Name Monteur    | text       | Q9           |    |         |      |    |    | Általános   | 2 | true | Szerelő     |
+| 3 | Irányítószám   | Postleitzahl    | number     | G13          |    |         |      |1000|9999| Általános   | 3 | true | pl. 1051    |
+|10 | Gépház típus   | Maschinenraum   | yes_no_na  | A68,B68,C68  |    |         |      |    |    | Gépház      | 1 | true | Igen/Nem/NA |
+|12 | Kabin módosítva| Kabine modif.   | true_false | Q25          |    |         |      |    |    | Modernizáció| 1 | true | Igaz/Hamis  |
+|m1 | Kabintető      | Abstand Dach    | measurement| I278         | mm |         |      | 500|3000| Mérési      | 1 | true | Mérés mm    |
+|m4 | Effektív A     | Effektiver A    | calculated | I283         | mm | m1 - m3 | m1,m3| 700|9000| Mérési      | 4 | true | Auto számolt|
+```
 
-## 2. Első sor (fejlécek):
-| A1 | B1 | C1 | D1 | E1 | F1 | G1 | H1 | I1 | J1 |
-|----|----|----|----|----|----|----|----|----|----|
-| question_id | title_hu | title_de | type | cell_reference | unit | calculation_formula | calculation_inputs | min_value | max_value |
+## 🔤 Oszlopok Röviden:
 
-## 3. Második sor (mérési kérdés példa):
-| A2 | B2 | C2 | D2 | E2 | F2 | G2 | H2 | I2 | J2 |
-|----|----|----|----|----|----|----|----|----|----|
-| m1 | Távolság aknatető-kabintető | Abstand Schachtkopf-Kabinendach | measurement | D25 | mm | | | 500 | 3000 |
+**A** - question_id (azonosító: 1, 2, m1...)
+**B** - title_hu (magyar szöveg)  
+**C** - title_de (német szöveg)
+**D** - type (text, number, measurement, calculated...)
+**E** - cell_reference (F9, I278... hova kerül az Excel-ben)
+**F** - unit (mm, kg, m/s... mértékegység)
+**G** - calculation_formula (m1-m3... képlet)
+**H** - calculation_inputs (m1,m3... mit használ)
+**I** - min_value (minimum érték)
+**J** - max_value (maximum érték)  
+**K** - group_name (kérdéscsoport)
+**L** - group_order (sorrend)
+**M** - required (kötelező-e)
+**N** - placeholder (segítő szöveg)
 
-## 4. Harmadik sor (számított kérdés példa):
-| A3 | B3 | C3 | D3 | E3 | F3 | G3 | H3 | I3 | J3 |
-|----|----|----|----|----|----|----|----|----|----|
-| c1 | Szabadmagasság összesen | Gesamte Kopfhöhe | calculated | D28 | mm | m1 + 500 | m1 | 2500 | 5000 |
+## 💡 Fő Kérdés Típusok:
 
-Mentsd el .xlsx formátumban és töltsd fel a rendszerbe!
+### 1. **text** - Szöveg
+```
+1 | Átvevő neve | Name | text | F9 | | | | | | Általános | 1 | true | Név
+```
 
-## Fontos észrevételek:
-- A "questions" munkálap név KÖTELEZŐ
-- A type oszlopban pontosan "measurement" vagy "calculated" kell lennie
-- A calculation_formula és calculation_inputs csak calculated típusnál kell
+### 2. **number** - Szám
+```  
+3 | Irányítószám | PLZ | number | G13 | | | | 1000 | 9999 | Általános | 3 | true | 1051
+```
+
+### 3. **measurement** - Mérés
+```
+m1 | Távolság | Distance | measurement | I278 | mm | | | 500 | 3000 | Mérési | 1 | true | mm-ben
+```
+
+### 4. **calculated** - Számított
+```
+m4 | Effektív | Effective | calculated | I283 | mm | m1-m3 | m1,m3 | 700 | 9000 | Mérési | 4 | true | Auto
+```
+
+Ez az új egyesített struktúra egyetlen Excel lapon tartalmazza az összes kérdés definíciót!
