@@ -59,6 +59,8 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
   const addCalculatedValueError = (question: Question, value: number) => {
     if (!onAddError) return;
     
+    console.log(`Adding boundary error for ${question.id}: ${value}`);
+    
     const questionTitle = language === 'de' ? question.titleDe : question.title;
     const unit = question.unit || '';
     

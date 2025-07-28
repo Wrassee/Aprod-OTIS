@@ -207,19 +207,22 @@ const Questionnaire = memo(function Questionnaire({
       ...error,
       id: Date.now().toString(),
     };
-    onErrorsChange([...errors, newError]);
+    const currentErrors = Array.isArray(errors) ? errors : [];
+    onErrorsChange([...currentErrors, newError]);
   }, [onErrorsChange, errors]);
 
   const handleEditError = useCallback((id: string, updatedError: Omit<ProtocolError, 'id'>) => {
+    const currentErrors = Array.isArray(errors) ? errors : [];
     onErrorsChange(
-      errors.map((error: ProtocolError) =>
+      currentErrors.map((error: ProtocolError) =>
         error.id === id ? { ...updatedError, id } : error
       )
     );
   }, [onErrorsChange, errors]);
 
   const handleDeleteError = useCallback((id: string) => {
-    onErrorsChange(errors.filter((error: ProtocolError) => error.id !== id));
+    const currentErrors = Array.isArray(errors) ? errors : [];
+    onErrorsChange(currentErrors.filter((error: ProtocolError) => error.id !== id));
   }, [onErrorsChange, errors]);
 
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
