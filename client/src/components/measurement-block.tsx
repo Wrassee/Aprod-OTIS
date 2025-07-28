@@ -284,10 +284,10 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
                         );
                       
                       if (!errorExists) {
-                        // Use timeout to avoid React warning about setState during render
-                        setTimeout(() => {
-                          addCalculatedValueError(question, calculatedValue);
-                        }, 100);
+                        // DISABLE automatic error adding - it causes measurement clearing
+                        // setTimeout(() => {
+                        //   addCalculatedValueError(question, calculatedValue);
+                        // }, 100);
                         (window as any)[errorKey] = true;
                         
                         // Keep track of added errors to prevent duplicates

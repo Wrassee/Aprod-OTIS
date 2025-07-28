@@ -37,27 +37,29 @@ export function MeasurementQuestion({ question, value, onChange }: MeasurementQu
   const { language } = useLanguageContext();
 
   const handleValueChange = (newValue: string) => {
-    // Store in BOTH caches for compatibility
+    // Store values PERSISTENTLY in dual cache system
     if (!(window as any).measurementValues) {
       (window as any).measurementValues = {};
     }
     (window as any).measurementValues[question.id] = newValue;
     
-    // ALSO store in stableInputValues since StableInput uses that cache
+    // ALSO store in stableInputValues for StableInput compatibility
     if (!(window as any).stableInputValues) {
       (window as any).stableInputValues = {};
     }
     (window as any).stableInputValues[question.id] = newValue;
     
+    // Mark this value as protected from clearing
+    if (!(window as any).protectedMeasurements) {
+      (window as any).protectedMeasurements = new Set();
+    }
+    (window as any).protectedMeasurements.add(question.id);
+    
     // Trigger measurement change event for calculations
     window.dispatchEvent(new CustomEvent('measurement-change'));
     
-    // Only call onChange for valid numbers without triggering React re-renders
-    const numValue = parseFloat(newValue);
-    if (!isNaN(numValue)) {
-      // Use timeout to avoid immediate re-render
-      setTimeout(() => onChange(numValue), 0);
-    }
+    // DON'T call onChange immediately to avoid React state conflicts
+    // Values will be picked up from cache during form submission
   };
 
   const getTitle = () => {

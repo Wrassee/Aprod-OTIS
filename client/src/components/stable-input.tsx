@@ -36,6 +36,14 @@ export function StableInput({ questionId, type = 'text', placeholder, initialVal
     }
     (window as any).stableInputValues[questionId] = value;
     
+    // ALSO store in measurement cache if this is a measurement question
+    if (questionId && questionId.startsWith('m')) {
+      if (!(window as any).measurementValues) {
+        (window as any).measurementValues = {};
+      }
+      (window as any).measurementValues[questionId] = value;
+    }
+    
     // Trigger custom event for cache update
     window.dispatchEvent(new CustomEvent('input-change'));
     
