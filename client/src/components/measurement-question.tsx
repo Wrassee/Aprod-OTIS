@@ -12,11 +12,15 @@ interface MeasurementQuestionProps {
 
 // Global helper functions for measurement values
 export function getAllMeasurementValues(): Record<string, number> {
-  const cached = (window as any).measurementValues || {};
+  // Check both caches for measurement values
+  const measurementCached = (window as any).measurementValues || {};
+  const stableInputCached = (window as any).stableInputValues || {};
+  const combined = { ...measurementCached, ...stableInputCached };
+  
   const result: Record<string, number> = {};
   
-  Object.keys(cached).forEach(key => {
-    const value = parseFloat(cached[key]);
+  Object.keys(combined).forEach(key => {
+    const value = parseFloat(combined[key]);
     if (!isNaN(value)) {
       result[key] = value;
     }
@@ -33,11 +37,17 @@ export function MeasurementQuestion({ question, value, onChange }: MeasurementQu
   const { language } = useLanguageContext();
 
   const handleValueChange = (newValue: string) => {
-    // Store in global cache immediately (prevents UI refreshing)
+    // Store in BOTH caches for compatibility
     if (!(window as any).measurementValues) {
       (window as any).measurementValues = {};
     }
     (window as any).measurementValues[question.id] = newValue;
+    
+    // ALSO store in stableInputValues since StableInput uses that cache
+    if (!(window as any).stableInputValues) {
+      (window as any).stableInputValues = {};
+    }
+    (window as any).stableInputValues[question.id] = newValue;
     
     // Trigger measurement change event for calculations
     window.dispatchEvent(new CustomEvent('measurement-change'));

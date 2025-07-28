@@ -191,10 +191,12 @@ const Questionnaire = memo(function Questionnaire({
 
     window.addEventListener('radio-change', handleCacheChange);
     window.addEventListener('input-change', handleCacheChange);
+    window.addEventListener('measurement-change', handleCacheChange);
 
     return () => {
       window.removeEventListener('radio-change', handleCacheChange);
       window.removeEventListener('input-change', handleCacheChange);
+      window.removeEventListener('measurement-change', handleCacheChange);
     };
   }, []);
 
@@ -236,6 +238,41 @@ const Questionnaire = memo(function Questionnaire({
     // ALSO check localStorage for any saved data
     const savedFormData = JSON.parse(localStorage.getItem('otis-protocol-form-data') || '{"answers":{}}');
     
+    // Include calculated values from CalculatedResult components
+    const calculatedValues: Record<string, number> = {};
+    
+    // Calculate values for calculated questions based on current measurements
+    const calculatedQuestions = (currentQuestions as Question[]).filter((q: Question) => q.type === 'calculated');
+    calculatedQuestions.forEach(question => {
+      if (question.calculationFormula && question.calculationInputs) {
+        const inputIds = question.calculationInputs.split(',').map(id => id.trim());
+        let formula = question.calculationFormula;
+        let hasAllInputs = true;
+        
+        const allInputValues = { ...cachedMeasurementValues, ...cachedInputValues };
+        
+        inputIds.forEach(inputId => {
+          const value = allInputValues[inputId];
+          if (value === undefined || value === null || isNaN(parseFloat(value.toString()))) {
+            hasAllInputs = false;
+            return;
+          }
+          formula = formula.replace(new RegExp(`\\b${inputId}\\b`, 'g'), value.toString());
+        });
+        
+        if (hasAllInputs) {
+          try {
+            const result = Function(`"use strict"; return (${formula})`)();
+            if (!isNaN(result)) {
+              calculatedValues[question.id] = Math.round(result * 100) / 100;
+            }
+          } catch (error) {
+            console.error(`Calculation error for ${question.id}:`, error);
+          }
+        }
+      }
+    });
+
     const combinedAnswers = {
       ...answers,
       ...savedFormData.answers,
@@ -243,10 +280,13 @@ const Questionnaire = memo(function Questionnaire({
       ...cachedTrueFalseValues,
       ...cachedInputValues,
       ...cachedMeasurementValues,
+      ...calculatedValues,
     };
     
     console.log('checkCanProceed: Combined answers:', combinedAnswers);
     console.log('checkCanProceed: Cached input values:', cachedInputValues);
+    console.log('checkCanProceed: Cached measurement values:', cachedMeasurementValues);
+    console.log('checkCanProceed: Calculated values:', calculatedValues);
     console.log('checkCanProceed: localStorage answers:', savedFormData.answers);
     
     const result = requiredQuestions.every((q: Question) => {
@@ -524,6 +564,7 @@ const Questionnaire = memo(function Questionnaire({
                   console.log('Complete button: Syncing cached values...');
                   console.log('Radio values:', cachedRadioValues);
                   console.log('True/False values:', cachedTrueFalseValues);
+                  console.log('Input values:', cachedInputValues);
                   console.log('Measurement values:', cachedMeasurementValues);
                   console.log('Input values:', cachedInputValues);
                   
