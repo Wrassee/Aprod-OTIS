@@ -18,16 +18,23 @@ export function StableInput({ questionId, type = 'text', placeholder, initialVal
 
   useEffect(() => {
     if (inputRef.current && !mountedRef.current) {
-      // Set initial value only once on mount
-      if (initialValue) {
-        inputRef.current.value = initialValue;
+      // Restore value from cache first
+      const cachedValue = (window as any).stableInputValues?.[questionId] ||
+                         (window as any).measurementValues?.[questionId] || 
+                         initialValue || '';
+      
+      if (cachedValue) {
+        inputRef.current.value = cachedValue;
+        console.log(`StableInput restored: ${questionId} = ${cachedValue}`);
       }
       mountedRef.current = true;
     }
-  }, [initialValue]);
+  }, [questionId, initialValue]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+  const handleInput = (e: React.FormEvent<HTMLInputElement>) => {
+    const target = e.target as HTMLInputElement;
+    const value = target.value;
+    
     console.log(`Stable input typing: ${questionId} = ${value}`);
     
     // Store in global cache immediately (no React state update!)
@@ -46,22 +53,23 @@ export function StableInput({ questionId, type = 'text', placeholder, initialVal
     
     // Trigger custom event for cache update
     window.dispatchEvent(new CustomEvent('input-change'));
-    
-    // DON'T call onValueChange during typing - it causes page refresh!
-    // Only save to localStorage directly during validation and sync
-    // clearTimeout((window as any)[`stable-timeout-${questionId}`]);
-    // (window as any)[`stable-timeout-${questionId}`] = setTimeout(() => {
-    //   if (onValueChange) {
-    //     onValueChange(value);
-    //   }
-    // }, 500);
+  };
+  
+  const handleBlur = () => {
+    // Only call onValueChange when user finishes typing
+    const currentValue = (window as any).stableInputValues?.[questionId] || '';
+    if (onValueChange && currentValue) {
+      console.log(`Stable input blur sync: ${questionId} = ${currentValue}`);
+      onValueChange(currentValue);
+    }
   };
 
   return (
     <input
       ref={inputRef}
       type={type}
-      onChange={handleChange}
+      onInput={handleInput}
+      onBlur={handleBlur}
       onKeyDown={(e) => {
         if (e.key === 'Enter') {
           e.preventDefault();

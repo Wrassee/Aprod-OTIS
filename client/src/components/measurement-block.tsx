@@ -8,6 +8,7 @@ import { Calculator, Ruler, AlertTriangle } from 'lucide-react';
 import { Question, ProtocolError } from '@shared/schema';
 import { getAllMeasurementValues } from './measurement-question';
 import { MeasurementCache } from '@/utils/measurement-cache';
+import { StableInput } from './stable-input';
 
 interface MeasurementBlockProps {
   questions: Question[]; // All measurement and calculated questions
@@ -219,26 +220,15 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
                     )}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <input
-                      data-question-id={question.id}
-                      ref={(el) => {
-                        if (el) {
-                          // Restore value from MeasurementCache on mount
-                          const cachedValue = MeasurementCache.getValue(question.id);
-                          if (cachedValue && el.value !== cachedValue) {
-                            el.value = cachedValue;
-                            console.log(`Restored measurement ${question.id} = ${cachedValue}`);
-                          }
-                        }
-                      }}
+                    <StableInput
+                      questionId={question.id}
                       type="number"
                       placeholder="0"
                       className="w-20 text-center font-mono border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       min={question.minValue}
                       max={question.maxValue}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        console.log(`Direct measurement input: ${question.id} = ${value}`);
+                      onValueChange={(value) => {
+                        console.log(`Stable measurement input: ${question.id} = ${value}`);
                         
                         // Use MeasurementCache for persistent storage
                         MeasurementCache.setValue(question.id, value);
@@ -255,13 +245,6 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
                             window.dispatchEvent(new CustomEvent('input-change'));
                             window.dispatchEvent(new CustomEvent('measurement-change'));
                           }, 300);
-                        }
-                      }}
-                      onBlur={() => {
-                        // Sync with form system when user finishes typing
-                        const currentValue = MeasurementCache.getValue(question.id);
-                        if (currentValue) {
-                          onChange(question.id, currentValue);
                         }
                       }}
                       style={{ 
