@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import { useLanguageContext } from '@/components/language-provider';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Question } from '@shared/schema';
 
@@ -10,21 +9,58 @@ interface MeasurementQuestionProps {
   onChange: (value: number) => void;
 }
 
+// Global helper functions for measurement values
+export function getAllMeasurementValues(): Record<string, number> {
+  const cached = (window as any).measurementValues || {};
+  const result: Record<string, number> = {};
+  
+  Object.keys(cached).forEach(key => {
+    const value = parseFloat(cached[key]);
+    if (!isNaN(value)) {
+      result[key] = value;
+    }
+  });
+  
+  return result;
+}
+
+export function clearAllMeasurementValues() {
+  (window as any).measurementValues = {};
+}
+
 export function MeasurementQuestion({ question, value, onChange }: MeasurementQuestionProps) {
   const { language } = useLanguageContext();
-  const [localValue, setLocalValue] = useState<string>(value?.toString() || '');
+  const inputRef = useRef<HTMLInputElement>(null);
+  const mountedRef = useRef(false);
 
+  // Initialize input value once on mount - prevents cursor jumping
   useEffect(() => {
-    setLocalValue(value?.toString() || '');
+    if (inputRef.current && !mountedRef.current) {
+      const initialValue = value?.toString() || '';
+      if (initialValue) {
+        inputRef.current.value = initialValue;
+      }
+      mountedRef.current = true;
+    }
   }, [value]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
-    setLocalValue(inputValue);
     
+    // Store in global cache immediately (prevents UI refreshing)
+    if (!(window as any).measurementValues) {
+      (window as any).measurementValues = {};
+    }
+    (window as any).measurementValues[question.id] = inputValue;
+    
+    // Trigger measurement change event for calculations
+    window.dispatchEvent(new CustomEvent('measurement-change'));
+    
+    // Only call onChange for valid numbers without triggering React re-renders
     const numValue = parseFloat(inputValue);
     if (!isNaN(numValue)) {
-      onChange(numValue);
+      // Use timeout to avoid immediate re-render
+      setTimeout(() => onChange(numValue), 0);
     }
   };
 
@@ -34,9 +70,16 @@ export function MeasurementQuestion({ question, value, onChange }: MeasurementQu
     return question.title;
   };
 
-  const isOutOfRange = value !== undefined && (
-    (question.minValue !== undefined && value < question.minValue) ||
-    (question.maxValue !== undefined && value > question.maxValue)
+  // Check range from cached value to avoid re-renders
+  const getCachedValue = () => {
+    const cached = (window as any).measurementValues?.[question.id];
+    return cached ? parseFloat(cached) : value;
+  };
+  
+  const currentValue = getCachedValue();
+  const isOutOfRange = currentValue !== undefined && !isNaN(currentValue) && (
+    (question.minValue !== undefined && currentValue < question.minValue) ||
+    (question.maxValue !== undefined && currentValue > question.maxValue)
   );
 
   return (
@@ -51,16 +94,28 @@ export function MeasurementQuestion({ question, value, onChange }: MeasurementQu
         )}
       </Label>
       
-      <Input
+      <input
+        ref={inputRef}
         id={question.id}
         type="number"
-        value={localValue}
         onChange={handleChange}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+          }
+        }}
         placeholder={question.placeholder || (language === 'de' ? 'Wert eingeben' : 'Érték megadása')}
-        className={`w-full ${isOutOfRange ? 'border-red-500' : ''}`}
+        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-transparent ${isOutOfRange ? 'border-red-500' : 'border-gray-300'}`}
         min={question.minValue}
         max={question.maxValue}
         step="0.1"
+        style={{ 
+          fontSize: '16px',
+          backgroundColor: 'white',
+          color: '#000'
+        }}
       />
       
       {question.minValue !== undefined && question.maxValue !== undefined && (

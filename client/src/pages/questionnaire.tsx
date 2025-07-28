@@ -13,9 +13,8 @@ import { ArrowLeft, ArrowRight, Save, Settings, Home, Check, X } from 'lucide-re
 import { getAllCachedValues } from '@/components/cache-radio';
 import { getAllTrueFalseValues } from '@/components/true-false-radio';
 import { getAllStableInputValues } from '@/components/stable-input';
+import { getAllMeasurementValues } from '@/components/measurement-question';
 import { CalculatedResult } from '@/components/calculated-result';
-import { MeasurementService } from '@/services/measurement-service';
-import { evaluateFormula, validateMeasurement } from '@/lib/measurement-examples';
 
 interface QuestionnaireProps {
   receptionDate: string;
@@ -232,6 +231,7 @@ const Questionnaire = memo(function Questionnaire({
     const cachedRadioValues = getAllCachedValues();
     const cachedTrueFalseValues = getAllTrueFalseValues();
     const cachedInputValues = getAllStableInputValues();
+    const cachedMeasurementValues = getAllMeasurementValues();
     
     // ALSO check localStorage for any saved data
     const savedFormData = JSON.parse(localStorage.getItem('otis-protocol-form-data') || '{"answers":{}}');
@@ -242,6 +242,7 @@ const Questionnaire = memo(function Questionnaire({
       ...cachedRadioValues,
       ...cachedTrueFalseValues,
       ...cachedInputValues,
+      ...cachedMeasurementValues,
     };
     
     console.log('checkCanProceed: Combined answers:', combinedAnswers);
@@ -442,11 +443,13 @@ const Questionnaire = memo(function Questionnaire({
                   const cachedRadioValues = getAllCachedValues();
                   const cachedTrueFalseValues = getAllTrueFalseValues();
                   const cachedInputValues = getAllStableInputValues();
+                  const cachedMeasurementValues = getAllMeasurementValues();
                   
                   console.log('Save: Syncing cached values on page', currentPage);
                   console.log('Save: Radio values:', cachedRadioValues);
                   console.log('Save: True/False values:', cachedTrueFalseValues);
                   console.log('Save: Input values:', cachedInputValues);
+                  console.log('Save: Measurement values:', cachedMeasurementValues);
                   
                   // DON'T call onAnswerChange - it causes re-mounting!
                   // Instead save directly to localStorage
@@ -458,6 +461,7 @@ const Questionnaire = memo(function Questionnaire({
                       ...cachedRadioValues,
                       ...cachedTrueFalseValues,
                       ...cachedInputValues,
+                      ...cachedMeasurementValues,
                     }
                   };
                   
@@ -515,10 +519,12 @@ const Questionnaire = memo(function Questionnaire({
                   const cachedRadioValues = getAllCachedValues();
                   const cachedTrueFalseValues = getAllTrueFalseValues();
                   const cachedInputValues = getAllStableInputValues();
+                  const cachedMeasurementValues = getAllMeasurementValues();
                   
                   console.log('Complete button: Syncing cached values...');
                   console.log('Radio values:', cachedRadioValues);
                   console.log('True/False values:', cachedTrueFalseValues);
+                  console.log('Measurement values:', cachedMeasurementValues);
                   console.log('Input values:', cachedInputValues);
                   
                   Object.entries(cachedRadioValues).forEach(([questionId, value]) => {

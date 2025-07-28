@@ -1,10 +1,11 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useLanguageContext } from '@/components/language-provider';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Calculator, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Question } from '@shared/schema';
+import { getAllMeasurementValues } from './measurement-question';
 
 interface CalculatedResultProps {
   question: Question; // This should be a 'calculated' type question
@@ -13,6 +14,17 @@ interface CalculatedResultProps {
 
 export function CalculatedResult({ question, inputValues }: CalculatedResultProps) {
   const { language } = useLanguageContext();
+  const [measurementTrigger, setMeasurementTrigger] = useState(0);
+
+  // Listen for measurement changes to recalculate
+  useEffect(() => {
+    const handleMeasurementChange = () => {
+      setMeasurementTrigger(prev => prev + 1);
+    };
+
+    window.addEventListener('measurement-change', handleMeasurementChange);
+    return () => window.removeEventListener('measurement-change', handleMeasurementChange);
+  }, []);
 
   const calculationResult = useMemo(() => {
     if (!question.calculationFormula || !question.calculationInputs) {
@@ -24,10 +36,19 @@ export function CalculatedResult({ question, inputValues }: CalculatedResultProp
       let formula = question.calculationFormula;
       let hasAllInputs = true;
 
+      // Get current measurement values from cache AND props
+      const cachedMeasurements = getAllMeasurementValues();
+      const allInputValues = { ...inputValues, ...cachedMeasurements };
+
+      console.log(`[CalculatedResult ${question.id}] Input IDs:`, inputIds);
+      console.log(`[CalculatedResult ${question.id}] All input values:`, allInputValues);
+      console.log(`[CalculatedResult ${question.id}] Formula:`, formula);
+
       // Replace variable names in formula with actual values
       inputIds.forEach(inputId => {
-        const value = inputValues[inputId];
+        const value = allInputValues[inputId];
         if (value === undefined || value === null || isNaN(value)) {
+          console.log(`[CalculatedResult ${question.id}] Missing value for ${inputId}:`, value);
           hasAllInputs = false;
           return;
         }
@@ -38,6 +59,8 @@ export function CalculatedResult({ question, inputValues }: CalculatedResultProp
         return { value: null, error: 'Missing input values' };
       }
 
+      console.log(`[CalculatedResult ${question.id}] Final formula:`, formula);
+
       // Evaluate the mathematical expression safely
       const result = Function(`"use strict"; return (${formula})`)();
       
@@ -45,11 +68,15 @@ export function CalculatedResult({ question, inputValues }: CalculatedResultProp
         return { value: null, error: 'Invalid calculation result' };
       }
 
-      return { value: Math.round(result * 100) / 100, error: null };
+      const roundedResult = Math.round(result * 100) / 100;
+      console.log(`[CalculatedResult ${question.id}] Result:`, roundedResult);
+
+      return { value: roundedResult, error: null };
     } catch (error) {
+      console.error(`[CalculatedResult ${question.id}] Calculation error:`, error);
       return { value: null, error: 'Calculation error' };
     }
-  }, [question, inputValues]);
+  }, [question, inputValues, measurementTrigger]);
 
   const getTitle = () => {
     if (language === 'de' && question.titleDe) return question.titleDe;
