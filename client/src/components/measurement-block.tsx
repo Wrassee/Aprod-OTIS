@@ -236,22 +236,14 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
                       className="w-20 text-center font-mono border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       min={question.minValue}
                       max={question.maxValue}
-                      onChange={(e) => {
-                        // STOP ALL EVENT PROPAGATION to prevent component refresh
-                        e.stopPropagation();
-                        e.preventDefault();
-                        
-                        const value = e.target.value;
+                      onInput={(e) => {
+                        // Use onInput instead of onChange to avoid React synthetic events
+                        const target = e.target as HTMLInputElement;
+                        const value = target.value;
                         console.log(`Direct measurement input: ${question.id} = ${value}`);
                         
-                        // Use MeasurementCache for persistent storage ONLY
+                        // ONLY save to cache, no other operations
                         MeasurementCache.setValue(question.id, value);
-                        
-                        // COMPLETELY DISABLE ALL CALLBACKS AND EVENTS during typing
-                        // No onChange, no events, no state updates, no triggers - NOTHING!
-                        
-                        // Remove all automatic calculation updates during typing
-                        // User will get calculations on onBlur or navigation
                       }}
                       onBlur={(e) => {
                         // Only on BLUR do we sync everything safely

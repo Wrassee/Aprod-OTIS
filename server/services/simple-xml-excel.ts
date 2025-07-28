@@ -212,11 +212,15 @@ class SimpleXmlExcelService {
       // Update the ZIP with modified worksheet
       zip.file(sheetFile, worksheetXml);
       
-      // Generate the final Excel buffer with minimal compression for stability
+      // Generate the final Excel buffer with NO compression for maximum stability
       const result = await zip.generateAsync({ 
         type: 'nodebuffer',
-        compression: 'STORE',  // No compression to prevent corruption
-        streamFiles: false
+        compression: 'STORE',  // No compression at all
+        compressionOptions: {
+          level: 0  // Force zero compression
+        },
+        streamFiles: false,
+        platform: 'DOS'  // Better Excel compatibility
       });
       
       // Verify buffer is valid before returning
