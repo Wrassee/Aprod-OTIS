@@ -73,7 +73,7 @@ class ExcelParserService {
       const minValueIndex = getColumnIndex(['min_value', 'minvalue', 'minimum', 'min']);
       const maxValueIndex = getColumnIndex(['max_value', 'maxvalue', 'maximum', 'max']);
       const calculationFormulaIndex = getColumnIndex(['calculation_formula', 'formula', 'képlet', 'formel']);
-      const calculationInputsIndex = getColumnIndex(['calculation_inputs', 'inputs', 'bemenetek', 'eingaben']);
+      const calculationInputsIndex = getColumnIndex(['calculation_inputs', 'inputs', 'bemenet', 'eingabe', 'bemenetek', 'eingaben']);
       
       if (idIndex === -1 || titleIndex === -1 || typeIndex === -1) {
         throw new Error('Required columns not found: ID, Title, Type');
@@ -114,7 +114,7 @@ class ExcelParserService {
       return questions;
     } catch (error) {
       console.error('Error parsing Excel file:', error);
-      throw new Error(`Failed to parse Excel file: ${error.message}`);
+      throw new Error(`Failed to parse Excel file: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
   

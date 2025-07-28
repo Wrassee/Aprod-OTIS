@@ -252,10 +252,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // If it's a questions template, parse and create question configs
-      if (type === 'questions') {
+      if (type === 'questions' || type === 'unified') {
         try {
           const buffer = fs.readFileSync(filePath);
           const questions = await excelParserService.parseQuestionsFromExcel(buffer);
+          
+          console.log(`Parsed ${questions.length} questions from ${type} template`);
           
           // Save question configurations
           for (const question of questions) {
