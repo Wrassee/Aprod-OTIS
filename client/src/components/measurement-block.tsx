@@ -3,7 +3,7 @@ import { useLanguageContext } from '@/components/language-provider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { StableInput } from '@/components/stable-input';
+
 import { Calculator, Ruler } from 'lucide-react';
 import { Question } from '@shared/schema';
 import { getAllMeasurementValues } from './measurement-question';
@@ -18,31 +18,15 @@ export function MeasurementBlock({ questions, values, onChange }: MeasurementBlo
   const { language } = useLanguageContext();
   const [measurementTrigger, setMeasurementTrigger] = useState(0);
 
-  // Listen for measurement changes to recalculate
-  useEffect(() => {
-    const handleMeasurementChange = () => {
-      setMeasurementTrigger(prev => prev + 1);
-    };
-
-    const handleInputChange = () => {
-      setMeasurementTrigger(prev => prev + 1);
-    };
-
-    window.addEventListener('measurement-change', handleMeasurementChange);
-    window.addEventListener('input-change', handleInputChange);
-    
-    return () => {
-      window.removeEventListener('measurement-change', handleMeasurementChange);
-      window.removeEventListener('input-change', handleInputChange);
-    };
-  }, []);
+  // Remove real-time event listeners that cause React re-renders
+  // Calculations will happen on Save/Next button clicks instead
 
   // Separate measurement and calculated questions
   const measurementQuestions = questions.filter(q => q.type === 'measurement');
   const calculatedQuestions = questions.filter(q => q.type === 'calculated');
 
-  // Get current measurement values for calculations
-  const currentMeasurementValues = useMemo(() => {
+  // Get current measurement values for calculations - simplified without real-time updates
+  const getCurrentMeasurementValues = (): Record<string, number> => {
     const cached = getAllMeasurementValues();
     const stableCache = (window as any).stableInputValues || {};
     
@@ -64,7 +48,7 @@ export function MeasurementBlock({ questions, values, onChange }: MeasurementBlo
     });
 
     return combined;
-  }, [measurementTrigger]);
+  };
 
   // Calculate values for calculated questions
   const calculateValue = (question: Question): number | null => {
@@ -78,8 +62,9 @@ export function MeasurementBlock({ questions, values, onChange }: MeasurementBlo
       let hasAllInputs = true;
 
       // Replace input references with actual values
+      const currentValues = getCurrentMeasurementValues();
       inputIds.forEach((inputId: string) => {
-        const value = currentMeasurementValues[inputId];
+        const value = currentValues[inputId];
         if (value !== undefined) {
           // Replace both 'inputX' and 'X' patterns in formula
           formula = formula.replace(new RegExp(`input${inputId}`, 'g'), value.toString());
@@ -148,28 +133,42 @@ export function MeasurementBlock({ questions, values, onChange }: MeasurementBlo
                     )}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <StableInput
-                      questionId={question.id}
+                    <input
                       type="number"
                       placeholder="0"
-                      className="w-20 text-center font-mono"
+                      className="w-20 text-center font-mono border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       min={question.minValue}
                       max={question.maxValue}
-                      onValueChange={(value) => {
-                        // Convert to number and store in measurement cache
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        console.log(`Direct measurement input: ${question.id} = ${value}`);
+                        
+                        // Store in measurement cache immediately - NO REACT STATE UPDATES!
+                        if (!(window as any).measurementValues) {
+                          (window as any).measurementValues = {};
+                        }
+                        
+                        // Store as both string and number for compatibility
+                        if (!(window as any).stableInputValues) {
+                          (window as any).stableInputValues = {};
+                        }
+                        (window as any).stableInputValues[question.id] = value;
+                        
                         const numValue = parseFloat(value);
                         if (!isNaN(numValue)) {
-                          if (!(window as any).measurementValues) {
-                            (window as any).measurementValues = {};
-                          }
                           (window as any).measurementValues[question.id] = numValue;
                           
-                          // Trigger measurement change event for calculations
-                          window.dispatchEvent(new CustomEvent('measurement-change'));
-                          
-                          // Call parent onChange
-                          onChange(question.id, numValue);
+                          // DO NOT trigger events that cause React re-renders during typing!
+                          // window.dispatchEvent(new CustomEvent('measurement-change'));
                         }
+                        
+                        // DO NOT call onChange during typing - it causes React re-renders!
+                        // onChange(question.id, numValue);
+                      }}
+                      style={{ 
+                        fontSize: '16px',
+                        backgroundColor: 'white',
+                        color: '#000'
                       }}
                     />
                     {question.unit && (
