@@ -4,8 +4,8 @@
 
 This is a full-stack TypeScript application that digitizes the OTIS elevator acceptance protocol process. The system guides users through a step-by-step questionnaire, allows error documentation with images, generates PDFs, and enables sharing via email or cloud storage. It supports both Hungarian and German languages.
 
-**Current Version**: OTIS APROD 0.3.0 - Production Release with Measurement Data Block (January 27, 2025)
-**Status**: FULLY OPERATIONAL ✅ - MÉRÉSI ADATOK BLOKK KÉSZ!
+**Current Version**: OTIS APROD 0.4.0 - Egyesített Template Rendszer (January 28, 2025)
+**Status**: FULLY OPERATIONAL ✅ - EGYESÍTETT TEMPLATE KÉSZ!
 
 ## User Preferences
 
@@ -55,6 +55,15 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **UI Component Updates**: ✅ COMPLETED - All components (QuestionGroupHeader, StableQuestionnaire) use LanguageProvider
 - **Translation System**: ✅ WORKING - Complete German translations active for all UI elements
 - **User Validation**: ✅ CONFIRMED - User confirmed "Működik" - system fully operational in German
+
+### Egyesített Template Rendszer (January 28, 2025) - Version 0.4.0
+- **Template Egyesítés**: ✅ COMPLETED - Két külön template (protocol + measurement) helyett egyetlen egyesített Excel fájl
+- **Új Template Szintaxis**: ✅ COMPLETED - 14 oszlopos questions lap + protocol lap struktúra implementálva
+- **Táblázatos UI**: ✅ COMPLETED - Bal oldal: kérdések felsorolva számozással, jobb oldal: válasz mezők egymás alatt
+- **Kérdés Típus Integráció**: ✅ COMPLETED - Mind a 6 típus (text, number, yes_no_na, true_false, measurement, calculated) egy template-ben
+- **Példa Template**: ✅ COMPLETED - OTIS-TEMPLATE-PELDA.xlsx elkészítve 25 mintakérdéssel és részletes dokumentációval
+- **Admin Egyszerűsítés**: ✅ COMPLETED - Egyetlen fájl feltöltés helyett két külön template kezelés
+- **Dokumentáció**: ✅ COMPLETED - Teljes szintaxis leírás és példák TEMPLATE-SZINTAXIS-PELDA.md fájlban
 
 ### Latest Update (January 27, 2025) - Version 0.1.7
 - **True/False Question Type**: ✅ COMPLETED - New binary choice input with Excel "X"/"-" output
