@@ -66,9 +66,19 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
     return true;
   };
 
-  // Auto-add error for out of bounds calculated values
+  // Auto-add error for out of bounds calculated values (prevent duplicates)
   const addCalculatedValueError = (question: Question, value: number) => {
     if (!onAddError) return;
+    
+    // Check if error already exists for this question
+    const errorId = `calc-${question.id}`;
+    if ((window as any).addedCalculationErrors && (window as any).addedCalculationErrors.has(errorId)) {
+      return; // Don't add duplicate errors
+    }
+    
+    if (!(window as any).addedCalculationErrors) {
+      (window as any).addedCalculationErrors = new Set();
+    }
     
     console.log(`Adding boundary error for ${question.id}: ${value}`);
     
@@ -92,6 +102,8 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
       ? `Der berechnete Wert ${value} ${unit} liegt außerhalb der zulässigen Grenzen ${boundaryInfo}. Bitte überprüfen Sie die Eingabewerte.`
       : `A számított érték ${value} ${unit} kívül esik a megengedett határokon ${boundaryInfo}. Kérjük, ellenőrizze a bemeneti értékeket.`;
 
+    (window as any).addedCalculationErrors.add(errorId);
+    
     onAddError({
       title: errorTitle,
       description: errorDescription,
@@ -230,6 +242,9 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
                         
                         // Use MeasurementCache for persistent storage
                         MeasurementCache.setValue(question.id, value);
+                        
+                        // Also call onChange to keep form system in sync
+                        onChange(question.id, value);
                         
                         const numValue = parseFloat(value);
                         if (!isNaN(numValue)) {

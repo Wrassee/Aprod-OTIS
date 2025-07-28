@@ -187,23 +187,29 @@ class SimpleXmlExcelService {
       // Update the ZIP with modified worksheet
       zip.file(sheetFile, worksheetXml);
       
-      // Generate the final Excel buffer with proper compression settings
+      // Generate the final Excel buffer with minimal compression for stability
       const result = await zip.generateAsync({ 
         type: 'nodebuffer',
-        compression: 'DEFLATE',
-        compressionOptions: { level: 6 },
-        streamFiles: false,
-        platform: 'DOS'  // Changed from UNIX for better Excel compatibility
+        compression: 'STORE',  // No compression to prevent corruption
+        streamFiles: false
       });
       
       // Verify buffer is valid before returning
       if (!result || result.length < 1000) {
+        console.error('Generated buffer too small:', result?.length || 0);
         throw new Error('Generated Excel buffer is too small or invalid');
       }
       
-      console.log(`XML Excel generation successful with ${modifiedCount} modifications`);
-      console.log(`Generated buffer size: ${result.length} bytes`);
-      return result;
+      // Additional corruption check - try to reload the generated buffer
+      try {
+        await JSZip.loadAsync(result);
+        console.log(`XML Excel generation successful with ${modifiedCount} modifications`);
+        console.log(`Generated buffer size: ${result.length} bytes`);
+        return result;
+      } catch (verifyError) {
+        console.error('Generated Excel buffer is corrupted:', verifyError);
+        throw new Error('Generated Excel buffer failed verification');
+      }
       
     } catch (error) {
       console.error('Error in XML string replacement:', error);
