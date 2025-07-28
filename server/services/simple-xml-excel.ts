@@ -110,25 +110,50 @@ class SimpleXmlExcelService {
         } 
         // Replace self-closing empty cells with exact style preservation
         else if (worksheetXml.includes(`<c r="${cell}" s="`)) {
-          // Find the exact style value manually
-          const styleMatch = worksheetXml.match(new RegExp(`<c r="${cell}" s="([^"]+)"/>`));
+          // Find the exact style value manually - handle both self-closing and content cells
+          let styleMatch = worksheetXml.match(new RegExp(`<c r="${cell}" s="([^"]+)"/>`));
+          
+          if (!styleMatch) {
+            // Try to find cells with content but same style pattern
+            styleMatch = worksheetXml.match(new RegExp(`<c r="${cell}" s="([^"]+)"[^>]*>`));
+          }
+          
           if (styleMatch) {
             const styleValue = styleMatch[1];
             const replacement = `<c r="${cell}" s="${styleValue}" t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`;
-            worksheetXml = worksheetXml.replace(
-              new RegExp(`<c r="${cell}" s="${styleValue}"/>`), 
-              replacement
-            );
+            
+            // Replace both self-closing and content versions
+            const selfClosingPattern = new RegExp(`<c r="${cell}" s="${styleValue}"/>`);
+            const contentPattern = new RegExp(`<c r="${cell}" s="${styleValue}"[^>]*>.*?</c>`);
+            
+            if (selfClosingPattern.test(worksheetXml)) {
+              worksheetXml = worksheetXml.replace(selfClosingPattern, replacement);
+            } else if (contentPattern.test(worksheetXml)) {
+              worksheetXml = worksheetXml.replace(contentPattern, replacement);
+            }
+            
             modifiedCount++;
             console.log(`XML: Added ${cell} = "${value}" (exact style preserved: s="${styleValue}")`);
             
-            // Special debug for Q13
-            if (cell === 'Q13') {
-              console.log(`Q13 DEBUG: Original pattern found and replaced`);
-              console.log(`Q13 DEBUG: Replacement = ${replacement}`);
+            // Special debug for measurement cells
+            if (cell.startsWith('I') || cell.startsWith('N')) {
+              console.log(`MEASUREMENT DEBUG: ${cell} successfully updated with value "${value}"`);
             }
           } else {
             console.log(`XML: Style match failed for ${cell}`);
+            console.log(`XML: Searching for pattern in XML: <c r="${cell}" s="`);
+            
+            // Try a more flexible approach for measurement cells
+            const flexiblePattern = new RegExp(`<c r="${cell}"[^>]*s="([^"]+)"[^>]*>`, 'g');
+            const flexibleMatch = flexiblePattern.exec(worksheetXml);
+            if (flexibleMatch) {
+              const styleValue = flexibleMatch[1];
+              const fullCellPattern = new RegExp(`<c r="${cell}"[^>]*>.*?</c>`, 'g');
+              const replacement = `<c r="${cell}" s="${styleValue}" t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`;
+              worksheetXml = worksheetXml.replace(fullCellPattern, replacement);
+              modifiedCount++;
+              console.log(`XML: FLEXIBLE match success for ${cell} = "${value}" (style: s="${styleValue}")`);
+            }
           }
         }
         // Fallback for any other empty pattern
