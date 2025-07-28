@@ -21,11 +21,11 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Database Integration**: ✅ COMPLETED - Full PostgreSQL integration with Neon serverless configuration
 - **Component Architecture**: ✅ COMPLETED - Isolated question components with full memoization
 
-### Recent Fixes (January 27, 2025)
-- **Radio Button Stability**: ✅ RESOLVED - CacheRadio with global Map cache prevents unwanted page navigation
-- **UI Performance**: ✅ COMPLETED - All input components stabilized with proper debouncing
-- **Logo Display**: ✅ COMPLETED - Moved logo to client/public/ for proper static serving
-- **Yes/No/NA Logic**: ✅ COMPLETED - X-based logic implemented for multi-column questions
+### Recent Fixes (January 28, 2025) - Version 0.4.1
+- **UI Revert to Original**: ✅ COMPLETED - Táblázatos UI eltávolítva felhasználói kérésre, minden kérdés típus visszaáll eredeti megjelenítéshez
+- **IsolatedQuestion Standard**: ✅ COMPLETED - Minden kérdés (text, number, yes_no_na, true_false, measurement, calculated) ugyanazt a megszokott kezelőfelületet használja
+- **True/False Groups**: ✅ MAINTAINED - True_false csoportok külön kezelése megmaradt
+- **Egyesített Template**: ✅ STABLE - 14 oszlopos template rendszer változatlan és működőképes
 
 ### Measurement Data Block Implementation (January 27, 2025) - Version 0.3.0
 - **New Question Types**: ✅ COMPLETED - Added 'measurement' and 'calculated' question types to schema and components
