@@ -236,30 +236,32 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
                       className="w-20 text-center font-mono border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       min={question.minValue}
                       max={question.maxValue}
-                      onInput={(e) => {
-                        // Use onInput instead of onChange to avoid React synthetic events
-                        const target = e.target as HTMLInputElement;
-                        const value = target.value;
+                      onChange={(e) => {
+                        const value = e.target.value;
                         console.log(`Direct measurement input: ${question.id} = ${value}`);
                         
-                        // ONLY save to cache, no other operations
+                        // Use MeasurementCache for persistent storage
                         MeasurementCache.setValue(question.id, value);
-                      }}
-                      onBlur={(e) => {
-                        // Only on BLUR do we sync everything safely
-                        const value = e.target.value;
-                        if (value) {
-                          MeasurementCache.setValue(question.id, value);
-                          onChange(question.id, value); 
-                          
-                          // Trigger calculations only on blur
-                          setMeasurementTrigger(prev => prev + 1);
-                          
-                          // Safe to dispatch events on blur
-                          setTimeout(() => {
+                        
+                        // Also call onChange to keep form system in sync
+                        onChange(question.id, value);
+                        
+                        const numValue = parseFloat(value);
+                        if (!isNaN(numValue)) {
+                          // Use debounced calculation updates
+                          clearTimeout((window as any)[`calc-timeout-${question.id}`]);
+                          (window as any)[`calc-timeout-${question.id}`] = setTimeout(() => {
+                            setMeasurementTrigger(prev => prev + 1);
                             window.dispatchEvent(new CustomEvent('input-change'));
                             window.dispatchEvent(new CustomEvent('measurement-change'));
-                          }, 100);
+                          }, 300);
+                        }
+                      }}
+                      onBlur={() => {
+                        // Sync with form system when user finishes typing
+                        const currentValue = MeasurementCache.getValue(question.id);
+                        if (currentValue) {
+                          onChange(question.id, currentValue);
                         }
                       }}
                       style={{ 

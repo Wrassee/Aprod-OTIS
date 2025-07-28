@@ -36,13 +36,13 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Auto Error Detection**: ✅ COMPLETED - Automatically adds out-of-range calculated values to protocol error list
 - **Multi-language Support**: ✅ COMPLETED - Full Hungarian/German support for measurement interface
 
-### Measurement Input UI Stability Fix (January 28, 2025) - Version 0.3.1  
-- **Critical UI Refresh Issue**: ❌ ONGOING - Measurement inputs still cause component re-mount during typing
-- **Event System Overhaul**: ✅ ATTEMPTED - Switched from onChange to onInput, disabled all React synthetic events
-- **Pure Cache Storage**: ✅ IMPLEMENTED - Only MeasurementCache.setValue() during input, no form callbacks
-- **onBlur Synchronization**: ✅ COMPLETED - Form sync, calculations, and events only triggered on blur  
-- **Excel Corruption Prevention**: ✅ ATTEMPTED - STORE compression with level:0, platform:'DOS' for compatibility
-- **User Feedback**: ❌ ISSUE PERSISTS - "nem tudom kitölteni UI mindig frissül" - UI still refreshes during measurement input
+### Measurement Input System Restoration (January 28, 2025) - Version 0.3.1 ROLLBACK
+- **System Rollback**: ✅ RESTORED - Visszaállítva az eredeti működő measurement input rendszer
+- **Original onChange Logic**: ✅ RESTORED - Standard onChange + MeasurementCache + form sync
+- **Debounced Calculations**: ✅ RESTORED - 300ms timeout a számításokhoz, nem 1000ms
+- **Event System**: ✅ RESTORED - Normál React synthetic events, nem native DOM
+- **User Request**: ✅ HONORED - "Ez az adatbeviteli rész egyszer már működött tökéletesen!" - visszaállítva
+- **Complexity Reduction**: ✅ COMPLETED - Eltávolítva a túlbonyolított event stopping és onInput logika
 
 ### Final Measurement Cache System Implementation (January 28, 2025) - Version 0.3.2
 - **MeasurementCache Class**: ✅ COMPLETED - Persistent cache system with localStorage + global cache dual storage
