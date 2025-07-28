@@ -165,13 +165,7 @@ export function CalculatedResult({ question, inputValues }: CalculatedResultProp
           {getStatusBadge()}
         </div>
         
-        {/* Debug information */}
-        <div className="text-xs text-gray-400 mb-2 border-l-2 border-gray-200 pl-2">
-          <div>Formula: {question.calculationFormula}, Inputs: {question.calculationInputs}</div>
-          <div>Input values from CalculatedResult: {JSON.stringify(inputValues)}</div>
-          <div>All cached measurement values: {JSON.stringify(getAllMeasurementValues())}</div>
-          <div>Result: {calculationResult.value}, Error: {calculationResult.error}</div>
-        </div>
+
 
         <div className="text-2xl font-mono bg-gray-50 p-3 rounded-lg mb-3">
           {isValid && calculationResult.value !== null
@@ -180,9 +174,7 @@ export function CalculatedResult({ question, inputValues }: CalculatedResultProp
           }
         </div>
 
-        <div className="text-sm text-gray-600 mb-2">
-          <strong>{language === 'de' ? 'Formel' : 'Képlet'}:</strong> {question.calculationFormula}
-        </div>
+
 
         {question.minValue !== undefined && question.maxValue !== undefined && (
           <div className="text-xs text-gray-500 mb-2">
