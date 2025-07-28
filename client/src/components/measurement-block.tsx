@@ -1,268 +1,288 @@
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLanguageContext } from '@/components/language-provider';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calculator, AlertTriangle, CheckCircle } from 'lucide-react';
-import { ProtocolError } from '@shared/schema';
-
-interface MeasurementInput {
-  id: string;
-  title: string;
-  titleHu?: string;
-  titleDe?: string;
-  unit: string;
-  minValue?: number;
-  maxValue?: number;
-  placeholder?: string;
-}
-
-interface MeasurementCalculation {
-  id: string;
-  name: string;
-  nameHu?: string;
-  nameDe?: string;
-  formula: string; // e.g., "m1 + m2 - m3"
-  inputIds: string[]; // References to measurement input IDs
-  minValue?: number;
-  maxValue?: number;
-  unit: string;
-  targetCellReference?: string;
-  sheetName?: string;
-}
+import { Input } from '@/components/ui/input';
+import { Calculator, Ruler } from 'lucide-react';
+import { Question } from '@shared/schema';
+import { getAllMeasurementValues } from './measurement-question';
 
 interface MeasurementBlockProps {
-  measurements: MeasurementInput[];
-  calculations: MeasurementCalculation[];
-  values: Record<string, number>;
-  onValuesChange: (values: Record<string, number>) => void;
-  onErrorsChange: (errors: ProtocolError[]) => void;
-  groupName: string;
+  questions: Question[]; // All measurement and calculated questions
+  values: Record<string, any>;
+  onChange: (questionId: string, value: any) => void;
 }
 
-export function MeasurementBlock({
-  measurements,
-  calculations,
-  values,
-  onValuesChange,
-  onErrorsChange,
-  groupName
-}: MeasurementBlockProps) {
-  const { t, language } = useLanguageContext();
-  const [calculatedValues, setCalculatedValues] = useState<Record<string, number>>({});
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+export function MeasurementBlock({ questions, values, onChange }: MeasurementBlockProps) {
+  const { language } = useLanguageContext();
+  const [measurementTrigger, setMeasurementTrigger] = useState(0);
 
-  // Get localized title
-  const getLocalizedTitle = (item: MeasurementInput | MeasurementCalculation) => {
-    if (language === 'de' && 'titleDe' in item && item.titleDe) return item.titleDe;
-    if (language === 'hu' && 'titleHu' in item && item.titleHu) return item.titleHu;
-    return item.title || (item as any).name;
+  // Listen for measurement changes to recalculate
+  useEffect(() => {
+    const handleMeasurementChange = () => {
+      setMeasurementTrigger(prev => prev + 1);
+    };
+
+    const handleInputChange = () => {
+      setMeasurementTrigger(prev => prev + 1);
+    };
+
+    window.addEventListener('measurement-change', handleMeasurementChange);
+    window.addEventListener('input-change', handleInputChange);
+    
+    return () => {
+      window.removeEventListener('measurement-change', handleMeasurementChange);
+      window.removeEventListener('input-change', handleInputChange);
+    };
+  }, []);
+
+  // Separate measurement and calculated questions
+  const measurementQuestions = questions.filter(q => q.type === 'measurement');
+  const calculatedQuestions = questions.filter(q => q.type === 'calculated');
+
+  // Get current measurement values for calculations
+  const currentMeasurementValues = useMemo(() => {
+    const cached = getAllMeasurementValues();
+    const stableCache = (window as any).stableInputValues || {};
+    
+    const combined: Record<string, number> = {};
+    
+    // Combine all sources
+    Object.keys(cached).forEach((key: string) => {
+      const value = parseFloat(cached[key].toString());
+      if (!isNaN(value)) {
+        combined[key] = value;
+      }
+    });
+    
+    Object.keys(stableCache).forEach((key: string) => {
+      const value = parseFloat(stableCache[key]);
+      if (!isNaN(value)) {
+        combined[key] = value;
+      }
+    });
+
+    return combined;
+  }, [measurementTrigger]);
+
+  // Calculate values for calculated questions
+  const calculateValue = (question: Question): number | null => {
+    if (!question.calculationFormula || !question.calculationInputs) {
+      return null;
+    }
+
+    try {
+      const inputIds = question.calculationInputs.split(',').map((id: string) => id.trim());
+      let formula = question.calculationFormula;
+      let hasAllInputs = true;
+
+      // Replace input references with actual values
+      inputIds.forEach((inputId: string) => {
+        const value = currentMeasurementValues[inputId];
+        if (value !== undefined) {
+          // Replace both 'inputX' and 'X' patterns in formula
+          formula = formula.replace(new RegExp(`input${inputId}`, 'g'), value.toString());
+          formula = formula.replace(new RegExp(`\\b${inputId}\\b`, 'g'), value.toString());
+        } else {
+          hasAllInputs = false;
+        }
+      });
+
+      if (!hasAllInputs) {
+        return null;
+      }
+
+      // Safely evaluate the formula
+      const result = Function(`"use strict"; return (${formula})`)();
+      return typeof result === 'number' && !isNaN(result) ? Math.round(result * 100) / 100 : null;
+    } catch (error) {
+      return null;
+    }
   };
 
-  // Calculate derived values
-  const calculateValues = useMemo(() => {
-    const results: Record<string, number> = {};
-    const errors: Record<string, string> = {};
-
-    calculations.forEach(calc => {
-      try {
-        // Replace variable names in formula with actual values
-        let formula = calc.formula;
-        let hasAllInputs = true;
-
-        calc.inputIds.forEach(inputId => {
-          const value = values[inputId];
-          if (value === undefined || value === null || isNaN(value)) {
-            hasAllInputs = false;
-            return;
-          }
-          // Replace variable name with actual value
-          formula = formula.replace(new RegExp(`\\b${inputId}\\b`, 'g'), value.toString());
-        });
-
-        if (hasAllInputs) {
-          // Evaluate the mathematical expression
-          const result = Function(`"use strict"; return (${formula})`)();
-          
-          if (isNaN(result)) {
-            errors[calc.id] = language === 'de' ? 'Ungültige Berechnung' : 'Érvénytelen számítás';
-          } else {
-            results[calc.id] = Math.round(result * 100) / 100; // Round to 2 decimal places
-            
-            // Check if result is within acceptable range
-            if (calc.minValue !== undefined && result < calc.minValue) {
-              errors[calc.id] = language === 'de' 
-                ? `Wert zu niedrig (min: ${calc.minValue}${calc.unit})`
-                : `Érték túl alacsony (min: ${calc.minValue}${calc.unit})`;
-            } else if (calc.maxValue !== undefined && result > calc.maxValue) {
-              errors[calc.id] = language === 'de'
-                ? `Wert zu hoch (max: ${calc.maxValue}${calc.unit})`
-                : `Érték túl magas (max: ${calc.maxValue}${calc.unit})`;
-            }
-          }
-        }
-      } catch (error) {
-        errors[calc.id] = language === 'de' ? 'Berechnungsfehler' : 'Számítási hiba';
-      }
-    });
-
-    return { results, errors };
-  }, [values, calculations, language]);
-
-  // Update calculated values and validation errors
-  useEffect(() => {
-    setCalculatedValues(calculateValues.results);
-    setValidationErrors(calculateValues.errors);
-  }, [calculateValues]);
-
-  // Generate protocol errors for out-of-range values
-  useEffect(() => {
-    const protocolErrors: ProtocolError[] = [];
+  const handleMeasurementChange = (questionId: string, value: string) => {
+    // Store in both caches for compatibility
+    if (!(window as any).measurementValues) {
+      (window as any).measurementValues = {};
+    }
+    (window as any).measurementValues[questionId] = value;
     
-    Object.entries(validationErrors).forEach(([calcId, errorMessage]) => {
-      const calculation = calculations.find(c => c.id === calcId);
-      if (calculation) {
-        protocolErrors.push({
-          id: `measurement-${calcId}-${Date.now()}`,
-          title: `${getLocalizedTitle(calculation)}: ${errorMessage}`,
-          description: language === 'de' 
-            ? `Berechneter Wert entspricht nicht den Spezifikationen`
-            : `A számított érték nem felel meg a specifikációknak`,
-          severity: 'critical' as const,
-          images: []
-        });
-      }
-    });
-
-    onErrorsChange(protocolErrors);
-  }, [validationErrors, calculations, language, onErrorsChange]);
-
-  const handleInputChange = (measurementId: string, value: string) => {
-    const numValue = parseFloat(value) || 0;
-    const newValues = { ...values, [measurementId]: numValue };
-    onValuesChange(newValues);
+    if (!(window as any).stableInputValues) {
+      (window as any).stableInputValues = {};
+    }
+    (window as any).stableInputValues[questionId] = value;
+    
+    // Trigger measurement change event for calculations
+    window.dispatchEvent(new CustomEvent('measurement-change'));
+    
+    // Call parent onChange
+    const numValue = parseFloat(value);
+    if (!isNaN(numValue)) {
+      onChange(questionId, numValue);
+    }
   };
 
   const translations = {
     hu: {
-      measurements: 'Mérési adatok',
-      calculations: 'Számítások',
-      enterValue: 'Adja meg az értéket',
-      result: 'Eredmény',
-      withinLimits: 'Határértéken belül',
-      outOfLimits: 'Határértéken kívül'
+      measurementTitle: 'Mérési Adatok',
+      calculatedTitle: 'Számított Értékek',
+      question: 'Kérdés',
+      value: 'Érték',
+      unit: 'Egység',
+      enterValue: 'Érték megadása'
     },
     de: {
-      measurements: 'Messdaten',
-      calculations: 'Berechnungen',
-      enterValue: 'Wert eingeben',
-      result: 'Ergebnis',
-      withinLimits: 'Innerhalb der Grenzwerte',
-      outOfLimits: 'Außerhalb der Grenzwerte'
+      measurementTitle: 'Messdaten',
+      calculatedTitle: 'Berechnete Werte',
+      question: 'Frage',
+      value: 'Wert',
+      unit: 'Einheit',
+      enterValue: 'Wert eingeben'
     }
   };
 
-  const currentT = translations[language] || translations.hu;
+  const t = translations[language as keyof typeof translations] || translations.hu;
 
   return (
     <div className="space-y-6">
-      {/* Measurement Inputs */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calculator className="h-5 w-5" />
-            {currentT.measurements} - {groupName}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {measurements.map(measurement => (
-              <div key={measurement.id} className="space-y-2">
-                <Label htmlFor={measurement.id}>
-                  {getLocalizedTitle(measurement)}
-                  <span className="text-sm text-gray-500 ml-2">({measurement.unit})</span>
-                </Label>
-                <Input
-                  id={measurement.id}
-                  type="number"
-                  value={values[measurement.id]?.toString() || ''}
-                  onChange={(e) => handleInputChange(measurement.id, e.target.value)}
-                  placeholder={measurement.placeholder || currentT.enterValue}
-                  className="w-full"
-                  min={measurement.minValue}
-                  max={measurement.maxValue}
-                />
-                {measurement.minValue !== undefined && measurement.maxValue !== undefined && (
-                  <p className="text-xs text-gray-500">
-                    {language === 'de' ? 'Bereich' : 'Tartomány'}: {measurement.minValue} - {measurement.maxValue} {measurement.unit}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Calculations Results */}
-      {calculations.length > 0 && (
+      {/* Measurement Questions Table */}
+      {measurementQuestions.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Calculator className="h-5 w-5" />
-              {currentT.calculations}
+              <Ruler className="h-5 w-5 text-blue-600" />
+              {t.measurementTitle}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {calculations.map(calc => {
-                const result = calculatedValues[calc.id];
-                const error = validationErrors[calc.id];
-                const hasResult = result !== undefined && !isNaN(result);
-                const isValid = hasResult && !error;
-
-                return (
-                  <div key={calc.id} className="p-4 border rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium">{getLocalizedTitle(calc)}</h4>
-                      <Badge variant={isValid ? "default" : "destructive"}>
-                        {isValid ? (
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                        ) : (
-                          <AlertTriangle className="h-3 w-3 mr-1" />
-                        )}
-                        {isValid ? currentT.withinLimits : currentT.outOfLimits}
-                      </Badge>
-                    </div>
-                    
-                    <div className="text-lg font-mono bg-gray-50 p-2 rounded">
-                      {hasResult ? `${result} ${calc.unit}` : '-- ' + calc.unit}
-                    </div>
-                    
-                    <p className="text-xs text-gray-500 mt-1">
-                      {calc.formula}
-                    </p>
-                    
-                    {error && (
-                      <Alert className="mt-2">
-                        <AlertTriangle className="h-4 w-4" />
-                        <AlertDescription>{error}</AlertDescription>
-                      </Alert>
-                    )}
-                    
-                    {calc.minValue !== undefined && calc.maxValue !== undefined && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        {language === 'de' ? 'Zulässig' : 'Megengedett'}: {calc.minValue} - {calc.maxValue} {calc.unit}
+          <CardContent>
+            <div className="grid grid-cols-2 gap-6">
+              {/* Left Column - Questions */}
+              <div className="space-y-3">
+                <h4 className="font-medium text-gray-700 border-b pb-2">{t.question}</h4>
+                {measurementQuestions.map((question, index) => (
+                  <div key={question.id} className="flex items-start gap-3 py-2 border-b border-gray-100">
+                    <Badge variant="outline" className="shrink-0">{index + 1}</Badge>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">
+                        {language === 'de' ? question.titleDe : question.title}
                       </p>
-                    )}
+                      {question.unit && (
+                        <p className="text-xs text-gray-500">
+                          ({question.unit}
+                          {question.minValue !== undefined && question.maxValue !== undefined && 
+                            `, ${question.minValue}-${question.maxValue}`
+                          })
+                        </p>
+                      )}
+                    </div>
                   </div>
-                );
-              })}
+                ))}
+              </div>
+
+              {/* Right Column - Input Fields */}
+              <div className="space-y-3">
+                <h4 className="font-medium text-gray-700 border-b pb-2">{t.value}</h4>
+                {measurementQuestions.map((question, index) => (
+                  <div key={question.id} className="flex items-center gap-3 py-2 border-b border-gray-100">
+                    <Badge variant="outline" className="shrink-0">{index + 1}</Badge>
+                    <div className="flex-1 flex items-center gap-2">
+                      <Input
+                        type="number"
+                        value={currentMeasurementValues[question.id] || ''}
+                        onChange={(e) => handleMeasurementChange(question.id, e.target.value)}
+                        placeholder={t.enterValue}
+                        className="text-right"
+                        min={question.minValue}
+                        max={question.maxValue}
+                      />
+                      {question.unit && (
+                        <span className="text-sm text-gray-500 shrink-0">{question.unit}</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Calculated Questions Table */}
+      {calculatedQuestions.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calculator className="h-5 w-5 text-green-600" />
+              {t.calculatedTitle}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-6">
+              {/* Left Column - Questions */}
+              <div className="space-y-3">
+                <h4 className="font-medium text-gray-700 border-b pb-2">{t.question}</h4>
+                {calculatedQuestions.map((question, index) => (
+                  <div key={question.id} className="flex items-start gap-3 py-2 border-b border-gray-100">
+                    <Badge variant="outline" className="shrink-0">{measurementQuestions.length + index + 1}</Badge>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">
+                        {language === 'de' ? question.titleDe : question.title}
+                      </p>
+                      {question.unit && (
+                        <p className="text-xs text-gray-500">({question.unit})</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Right Column - Calculated Values */}
+              <div className="space-y-3">
+                <h4 className="font-medium text-gray-700 border-b pb-2">{t.value}</h4>
+                {calculatedQuestions.map((question, index) => {
+                  const calculatedValue = calculateValue(question);
+                  
+                  // Store calculated value in global cache for form submission
+                  if (calculatedValue !== null && typeof calculatedValue === 'number') {
+                    if (!(window as any).calculatedValues) {
+                      (window as any).calculatedValues = {};
+                    }
+                    (window as any).calculatedValues[question.id] = calculatedValue;
+                    
+                    // Also call onChange to update parent state
+                    onChange(question.id, calculatedValue);
+                  }
+
+                  return (
+                    <div key={question.id} className="flex items-center gap-3 py-2 border-b border-gray-100">
+                      <Badge variant="outline" className="shrink-0">{measurementQuestions.length + index + 1}</Badge>
+                      <div className="flex-1 flex items-center gap-2">
+                        <div className="flex-1 bg-gray-50 border rounded px-3 py-2 text-right">
+                          <span className="font-mono">
+                            {calculatedValue !== null ? calculatedValue.toFixed(2) : '—'}
+                          </span>
+                        </div>
+                        {question.unit && (
+                          <span className="text-sm text-gray-500 shrink-0">{question.unit}</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </CardContent>
         </Card>
       )}
     </div>
   );
+}
+
+// Helper function to get all calculated values
+export function getAllCalculatedValues(): Record<string, number> {
+  return (window as any).calculatedValues || {};
+}
+
+export function clearAllCalculatedValues() {
+  (window as any).calculatedValues = {};
 }
