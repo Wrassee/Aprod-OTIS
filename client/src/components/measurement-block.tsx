@@ -125,19 +125,11 @@ export function MeasurementBlock({ questions, values, onChange }: MeasurementBlo
   const translations = {
     hu: {
       measurementTitle: 'Mérési Adatok',
-      calculatedTitle: 'Számított Értékek',
-      question: 'Kérdés',
-      value: 'Érték',
-      unit: 'Egység',
-      enterValue: 'Érték megadása'
+      calculatedTitle: 'Számított Értékek'
     },
     de: {
       measurementTitle: 'Messdaten',
-      calculatedTitle: 'Berechnete Werte',
-      question: 'Frage',
-      value: 'Wert',
-      unit: 'Einheit',
-      enterValue: 'Wert eingeben'
+      calculatedTitle: 'Berechnete Werte'
     }
   };
 
@@ -155,53 +147,41 @@ export function MeasurementBlock({ questions, values, onChange }: MeasurementBlo
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-6">
-              {/* Left Column - Questions */}
-              <div className="space-y-3">
-                <h4 className="font-medium text-gray-700 border-b pb-2">{t.question}</h4>
-                {measurementQuestions.map((question, index) => (
-                  <div key={question.id} className="flex items-start gap-3 py-2 border-b border-gray-100">
-                    <Badge variant="outline" className="shrink-0">{index + 1}</Badge>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">
-                        {language === 'de' ? question.titleDe : question.title}
+            <div className="space-y-4">
+              {measurementQuestions.map((question, index) => (
+                <div key={question.id} className="flex items-center gap-4 py-3 border-b border-gray-100 last:border-b-0">
+                  <div className="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 font-semibold rounded-full shrink-0">
+                    {index + 1}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-base font-medium text-gray-800 leading-relaxed">
+                      {language === 'de' ? question.titleDe : question.title}
+                    </p>
+                    {question.unit && (
+                      <p className="text-sm text-gray-500 mt-1">
+                        {question.unit}
+                        {question.minValue !== undefined && question.maxValue !== undefined && 
+                          ` (${question.minValue}-${question.maxValue})`
+                        }
                       </p>
-                      {question.unit && (
-                        <p className="text-xs text-gray-500">
-                          ({question.unit}
-                          {question.minValue !== undefined && question.maxValue !== undefined && 
-                            `, ${question.minValue}-${question.maxValue}`
-                          })
-                        </p>
-                      )}
-                    </div>
+                    )}
                   </div>
-                ))}
-              </div>
-
-              {/* Right Column - Input Fields */}
-              <div className="space-y-3">
-                <h4 className="font-medium text-gray-700 border-b pb-2">{t.value}</h4>
-                {measurementQuestions.map((question, index) => (
-                  <div key={question.id} className="flex items-center gap-3 py-2 border-b border-gray-100">
-                    <Badge variant="outline" className="shrink-0">{index + 1}</Badge>
-                    <div className="flex-1 flex items-center gap-2">
-                      <Input
-                        type="number"
-                        value={currentMeasurementValues[question.id] || ''}
-                        onChange={(e) => handleMeasurementChange(question.id, e.target.value)}
-                        placeholder={t.enterValue}
-                        className="text-right"
-                        min={question.minValue}
-                        max={question.maxValue}
-                      />
-                      {question.unit && (
-                        <span className="text-sm text-gray-500 shrink-0">{question.unit}</span>
-                      )}
-                    </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Input
+                      type="number"
+                      value={currentMeasurementValues[question.id] || ''}
+                      onChange={(e) => handleMeasurementChange(question.id, e.target.value)}
+                      placeholder="0"
+                      className="w-20 text-center font-mono"
+                      min={question.minValue}
+                      max={question.maxValue}
+                    />
+                    {question.unit && (
+                      <span className="text-sm text-gray-500 w-8">{question.unit}</span>
+                    )}
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -217,59 +197,47 @@ export function MeasurementBlock({ questions, values, onChange }: MeasurementBlo
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-6">
-              {/* Left Column - Questions */}
-              <div className="space-y-3">
-                <h4 className="font-medium text-gray-700 border-b pb-2">{t.question}</h4>
-                {calculatedQuestions.map((question, index) => (
-                  <div key={question.id} className="flex items-start gap-3 py-2 border-b border-gray-100">
-                    <Badge variant="outline" className="shrink-0">{measurementQuestions.length + index + 1}</Badge>
+            <div className="space-y-4">
+              {calculatedQuestions.map((question, index) => {
+                const calculatedValue = calculateValue(question);
+                
+                // Store calculated value in global cache for form submission
+                if (calculatedValue !== null && typeof calculatedValue === 'number') {
+                  if (!(window as any).calculatedValues) {
+                    (window as any).calculatedValues = {};
+                  }
+                  (window as any).calculatedValues[question.id] = calculatedValue;
+                  
+                  // Also call onChange to update parent state
+                  onChange(question.id, calculatedValue);
+                }
+
+                return (
+                  <div key={question.id} className="flex items-center gap-4 py-3 border-b border-gray-100 last:border-b-0">
+                    <div className="flex items-center justify-center w-8 h-8 bg-green-100 text-green-600 font-semibold rounded-full shrink-0">
+                      {measurementQuestions.length + index + 1}
+                    </div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium">
+                      <p className="text-base font-medium text-gray-800 leading-relaxed">
                         {language === 'de' ? question.titleDe : question.title}
                       </p>
                       {question.unit && (
-                        <p className="text-xs text-gray-500">({question.unit})</p>
+                        <p className="text-sm text-gray-500 mt-1">{question.unit}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <div className="w-20 bg-gray-50 border rounded px-3 py-2 text-center">
+                        <span className="font-mono text-sm">
+                          {calculatedValue !== null ? calculatedValue.toFixed(2) : '—'}
+                        </span>
+                      </div>
+                      {question.unit && (
+                        <span className="text-sm text-gray-500 w-8">{question.unit}</span>
                       )}
                     </div>
                   </div>
-                ))}
-              </div>
-
-              {/* Right Column - Calculated Values */}
-              <div className="space-y-3">
-                <h4 className="font-medium text-gray-700 border-b pb-2">{t.value}</h4>
-                {calculatedQuestions.map((question, index) => {
-                  const calculatedValue = calculateValue(question);
-                  
-                  // Store calculated value in global cache for form submission
-                  if (calculatedValue !== null && typeof calculatedValue === 'number') {
-                    if (!(window as any).calculatedValues) {
-                      (window as any).calculatedValues = {};
-                    }
-                    (window as any).calculatedValues[question.id] = calculatedValue;
-                    
-                    // Also call onChange to update parent state
-                    onChange(question.id, calculatedValue);
-                  }
-
-                  return (
-                    <div key={question.id} className="flex items-center gap-3 py-2 border-b border-gray-100">
-                      <Badge variant="outline" className="shrink-0">{measurementQuestions.length + index + 1}</Badge>
-                      <div className="flex-1 flex items-center gap-2">
-                        <div className="flex-1 bg-gray-50 border rounded px-3 py-2 text-right">
-                          <span className="font-mono">
-                            {calculatedValue !== null ? calculatedValue.toFixed(2) : '—'}
-                          </span>
-                        </div>
-                        {question.unit && (
-                          <span className="text-sm text-gray-500 shrink-0">{question.unit}</span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
