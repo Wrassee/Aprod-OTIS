@@ -2,14 +2,17 @@ import { useEffect, useRef } from 'react';
 
 interface StableInputProps {
   questionId: string;
-  type: 'text' | 'number';
-  placeholder?: string;
+  type?: 'text' | 'number' | 'email';
   initialValue?: string;
   onValueChange?: (value: string) => void;
+  placeholder?: string;
   className?: string;
+  min?: number;
+  max?: number;  
+  step?: string | number;
 }
 
-export function StableInput({ questionId, type, placeholder, initialValue, onValueChange, className }: StableInputProps) {
+export function StableInput({ questionId, type = 'text', placeholder, initialValue, onValueChange, className, min, max, step }: StableInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const mountedRef = useRef(false);
 
@@ -59,7 +62,10 @@ export function StableInput({ questionId, type, placeholder, initialValue, onVal
         }
       }}
       placeholder={placeholder}
-      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-transparent"
+      min={min}
+      max={max}
+      step={step}
+      className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-transparent ${className || ''}`}
       style={{ 
         fontSize: '16px',
         backgroundColor: 'white',

@@ -1,7 +1,8 @@
-import { useRef, useEffect } from 'react';
+import React from 'react';
 import { useLanguageContext } from '@/components/language-provider';
 import { Label } from '@/components/ui/label';
 import { Question } from '@shared/schema';
+import { StableInput } from './stable-input';
 
 interface MeasurementQuestionProps {
   question: Question;
@@ -30,34 +31,19 @@ export function clearAllMeasurementValues() {
 
 export function MeasurementQuestion({ question, value, onChange }: MeasurementQuestionProps) {
   const { language } = useLanguageContext();
-  const inputRef = useRef<HTMLInputElement>(null);
-  const mountedRef = useRef(false);
 
-  // Initialize input value once on mount - prevents cursor jumping
-  useEffect(() => {
-    if (inputRef.current && !mountedRef.current) {
-      const initialValue = value?.toString() || '';
-      if (initialValue) {
-        inputRef.current.value = initialValue;
-      }
-      mountedRef.current = true;
-    }
-  }, [value]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value;
-    
+  const handleValueChange = (newValue: string) => {
     // Store in global cache immediately (prevents UI refreshing)
     if (!(window as any).measurementValues) {
       (window as any).measurementValues = {};
     }
-    (window as any).measurementValues[question.id] = inputValue;
+    (window as any).measurementValues[question.id] = newValue;
     
     // Trigger measurement change event for calculations
     window.dispatchEvent(new CustomEvent('measurement-change'));
     
     // Only call onChange for valid numbers without triggering React re-renders
-    const numValue = parseFloat(inputValue);
+    const numValue = parseFloat(newValue);
     if (!isNaN(numValue)) {
       // Use timeout to avoid immediate re-render
       setTimeout(() => onChange(numValue), 0);
@@ -94,28 +80,16 @@ export function MeasurementQuestion({ question, value, onChange }: MeasurementQu
         )}
       </Label>
       
-      <input
-        ref={inputRef}
-        id={question.id}
+      <StableInput
+        questionId={question.id}
         type="number"
-        onChange={handleChange}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-          }
-        }}
+        initialValue={value?.toString() || ''}
+        onValueChange={handleValueChange}
         placeholder={question.placeholder || (language === 'de' ? 'Wert eingeben' : 'Érték megadása')}
-        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-transparent ${isOutOfRange ? 'border-red-500' : 'border-gray-300'}`}
+        className={`w-full ${isOutOfRange ? 'border-red-500' : ''}`}
         min={question.minValue}
         max={question.maxValue}
         step="0.1"
-        style={{ 
-          fontSize: '16px',
-          backgroundColor: 'white',
-          color: '#000'
-        }}
       />
       
       {question.minValue !== undefined && question.maxValue !== undefined && (
