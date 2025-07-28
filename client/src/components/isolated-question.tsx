@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CacheRadio } from './cache-radio';
 import { TrueFalseRadio } from './true-false-radio';
+import { MeasurementQuestion } from './measurement-question';
 import { Camera, Image } from 'lucide-react';
 import { useLanguageContext } from './language-provider';
 import { StableInput } from './stable-input';
@@ -69,6 +70,26 @@ const IsolatedQuestionComponent = memo(({
             placeholder={question.placeholder || '0'}
             className="w-full"
           />
+        );
+        
+      case 'measurement':
+        return (
+          <MeasurementQuestion
+            question={question}
+            value={typeof value === 'number' ? value : undefined}
+            onChange={(newValue) => onChange(newValue)}
+          />
+        );
+        
+      case 'calculated':
+        // For calculated questions, we need access to all input values
+        // This will be handled in the questionnaire component
+        return (
+          <div className="p-4 bg-gray-50 rounded-lg">
+            <p className="text-sm text-gray-600">
+              Számított mező - értéket automatikusan meghatározza
+            </p>
+          </div>
         );
         
       case 'text':

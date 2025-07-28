@@ -13,6 +13,9 @@ import { ArrowLeft, ArrowRight, Save, Settings, Home, Check, X } from 'lucide-re
 import { getAllCachedValues } from '@/components/cache-radio';
 import { getAllTrueFalseValues } from '@/components/true-false-radio';
 import { getAllStableInputValues } from '@/components/stable-input';
+import { CalculatedResult } from '@/components/calculated-result';
+import { MeasurementService } from '@/services/measurement-service';
+import { evaluateFormula, validateMeasurement } from '@/lib/measurement-examples';
 
 interface QuestionnaireProps {
   receptionDate: string;
@@ -70,6 +73,9 @@ const Questionnaire = memo(function Questionnaire({
   const [allQuestions, setAllQuestions] = useState<Question[]>([]);
   const [questionsLoading, setQuestionsLoading] = useState(true);
   const [cacheUpdateTrigger, setCacheUpdateTrigger] = useState(0);
+  const [measurementValues, setMeasurementValues] = useState<Record<string, number>>({});
+  const [calculatedResults, setCalculatedResults] = useState<Record<string, any>>({});
+  const [measurementErrors, setMeasurementErrors] = useState<ProtocolError[]>([]);
 
   // Save current page to localStorage - immediate with ref update
   useEffect(() => {
@@ -366,14 +372,33 @@ const Questionnaire = memo(function Questionnaire({
           ) : (
             /* Regular Question Grid (2x2 Layout) for non-true_false questions */
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {(currentQuestions as Question[]).map((question: Question) => (
-                <IsolatedQuestion
-                  key={question.id}
-                  question={question}
-                  value={answers[question.id]}
-                  onChange={(value) => onAnswerChange(question.id, value)}
-                />
-              ))}
+              {(currentQuestions as Question[]).map((question: Question) => {
+                // Handle calculated questions specially
+                if (question.type === 'calculated') {
+                  return (
+                    <CalculatedResult
+                      key={question.id}
+                      question={question}
+                      inputValues={measurementValues}
+                    />
+                  );
+                }
+                
+                return (
+                  <IsolatedQuestion
+                    key={question.id}
+                    question={question}
+                    value={answers[question.id]}
+                    onChange={(value) => {
+                      onAnswerChange(question.id, value);
+                      // If this is a measurement question, also update measurementValues
+                      if (question.type === 'measurement' && typeof value === 'number') {
+                        setMeasurementValues(prev => ({ ...prev, [question.id]: value }));
+                      }
+                    }}
+                  />
+                );
+              })}
             </div>
           )}
         </div>

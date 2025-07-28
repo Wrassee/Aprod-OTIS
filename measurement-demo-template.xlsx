@@ -1,0 +1,23 @@
+This would be a demo Excel template with measurement questions. The actual file creation requires XLSX library but here's the structure:
+
+# Measurement Demo Template Structure
+
+## Sheet: Questions Template
+| Column A | Column B | Column C | Column D | Column E | Column F |
+|----------|----------|----------|----------|----------|----------|
+| question_id | title_hu | title_de | type | cell_reference | unit |
+| m1 | Távolság az aknatető és a kabintető között | Abstand zwischen Schachtkopf und Kabinendach | measurement | D25 | mm |
+| m2 | Távolság a legfelső ajtóküszöb és a kabinküszöb között | Abstand zwischen oberster Türschwelle und Kabinenschwelle | measurement | D26 | mm |
+| m3 | Távolság az ellensúly puffer és a süllyeszték között | Abstand zwischen Gegengewichtpuffer und Grube | measurement | D27 | mm |
+| c1 | Szabadmagasság összesen | Gesamte Kopfhöhe | calculated | D28 | mm |
+| c2 | Biztonsági távolság | Sicherheitsabstand | calculated | D29 | mm |
+
+## Additional columns for calculated questions:
+| Column G | Column H | Column I | Column J |
+|----------|----------|----------|----------|
+| calculation_formula | calculation_inputs | min_value | max_value |
+| m1 + m2 | m1,m2 | 2500 | 5000 |
+| m3 - 100 | m3 | 150 | 800 |
+
+## Sheet: Protocol Template
+The protocol template would have cells D25, D26, D27, D28, D29 formatted for measurement values with units.

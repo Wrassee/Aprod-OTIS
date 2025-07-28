@@ -24,7 +24,7 @@ export type InsertProtocol = z.infer<typeof insertProtocolSchema>;
 export type Protocol = typeof protocols.$inferSelect;
 
 // Question types
-export const QuestionType = z.enum(["yes_no_na", "number", "text", "true_false"]);
+export const QuestionType = z.enum(["yes_no_na", "number", "text", "true_false", "measurement", "calculated"]);
 export type QuestionType = z.infer<typeof QuestionType>;
 
 export const AnswerValue = z.union([
@@ -96,6 +96,12 @@ export const questionConfigs = pgTable("question_configs", {
   groupName: text("group_name"), // Block group name for organizing questions (e.g., "Alapadatok", "Gépház", "Ajtók")
   groupNameDe: text("group_name_de"), // German group name (e.g., "Grunddaten", "Maschinenraum", "Türen")
   groupOrder: integer("group_order").default(0), // Order within the group
+  // Measurement-specific fields
+  unit: text("unit"), // mm, cm, m, etc.
+  minValue: integer("min_value"), // Minimum allowed value
+  maxValue: integer("max_value"), // Maximum allowed value
+  calculationFormula: text("calculation_formula"), // e.g., "q1 + q2 - q3" for calculated fields
+  calculationInputs: text("calculation_inputs"), // comma-separated question IDs used in calculation
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
 });
 
@@ -119,6 +125,21 @@ export const questionConfigsRelations = relations(questionConfigs, ({ one }) => 
   }),
 }));
 
+// Measurement calculation interface
+export interface MeasurementCalculation {
+  id: string;
+  name: string;
+  nameHu?: string;
+  nameDe?: string;
+  formula: string; // e.g., "input1 + input2 - input3"
+  inputIds: string[]; // References to measurement input IDs
+  minValue?: number;
+  maxValue?: number;
+  targetCellReference?: string;
+  sheetName?: string;
+  unit: string; // mm, cm, m, etc.
+}
+
 // Question interface for frontend use
 export interface Question {
   id: string;
@@ -128,4 +149,9 @@ export interface Question {
   placeholder?: string;
   groupName?: string;
   groupOrder?: number;
+  // Measurement-specific properties
+  unit?: string;
+  minValue?: number;
+  maxValue?: number;
+  calculation?: MeasurementCalculation;
 }

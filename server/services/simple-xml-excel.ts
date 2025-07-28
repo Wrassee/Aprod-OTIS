@@ -303,6 +303,26 @@ class SimpleXmlExcelService {
             value: cellValue,
             label: config.title || `Question ${questionId}`
           });
+        } else if (config.type === 'measurement') {
+          // Handle measurement questions - display number with unit
+          const unit = config.unit || '';
+          const cellValue = unit ? `${answer} ${unit}` : String(answer);
+          
+          mappings.push({
+            cell: config.cellReference,
+            value: cellValue,
+            label: config.title || `Question ${questionId}`
+          });
+        } else if (config.type === 'calculated') {
+          // Handle calculated questions - display computed value with unit
+          const unit = config.unit || '';
+          const cellValue = unit ? `${answer} ${unit}` : String(answer);
+          
+          mappings.push({
+            cell: config.cellReference,
+            value: cellValue,
+            label: config.title || `Question ${questionId}`
+          });
         } else {
           // Handle other question types normally
           mappings.push({

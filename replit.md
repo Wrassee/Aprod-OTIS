@@ -4,8 +4,8 @@
 
 This is a full-stack TypeScript application that digitizes the OTIS elevator acceptance protocol process. The system guides users through a step-by-step questionnaire, allows error documentation with images, generates PDFs, and enables sharing via email or cloud storage. It supports both Hungarian and German languages.
 
-**Current Version**: OTIS APROD 0.2.1 - Production Release with Perfect German Localization (January 27, 2025)
-**Status**: FULLY OPERATIONAL ✅ - TELJES NÉMET LOKALIZÁCIÓ KÉSZ!
+**Current Version**: OTIS APROD 0.3.0 - Production Release with Measurement Data Block (January 27, 2025)
+**Status**: FULLY OPERATIONAL ✅ - MÉRÉSI ADATOK BLOKK KÉSZ!
 
 ## User Preferences
 
@@ -26,6 +26,15 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **UI Performance**: ✅ COMPLETED - All input components stabilized with proper debouncing
 - **Logo Display**: ✅ COMPLETED - Moved logo to client/public/ for proper static serving
 - **Yes/No/NA Logic**: ✅ COMPLETED - X-based logic implemented for multi-column questions
+
+### Measurement Data Block Implementation (January 27, 2025) - Version 0.3.0
+- **New Question Types**: ✅ COMPLETED - Added 'measurement' and 'calculated' question types to schema and components
+- **Measurement Components**: ✅ COMPLETED - Created MeasurementQuestion, CalculatedResult, and MeasurementBlock components
+- **Calculation Engine**: ✅ COMPLETED - Built MeasurementService for safe formula evaluation and validation
+- **Excel Integration**: ✅ COMPLETED - Extended simple-xml-excel.ts to handle measurement/calculated values with units
+- **Database Schema**: ✅ COMPLETED - Added unit, minValue, maxValue, calculationFormula, calculationInputs fields
+- **Auto Error Detection**: ✅ COMPLETED - Automatically adds out-of-range calculated values to protocol error list
+- **Multi-language Support**: ✅ COMPLETED - Full Hungarian/German support for measurement interface
 
 ### Critical German UI Localization Fix (January 27, 2025) - Version 0.2.1
 - **German UI Translation Issue**: ✅ RESOLVED - Complete German interface now working perfectly
@@ -125,10 +134,10 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Direct PDF Download**: ✅ COMPLETED - Single click PDF download with preserved OTIS protocol formatting
 - **User Requirement**: ✅ SATISFIED - PDF now looks exactly like original Excel file with complete formatting preservation
 
-## VERSION 0.2.1 FINAL RELEASE - TELJES NÉMET LOKALIZÁCIÓ! ✅
+## VERSION 0.3.0 FINAL RELEASE - MÉRÉSI ADATOK BLOKK! ✅
 
 ### Release Date: January 27, 2025 
-### Status: OTIS APROD 0.2.1 - TELJES NÉMET LOKALIZÁCIÓ KÉSZ! (FULLY OPERATIONAL)
+### Status: OTIS APROD 0.3.0 - MÉRÉSI ADATOK BLOKK KÉSZ! (FULLY OPERATIONAL)
 
 ### Version 0.2.0 New Features (January 27, 2025)
 - **Custom File Naming Enhancement**: ✅ COMPLETED - Files now download with "AP_" prefix + Otis Lift-azonosító format
