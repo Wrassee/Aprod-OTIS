@@ -237,24 +237,37 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
                       min={question.minValue}
                       max={question.maxValue}
                       onChange={(e) => {
+                        // STOP ALL EVENT PROPAGATION to prevent component refresh
+                        e.stopPropagation();
+                        e.preventDefault();
+                        
                         const value = e.target.value;
                         console.log(`Direct measurement input: ${question.id} = ${value}`);
                         
-                        // Use MeasurementCache for persistent storage
+                        // Use MeasurementCache for persistent storage ONLY
                         MeasurementCache.setValue(question.id, value);
                         
-                        // Also call onChange to keep form system in sync
-                        onChange(question.id, value);
+                        // COMPLETELY DISABLE ALL CALLBACKS AND EVENTS during typing
+                        // No onChange, no events, no state updates, no triggers - NOTHING!
                         
-                        const numValue = parseFloat(value);
-                        if (!isNaN(numValue)) {
-                          // Use debounced calculation updates
-                          clearTimeout((window as any)[`calc-timeout-${question.id}`]);
-                          (window as any)[`calc-timeout-${question.id}`] = setTimeout(() => {
-                            setMeasurementTrigger(prev => prev + 1);
+                        // Remove all automatic calculation updates during typing
+                        // User will get calculations on onBlur or navigation
+                      }}
+                      onBlur={(e) => {
+                        // Only on BLUR do we sync everything safely
+                        const value = e.target.value;
+                        if (value) {
+                          MeasurementCache.setValue(question.id, value);
+                          onChange(question.id, value); 
+                          
+                          // Trigger calculations only on blur
+                          setMeasurementTrigger(prev => prev + 1);
+                          
+                          // Safe to dispatch events on blur
+                          setTimeout(() => {
                             window.dispatchEvent(new CustomEvent('input-change'));
                             window.dispatchEvent(new CustomEvent('measurement-change'));
-                          }, 300);
+                          }, 100);
                         }
                       }}
                       style={{ 
