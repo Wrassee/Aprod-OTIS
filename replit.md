@@ -103,6 +103,20 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Backward Compatibility**: ✅ MAINTAINED - Existing Hungarian/German specific templates still supported
 - **User Validation**: ✅ CONFIRMED - User successfully tested new upload flow and confirmed "Nagyszerű!" - system working perfectly with single Excel for both languages
 
+### Complete Unified Template Implementation (January 28, 2025) - Version 0.4.0
+- **Missing Question Types Issue**: ✅ IDENTIFIED - EGYESÍTETT-TEMPLATE-FULL.xlsx only contained text/number/yes_no_na/true_false types
+- **Template Analysis**: ✅ COMPLETED - Original template had wrong column headers and missing measurement/calculated questions
+- **FIXED-UNIFIED-TEMPLATE.xlsx Created**: ✅ COMPLETED - Complete template with all 6 question types:
+  - 2 text questions (names)
+  - 2 number questions (postal code, house number)
+  - 2 yes_no_na questions (machine room questions)
+  - 2 true_false questions (modernization)
+  - 5 measurement questions (door/cabin/shaft dimensions with units and ranges)
+  - 4 calculated questions (area calculations with formulas)
+- **API Route Enhanced**: ✅ COMPLETED - /api/questions/:language now prioritizes 'unified' template type
+- **UI Components Ready**: ✅ VERIFIED - MeasurementQuestion and CalculatedResult components fully implemented
+- **Excel Parser Fixed**: ✅ COMPLETED - Proper column header mapping for all question types
+
 ### Critical Excel Generation Fix (January 27, 2025) - Hotfix 0.1.9.1
 - **Problem Identified**: ✅ RESOLVED - Excel generation broke after multilingual implementation due to template lookup failures
 - **Simple XML Service Fix**: ✅ COMPLETED - Added multilingual template priority logic to both protocol and questions template lookups  
