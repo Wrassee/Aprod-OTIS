@@ -224,9 +224,11 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
                           // Use debounced calculation updates to prevent excessive re-renders
                           clearTimeout((window as any)[`calc-timeout-${question.id}`]);
                           (window as any)[`calc-timeout-${question.id}`] = setTimeout(() => {
-                            // Trigger calculation update after 200ms of no typing
+                            // Trigger calculation update AND form validation
                             setMeasurementTrigger(prev => prev + 1);
-                          }, 200);
+                            window.dispatchEvent(new CustomEvent('input-change'));
+                            window.dispatchEvent(new CustomEvent('measurement-change'));
+                          }, 300);
                         }
                         
                         // DO NOT call onChange during typing - it causes React re-renders!
@@ -284,10 +286,12 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
                         );
                       
                       if (!errorExists) {
-                        // DISABLE automatic error adding - it causes measurement clearing
-                        // setTimeout(() => {
-                        //   addCalculatedValueError(question, calculatedValue);
-                        // }, 100);
+                        // Add error but DON'T trigger measurement clearing
+                        setTimeout(() => {
+                          if (onAddError) {
+                            addCalculatedValueError(question, calculatedValue);
+                          }
+                        }, 500);
                         (window as any)[errorKey] = true;
                         
                         // Keep track of added errors to prevent duplicates
