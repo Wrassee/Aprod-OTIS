@@ -247,13 +247,13 @@ const Questionnaire = memo(function Questionnaire({
     const calculatedQuestions = (currentQuestions as Question[]).filter((q: Question) => q.type === 'calculated');
     calculatedQuestions.forEach(question => {
       if (question.calculationFormula && question.calculationInputs) {
-        const inputIds = question.calculationInputs.split(',').map(id => id.trim());
+        const inputIds = question.calculationInputs.split(',').map((id: string) => id.trim());
         let formula = question.calculationFormula;
         let hasAllInputs = true;
         
         const allInputValues = { ...cachedMeasurementValues, ...cachedInputValues };
         
-        inputIds.forEach(inputId => {
+        inputIds.forEach((inputId: string) => {
           const value = allInputValues[inputId];
           if (value === undefined || value === null || isNaN(parseFloat(value.toString()))) {
             hasAllInputs = false;
@@ -412,14 +412,14 @@ const Questionnaire = memo(function Questionnaire({
               onChange={onAnswerChange}
               groupName={currentGroup?.name || 'Kérdések'}
             />
-          ) : (
-            /* Table-like Layout: Questions on left, Answers on right */
+          ) : (currentQuestions as Question[]).length > 0 && (currentQuestions as Question[]).some((q: Question) => q.type === 'measurement' || q.type === 'calculated') ? (
+            /* Table-like Layout for Measurement/Calculated: Questions on left, Answers on right */
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Left side - Questions list */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">
-                    Kérdések
+                    Mérési Kérdések
                   </h3>
                   {(currentQuestions as Question[]).map((question: Question, index: number) => (
                     <div key={`q-${question.id}`} className="flex items-start gap-3 py-3 border-b border-gray-100 last:border-b-0">
@@ -449,7 +449,7 @@ const Questionnaire = memo(function Questionnaire({
                         )}
                         {question.type === 'calculated' && question.calculationFormula && (
                           <p className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                            Számított érték
+                            Számított érték: {question.calculationFormula}
                           </p>
                         )}
                       </div>
@@ -457,7 +457,7 @@ const Questionnaire = memo(function Questionnaire({
                   ))}
                 </div>
 
-                {/* Right side - Answer inputs */}
+                {/* Right side - Answer inputs (only measurement/calculated) */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">
                     Válaszok
@@ -514,9 +514,9 @@ const Questionnaire = memo(function Questionnaire({
                               questionId={question.id}
                               initialValue={combinedAnswers[question.id]?.toString() || ''}
                               options={[
-                                { value: 'yes', label: t.yes, id: `${question.id}-yes` },
-                                { value: 'no', label: t.no, id: `${question.id}-no` },
-                                { value: 'na', label: t.notApplicable, id: `${question.id}-na` }
+                                { value: 'yes', label: t.yes },
+                                { value: 'no', label: t.no },
+                                { value: 'na', label: t.notApplicable }
                               ]}
                             />
                           )}
@@ -533,7 +533,7 @@ const Questionnaire = memo(function Questionnaire({
                           {question.type === 'measurement' && (
                             <MeasurementQuestion
                               question={question}
-                              value={typeof combinedAnswers[question.id] === 'number' ? combinedAnswers[question.id] : undefined}
+                              value={typeof combinedAnswers[question.id] === 'number' ? combinedAnswers[question.id] as number : undefined}
                               onChange={(value) => {
                                 onAnswerChange(question.id, value);
                                 setMeasurementValues(prev => ({ ...prev, [question.id]: value }));
@@ -544,7 +544,9 @@ const Questionnaire = memo(function Questionnaire({
                           {question.type === 'calculated' && (
                             <CalculatedResult
                               question={question}
-                              inputValues={combinedAnswers}
+                              inputValues={Object.fromEntries(
+                                Object.entries(combinedAnswers).filter(([_, value]) => typeof value === 'number')
+                              ) as Record<string, number>}
                             />
                           )}
                         </div>
@@ -553,6 +555,18 @@ const Questionnaire = memo(function Questionnaire({
                   })}
                 </div>
               </div>
+            </div>
+          ) : (
+            /* Standard Layout for other question types */
+            <div className="space-y-6">
+              {(currentQuestions as Question[]).map((question: Question) => (
+                <IsolatedQuestion
+                  key={question.id}
+                  question={question}
+                  value={answers[question.id]}
+                  onChange={(value) => onAnswerChange(question.id, value)}
+                />
+              ))}
             </div>
           )}
         </div>
