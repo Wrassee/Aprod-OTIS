@@ -273,17 +273,47 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
                   // Check if value is out of bounds and add error automatically
                   const isWithinBounds = checkValueBounds(question, calculatedValue);
                   if (!isWithinBounds) {
-                    // Only add error once per calculation cycle to avoid duplicates
-                    const errorKey = `calc-error-${question.id}`;
+                    // Only add error if not already present with the same value
+                    const errorKey = `calc-error-${question.id}-${calculatedValue}`;
                     if (!(window as any)[errorKey]) {
-                      addCalculatedValueError(question, calculatedValue);
-                      (window as any)[errorKey] = true;
+                      // Check if we already have this type of error in the actual error list
+                      const questionTitle = language === 'de' ? question.titleDe : question.title;
+                      const errorExists = onAddError && (window as any).lastBoundaryErrors && 
+                        (window as any).lastBoundaryErrors.some((e: any) => 
+                          e.title.includes(questionTitle) && e.description.includes(calculatedValue.toString())
+                        );
                       
-                      // Reset error flag after 5 seconds to allow re-triggering if values change
-                      setTimeout(() => {
-                        delete (window as any)[errorKey];
-                      }, 5000);
+                      if (!errorExists) {
+                        addCalculatedValueError(question, calculatedValue);
+                        (window as any)[errorKey] = true;
+                        
+                        // Keep track of added errors to prevent duplicates
+                        if (!(window as any).lastBoundaryErrors) {
+                          (window as any).lastBoundaryErrors = [];
+                        }
+                        (window as any).lastBoundaryErrors.push({
+                          title: language === 'de' 
+                            ? `Berechneter Wert außerhalb der Grenzen: ${questionTitle}`
+                            : `Határértéken kívüli számított érték: ${questionTitle}`,
+                          description: calculatedValue.toString(),
+                          questionId: question.id
+                        });
+                      }
+                      
+                      // Clear old error keys for this question
+                      Object.keys(window as any).forEach(key => {
+                        if (key.startsWith(`calc-error-${question.id}-`) && key !== errorKey) {
+                          delete (window as any)[key];
+                        }
+                      });
                     }
+                  } else {
+                    // Clear error flags when value becomes valid
+                    Object.keys(window as any).forEach(key => {
+                      if (key.startsWith(`calc-error-${question.id}-`)) {
+                        delete (window as any)[key];
+                      }
+                    });
                   }
                   
                   // Don't call onChange during render - it causes React warnings

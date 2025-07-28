@@ -33,6 +33,8 @@ class SimpleXmlExcelService {
         questionConfigs = await storage.getQuestionConfigsByTemplate(questionsTemplate.id);
         console.log('Loaded question configs for XML:', questionConfigs.length);
         console.log('Question config IDs:', questionConfigs.map(q => q.questionId));
+      } else {
+        console.error('No questions template found! Cannot map data to Excel cells.');
       }
 
       // Process with simple string replacement in XML
@@ -179,7 +181,8 @@ class SimpleXmlExcelService {
       
       console.log(`DEBUG: Processing question ${questionId}, config found:`, !!config, `answer:`, answer);
       if (!config) {
-        console.log(`DEBUG: Available question IDs:`, questionConfigs.map(q => q.questionId));
+        console.log(`DEBUG: Looking for questionId '${questionId}' (type: ${typeof questionId})`);
+        console.log(`DEBUG: Available configs:`, questionConfigs.map(q => `'${q.questionId}' (${typeof q.questionId})`));
       }
       
       if (config && config.cellReference && answer !== '' && answer !== null && answer !== undefined) {
