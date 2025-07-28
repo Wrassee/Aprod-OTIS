@@ -3,6 +3,7 @@ import { useLanguageContext } from '@/components/language-provider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { StableInput } from '@/components/stable-input';
 import { Calculator, Ruler } from 'lucide-react';
 import { Question } from '@shared/schema';
 import { getAllMeasurementValues } from './measurement-question';
@@ -47,7 +48,7 @@ export function MeasurementBlock({ questions, values, onChange }: MeasurementBlo
     
     const combined: Record<string, number> = {};
     
-    // Combine all sources
+    // Combine all sources - prioritize stableInputValues (most recent)
     Object.keys(cached).forEach((key: string) => {
       const value = parseFloat(cached[key].toString());
       if (!isNaN(value)) {
@@ -100,27 +101,7 @@ export function MeasurementBlock({ questions, values, onChange }: MeasurementBlo
     }
   };
 
-  const handleMeasurementChange = (questionId: string, value: string) => {
-    // Store in both caches for compatibility
-    if (!(window as any).measurementValues) {
-      (window as any).measurementValues = {};
-    }
-    (window as any).measurementValues[questionId] = value;
-    
-    if (!(window as any).stableInputValues) {
-      (window as any).stableInputValues = {};
-    }
-    (window as any).stableInputValues[questionId] = value;
-    
-    // Trigger measurement change event for calculations
-    window.dispatchEvent(new CustomEvent('measurement-change'));
-    
-    // Call parent onChange
-    const numValue = parseFloat(value);
-    if (!isNaN(numValue)) {
-      onChange(questionId, numValue);
-    }
-  };
+  // Remove handleMeasurementChange as we now use StableInput with onValueChange
 
   const translations = {
     hu: {
@@ -167,14 +148,29 @@ export function MeasurementBlock({ questions, values, onChange }: MeasurementBlo
                     )}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <Input
+                    <StableInput
+                      questionId={question.id}
                       type="number"
-                      value={currentMeasurementValues[question.id] || ''}
-                      onChange={(e) => handleMeasurementChange(question.id, e.target.value)}
                       placeholder="0"
                       className="w-20 text-center font-mono"
                       min={question.minValue}
                       max={question.maxValue}
+                      onValueChange={(value) => {
+                        // Convert to number and store in measurement cache
+                        const numValue = parseFloat(value);
+                        if (!isNaN(numValue)) {
+                          if (!(window as any).measurementValues) {
+                            (window as any).measurementValues = {};
+                          }
+                          (window as any).measurementValues[question.id] = numValue;
+                          
+                          // Trigger measurement change event for calculations
+                          window.dispatchEvent(new CustomEvent('measurement-change'));
+                          
+                          // Call parent onChange
+                          onChange(question.id, numValue);
+                        }
+                      }}
                     />
                     {question.unit && (
                       <span className="text-sm text-gray-500 w-8">{question.unit}</span>
