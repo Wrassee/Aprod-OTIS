@@ -389,10 +389,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { language } = req.params;
       
-      // First try to find multilingual template, then language-specific
-      let questionsTemplate = await storage.getActiveTemplate('questions', 'multilingual');
+      // First try to find unified template (contains all question types)
+      let questionsTemplate = await storage.getActiveTemplate('unified', 'multilingual');
       if (!questionsTemplate) {
-        questionsTemplate = await storage.getActiveTemplate('questions', language);
+        questionsTemplate = await storage.getActiveTemplate('unified', language);
+      }
+      
+      // If no unified template, try traditional questions template
+      if (!questionsTemplate) {
+        questionsTemplate = await storage.getActiveTemplate('questions', 'multilingual');
+        if (!questionsTemplate) {
+          questionsTemplate = await storage.getActiveTemplate('questions', language);
+        }
       }
       
       if (!questionsTemplate) {
