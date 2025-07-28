@@ -102,9 +102,15 @@ class SimpleXmlExcelService {
         // Method 1: Replace existing cell content (with content)
         const contentCellPattern = new RegExp(`(<c r="${cell}"[^>]*>).*?(</c>)`, 'g');
         if (contentCellPattern.test(worksheetXml)) {
-          worksheetXml = worksheetXml.replace(contentCellPattern, `$1<v>${this.escapeXml(value)}</v>$2`);
+          // Use proper Excel format for text/numbers
+          const isNumeric = !isNaN(parseFloat(value)) && isFinite(parseFloat(value));
+          if (isNumeric) {
+            worksheetXml = worksheetXml.replace(contentCellPattern, `$1<v>${value}</v>$2`);
+          } else {
+            worksheetXml = worksheetXml.replace(contentCellPattern, `$1<is><t>${this.escapeXml(value)}</t></is>$2`);
+          }
           modifiedCount++;
-          console.log(`XML: Replaced content cell ${cell} = "${value}"`);
+          console.log(`XML: Replaced content cell ${cell} = "${value}" (${isNumeric ? 'numeric' : 'text'})`);
         }
         // Method 2: Replace self-closing empty cells with exact style preservation  
         else if (worksheetXml.includes(`<c r="${cell}" s="`)) {
@@ -118,7 +124,18 @@ class SimpleXmlExcelService {
           
           if (styleMatch) {
             const styleValue = styleMatch[1];
-            const replacement = `<c r="${cell}" s="${styleValue}" t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`;
+            
+            // Create appropriate replacement based on value type
+            const isNumeric = !isNaN(parseFloat(value)) && isFinite(parseFloat(value));
+            let replacement;
+            
+            if (isNumeric) {
+              // For numeric values (including measurements), use <v> element
+              replacement = `<c r="${cell}" s="${styleValue}"><v>${value}</v></c>`;
+            } else {
+              // For text values, use inline string format
+              replacement = `<c r="${cell}" s="${styleValue}" t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`;
+            }
             
             // Replace both self-closing and content versions
             const selfClosingPattern = new RegExp(`<c r="${cell}" s="${styleValue}"/>`);
@@ -131,11 +148,11 @@ class SimpleXmlExcelService {
             }
             
             modifiedCount++;
-            console.log(`XML: Added ${cell} = "${value}" (exact style preserved: s="${styleValue}")`);
+            console.log(`XML: Added ${cell} = "${value}" (${isNumeric ? 'numeric' : 'text'}, style: s="${styleValue}")`);
             
             // Special debug for measurement cells
             if (cell.startsWith('I') || cell.startsWith('N')) {
-              console.log(`MEASUREMENT DEBUG: ${cell} successfully updated with value "${value}"`);
+              console.log(`MEASUREMENT DEBUG: ${cell} successfully updated with value "${value}" (${isNumeric ? 'numeric' : 'text'})`);
             }
           } else {
             console.log(`XML: Style match failed for ${cell}`);
@@ -147,10 +164,20 @@ class SimpleXmlExcelService {
             if (flexibleMatch) {
               const styleValue = flexibleMatch[1];
               const fullCellPattern = new RegExp(`<c r="${cell}"[^>]*>.*?</c>`, 'g');
-              const replacement = `<c r="${cell}" s="${styleValue}" t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`;
+              
+              // Use proper format based on value type
+              const isNumeric = !isNaN(parseFloat(value)) && isFinite(parseFloat(value));
+              let replacement;
+              
+              if (isNumeric) {
+                replacement = `<c r="${cell}" s="${styleValue}"><v>${value}</v></c>`;
+              } else {
+                replacement = `<c r="${cell}" s="${styleValue}" t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`;
+              }
+              
               worksheetXml = worksheetXml.replace(fullCellPattern, replacement);
               modifiedCount++;
-              console.log(`XML: FLEXIBLE match success for ${cell} = "${value}" (style: s="${styleValue}")`);
+              console.log(`XML: FLEXIBLE match success for ${cell} = "${value}" (${isNumeric ? 'numeric' : 'text'}, style: s="${styleValue}")`);
             }
           }
         }
@@ -350,25 +377,25 @@ class SimpleXmlExcelService {
             label: config.title || `Question ${questionId}`
           });
         } else if (config.type === 'measurement') {
-          // Handle measurement questions - display number with unit
-          const unit = config.unit || '';
-          const cellValue = unit ? `${answer} ${unit}` : String(answer);
-          
-          mappings.push({
-            cell: config.cellReference,
-            value: cellValue,
-            label: config.title || `Question ${questionId}`
-          });
+          // Handle measurement questions - keep as pure number for Excel
+          const numericValue = parseFloat(String(answer));
+          if (!isNaN(numericValue)) {
+            mappings.push({
+              cell: config.cellReference,
+              value: String(numericValue), // Pure number, no unit
+              label: config.title || `Question ${questionId}`
+            });
+          }
         } else if (config.type === 'calculated') {
-          // Handle calculated questions - display computed value with unit
-          const unit = config.unit || '';
-          const cellValue = unit ? `${answer} ${unit}` : String(answer);
-          
-          mappings.push({
-            cell: config.cellReference,
-            value: cellValue,
-            label: config.title || `Question ${questionId}`
-          });
+          // Handle calculated questions - keep as pure number for Excel
+          const numericValue = parseFloat(String(answer));
+          if (!isNaN(numericValue)) {
+            mappings.push({
+              cell: config.cellReference,
+              value: String(numericValue), // Pure number, no unit
+              label: config.title || `Question ${questionId}`
+            });
+          }
         } else {
           // Handle other question types normally
           mappings.push({
