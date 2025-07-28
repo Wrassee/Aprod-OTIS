@@ -4,17 +4,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 
-import { Calculator, Ruler } from 'lucide-react';
-import { Question } from '@shared/schema';
+import { Calculator, Ruler, AlertTriangle } from 'lucide-react';
+import { Question, ProtocolError } from '@shared/schema';
 import { getAllMeasurementValues } from './measurement-question';
 
 interface MeasurementBlockProps {
   questions: Question[]; // All measurement and calculated questions
   values: Record<string, any>;
   onChange: (questionId: string, value: any) => void;
+  onAddError?: (error: Omit<ProtocolError, 'id'>) => void;
 }
 
-export function MeasurementBlock({ questions, values, onChange }: MeasurementBlockProps) {
+export function MeasurementBlock({ questions, values, onChange, onAddError }: MeasurementBlockProps) {
   const { language } = useLanguageContext();
   const [measurementTrigger, setMeasurementTrigger] = useState(0);
 
@@ -46,6 +47,45 @@ export function MeasurementBlock({ questions, values, onChange }: MeasurementBlo
   // Separate measurement and calculated questions
   const measurementQuestions = questions.filter(q => q.type === 'measurement');
   const calculatedQuestions = questions.filter(q => q.type === 'calculated');
+
+  // Check if calculated value is out of bounds
+  const checkValueBounds = (question: Question, value: number): boolean => {
+    if (question.minValue !== undefined && value < question.minValue) return false;
+    if (question.maxValue !== undefined && value > question.maxValue) return false;
+    return true;
+  };
+
+  // Auto-add error for out of bounds calculated values
+  const addCalculatedValueError = (question: Question, value: number) => {
+    if (!onAddError) return;
+    
+    const questionTitle = language === 'de' ? question.titleDe : question.title;
+    const unit = question.unit || '';
+    
+    let boundaryInfo = '';
+    if (question.minValue !== undefined && question.maxValue !== undefined) {
+      boundaryInfo = `(${question.minValue}-${question.maxValue} ${unit})`;
+    } else if (question.minValue !== undefined) {
+      boundaryInfo = `(min: ${question.minValue} ${unit})`;
+    } else if (question.maxValue !== undefined) {
+      boundaryInfo = `(max: ${question.maxValue} ${unit})`;
+    }
+
+    const errorTitle = language === 'de' 
+      ? `Berechneter Wert außerhalb der Grenzen: ${questionTitle}`
+      : `Határértéken kívüli számított érték: ${questionTitle}`;
+    
+    const errorDescription = language === 'de'
+      ? `Der berechnete Wert ${value} ${unit} liegt außerhalb der zulässigen Grenzen ${boundaryInfo}. Bitte überprüfen Sie die Eingabewerte.`
+      : `A számított érték ${value} ${unit} kívül esik a megengedett határokon ${boundaryInfo}. Kérjük, ellenőrizze a bemeneti értékeket.`;
+
+    onAddError({
+      title: errorTitle,
+      description: errorDescription,
+      severity: 'critical',
+      images: []
+    });
+  };
 
   // Get current measurement values for calculations - simplified without real-time updates
   const getCurrentMeasurementValues = (): Record<string, number> => {
@@ -228,9 +268,28 @@ export function MeasurementBlock({ questions, values, onChange }: MeasurementBlo
                   }
                   (window as any).calculatedValues[question.id] = calculatedValue;
                   
+                  // Check if value is out of bounds and add error automatically
+                  const isWithinBounds = checkValueBounds(question, calculatedValue);
+                  if (!isWithinBounds) {
+                    // Only add error once per calculation cycle to avoid duplicates
+                    const errorKey = `calc-error-${question.id}`;
+                    if (!(window as any)[errorKey]) {
+                      addCalculatedValueError(question, calculatedValue);
+                      (window as any)[errorKey] = true;
+                      
+                      // Reset error flag after 5 seconds to allow re-triggering if values change
+                      setTimeout(() => {
+                        delete (window as any)[errorKey];
+                      }, 5000);
+                    }
+                  }
+                  
                   // Don't call onChange during render - it causes React warnings
                   // onChange will be called during Save/Next button processing
                 }
+
+                // Determine if this value is out of bounds for styling
+                const isOutOfBounds = calculatedValue !== null && typeof calculatedValue === 'number' && !checkValueBounds(question, calculatedValue);
 
                 return (
                   <div key={question.id} className="flex items-center gap-4 py-3 border-b border-gray-100 last:border-b-0">
@@ -246,13 +305,20 @@ export function MeasurementBlock({ questions, values, onChange }: MeasurementBlo
                       )}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <div className="w-20 bg-gray-50 border rounded px-3 py-2 text-center">
+                      <div className={`w-20 border rounded px-3 py-2 text-center ${
+                        isOutOfBounds 
+                          ? 'bg-red-50 border-red-300 text-red-700' 
+                          : 'bg-gray-50 border-gray-300'
+                      }`}>
                         <span className="font-mono text-sm">
                           {calculatedValue !== null ? calculatedValue.toFixed(2) : '—'}
                         </span>
                       </div>
                       {question.unit && (
                         <span className="text-sm text-gray-500 w-8">{question.unit}</span>
+                      )}
+                      {isOutOfBounds && (
+                        <AlertTriangle className="h-4 w-4 text-red-500" />
                       )}
                     </div>
                   </div>

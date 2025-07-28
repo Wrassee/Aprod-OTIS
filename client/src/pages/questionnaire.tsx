@@ -424,6 +424,7 @@ const Questionnaire = memo(function Questionnaire({
                     setMeasurementValues(prev => ({ ...prev, [questionId]: value }));
                   }
                 }}
+                onAddError={handleAddError}
               />
             ) : (
               /* Regular Question Grid (2x2 Layout) for other question types */
