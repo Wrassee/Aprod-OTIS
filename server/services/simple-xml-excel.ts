@@ -89,26 +89,24 @@ class SimpleXmlExcelService {
       cellMappings.forEach(mapping => {
         const { cell, value } = mapping;
         
-        // Look for existing cell patterns - preserve all attributes including style
-        const cellPattern = new RegExp(`(<c r="${cell}"[^>]*>)([^<]*)(</c>)`, 'g');
-        const emptyPattern = new RegExp(`<c r="${cell}"([^>]*?)/>`, 'g');
-        const emptyPatternExact = new RegExp(`<c r="${cell}" s="([^"]+)"/>`, 'g');
-        
-        // Debug: Check what patterns exist for this cell
+        // Enhanced cell pattern matching for better Excel compatibility
         const cellExists = worksheetXml.includes(`r="${cell}"`);
+        console.log(`XML Debug: Checking cell ${cell}, exists: ${cellExists}`);
+        
         if (cellExists) {
           // Find the exact cell pattern in XML
           const cellMatch = worksheetXml.match(new RegExp(`<c r="${cell}"[^>]*>`));
           console.log(`XML Debug: ${cell} pattern:`, cellMatch ? cellMatch[0] : 'NOT_FOUND');
         }
         
-        // Replace existing cell content while preserving attributes
-        if (cellPattern.test(worksheetXml)) {
-          worksheetXml = worksheetXml.replace(cellPattern, `$1<is><t>${this.escapeXml(value)}</t></is>$3`);
+        // Method 1: Replace existing cell content (with content)
+        const contentCellPattern = new RegExp(`(<c r="${cell}"[^>]*>).*?(</c>)`, 'g');
+        if (contentCellPattern.test(worksheetXml)) {
+          worksheetXml = worksheetXml.replace(contentCellPattern, `$1<v>${this.escapeXml(value)}</v>$2`);
           modifiedCount++;
-          console.log(`XML: Replaced ${cell} = "${value}" (formatting preserved)`);
-        } 
-        // Replace self-closing empty cells with exact style preservation
+          console.log(`XML: Replaced content cell ${cell} = "${value}"`);
+        }
+        // Method 2: Replace self-closing empty cells with exact style preservation  
         else if (worksheetXml.includes(`<c r="${cell}" s="`)) {
           // Find the exact style value manually - handle both self-closing and content cells
           let styleMatch = worksheetXml.match(new RegExp(`<c r="${cell}" s="([^"]+)"/>`));
