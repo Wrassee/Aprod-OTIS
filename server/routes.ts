@@ -274,6 +274,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
               groupName: question.groupName || null,
               groupNameDe: question.groupNameDe || null,
               groupOrder: question.groupOrder || 0,
+              unit: question.unit || null,
+              minValue: question.minValue || null,
+              maxValue: question.maxValue || null,
+              calculationFormula: question.calculationFormula || null,
+              calculationInputs: question.calculationInputs || null,
             });
           }
         } catch (parseError) {
@@ -408,6 +413,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sheetName: config.sheetName || undefined,
         groupName: language === 'de' && config.groupNameDe ? config.groupNameDe : config.groupName || undefined,
         groupOrder: config.groupOrder || 0,
+        unit: config.unit || undefined,
+        minValue: config.minValue || undefined,
+        maxValue: config.maxValue || undefined,
+        calculationFormula: config.calculationFormula || undefined,
+        calculationInputs: config.calculationInputs || undefined,
       }));
 
       res.json(questions);
