@@ -12,11 +12,9 @@ import { useLanguageContext } from '@/components/language-provider';
 import { ArrowLeft, ArrowRight, Save, Settings, Home, Check, X } from 'lucide-react';
 import { getAllCachedValues } from '@/components/cache-radio';
 import { getAllTrueFalseValues } from '@/components/true-false-radio';
-import { getAllStableInputValues, StableInput } from '@/components/stable-input';
-import { getAllMeasurementValues, MeasurementQuestion } from '@/components/measurement-question';
+import { getAllStableInputValues } from '@/components/stable-input';
+import { getAllMeasurementValues } from '@/components/measurement-question';
 import { CalculatedResult } from '@/components/calculated-result';
-import { CacheRadio } from '@/components/cache-radio';
-import { TrueFalseRadio } from '@/components/true-false-radio';
 
 interface QuestionnaireProps {
   receptionDate: string;
@@ -247,13 +245,13 @@ const Questionnaire = memo(function Questionnaire({
     const calculatedQuestions = (currentQuestions as Question[]).filter((q: Question) => q.type === 'calculated');
     calculatedQuestions.forEach(question => {
       if (question.calculationFormula && question.calculationInputs) {
-        const inputIds = question.calculationInputs.split(',').map((id: string) => id.trim());
+        const inputIds = question.calculationInputs.split(',').map(id => id.trim());
         let formula = question.calculationFormula;
         let hasAllInputs = true;
         
         const allInputValues = { ...cachedMeasurementValues, ...cachedInputValues };
         
-        inputIds.forEach((inputId: string) => {
+        inputIds.forEach(inputId => {
           const value = allInputValues[inputId];
           if (value === undefined || value === null || isNaN(parseFloat(value.toString()))) {
             hasAllInputs = false;
@@ -413,16 +411,35 @@ const Questionnaire = memo(function Questionnaire({
               groupName={currentGroup?.name || 'Kérdések'}
             />
           ) : (
-            /* Standard Layout for all question types - back to original */
-            <div className="space-y-6">
-              {(currentQuestions as Question[]).map((question: Question) => (
-                <IsolatedQuestion
-                  key={question.id}
-                  question={question}
-                  value={answers[question.id]}
-                  onChange={(value) => onAnswerChange(question.id, value)}
-                />
-              ))}
+            /* Regular Question Grid (2x2 Layout) for non-true_false questions */
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {(currentQuestions as Question[]).map((question: Question) => {
+                // Handle calculated questions specially
+                if (question.type === 'calculated') {
+                  return (
+                    <CalculatedResult
+                      key={question.id}
+                      question={question}
+                      inputValues={measurementValues}
+                    />
+                  );
+                }
+                
+                return (
+                  <IsolatedQuestion
+                    key={question.id}
+                    question={question}
+                    value={answers[question.id]}
+                    onChange={(value) => {
+                      onAnswerChange(question.id, value);
+                      // If this is a measurement question, also update measurementValues
+                      if (question.type === 'measurement' && typeof value === 'number') {
+                        setMeasurementValues(prev => ({ ...prev, [question.id]: value }));
+                      }
+                    }}
+                  />
+                );
+              })}
             </div>
           )}
         </div>

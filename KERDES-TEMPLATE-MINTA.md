@@ -1,125 +1,109 @@
-# EXCEL KÉRDÉS TEMPLATE OSZLOPAI - VIZUÁLIS PÉLDA
+# Hogyan adjunk hozzá mérési kérdéseket az Excel template-hez
 
-## 📊 Template Tábla Szerkezet
+## 1. Excel Template felépítése
 
-Az Excel "questions" lap így néz ki:
+Az Excel template-nek 2 munkalapot kell tartalmaznia:
+
+### A) "questions" munkálap (kérdések definíciója)
+| A oszlop | B oszlop | C oszlop | D oszlop | E oszlop | F oszlop | G oszlop | H oszlop | I oszlop | J oszlop |
+|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|
+| question_id | title_hu | title_de | type | cell_reference | unit | calculation_formula | calculation_inputs | min_value | max_value |
+
+### B) "protocol" munkálap (az actual protokoll template)
+- Ez a munkálap tartalmazza a formázott OTIS protokollt
+- A cellák (pl. D25, D26) ide kerülnek a válaszok
+
+## 2. Mérési kérdések hozzáadása (measurement type)
+
+### Példa a "questions" munkalapon:
 
 ```
-A           B                    C                    D         E         F    G                H            I      J      K              L      M        N
-question_id title_hu             title_de             type      cell_ref  unit calc_formula    calc_inputs  min    max    group_name     order  required placeholder
------------+--------------------+--------------------+---------+---------+----+---------------+------------+------+------+--------------+------+--------+------------------
-1          | Átvevő neve        | Name des Abnehmers | text    | F9      |    |               |            |      |      | Általános     | 1    | true   | Teljes név
-2          | Szerelő neve       | Name des Monteurs  | text    | Q9      |    |               |            |      |      | Általános     | 2    | true   | Szerelő neve  
-3          | Irányítószám       | Postleitzahl       | number  | G13     |    |               |            | 1000 | 9999 | Általános     | 3    | true   | pl. 1051
-4          | Város              | Stadt              | text    | O13     |    |               |            |      |      | Általános     | 4    | true   | Város neve
-10         | Gépház típus       | Maschinenraumtyp   | yes_no_na| A68,B68,C68|  |               |            |      |      | Gépház        | 1    | true   | Igen/Nem/NA
-12         | Kabin módosítva    | Kabine modifiziert | true_false| Q25    |    |               |            |      |      | Modernizáció  | 1    | true   | Igaz/Hamis
-m1         | Kabintető távolság | Abstand Kabinendach| measurement| I278   | mm |               |            | 500  | 3000 | Mérési adatok | 1    | true   | Mérés mm-ben
-m4         | Effektív távolság A| Effektiver Abstand A| calculated| I283   | mm | m1 - m3       | m1,m3      | 700  | 9000 | Mérési adatok | 4    | true   | Auto számolt
+| question_id | title_hu | title_de | type | cell_reference | unit | min_value | max_value |
+|-------------|----------|----------|------|----------------|------|-----------|-----------|
+| m1 | Távolság az aknatető és a kabintető között | Abstand zwischen Schachtkopf und Kabinendach | measurement | D25 | mm | 500 | 3000 |
+| m2 | Távolság a legfelső ajtóküszöb és a kabinküszöb között | Abstand zwischen oberster Türschwelle und Kabinenschwelle | measurement | D26 | mm | 0 | 50 |
+| m3 | Távolság az ellensúly puffer és a süllyeszték között | Abstand zwischen Gegengewichtpuffer und Grube | measurement | D27 | mm | 100 | 1000 |
 ```
 
-## 📋 Oszlopok Jelentése
+### Magyarázat:
+- **question_id**: Egyedi azonosító (pl. m1, m2, m3)
+- **title_hu**: Magyar cím
+- **title_de**: Német cím  
+- **type**: "measurement" 
+- **cell_reference**: Melyik Excel cellába kerüljön (pl. D25)
+- **unit**: Mértékegység (pl. mm, cm, m)
+- **min_value**: Minimális elfogadható érték
+- **max_value**: Maximális elfogadható érték
 
-### A - question_id
-- **Cél**: Egyedi azonosító
-- **Példák**: `1`, `2`, `m1`, `m4`
-- **Szabály**: Számok vagy betű+szám kombináció
+## 3. Számított kérdések hozzáadása (calculated type)
 
-### B - title_hu  
-- **Cél**: Magyar kérdés szöveg
-- **Példa**: `"Átvevő neve"`
-- **Megjelenés**: Ez látszik a felhasználónak
+### Példa:
 
-### C - title_de
-- **Cél**: Német kérdés szöveg  
-- **Példa**: `"Name des Abnehmers"`
-- **Használat**: Német nyelv választásakor
-
-### D - type
-- **Értékek**: 
-  - `text` - szöveges bevitel
-  - `number` - szám bevitel
-  - `yes_no_na` - Igen/Nem/NA
-  - `true_false` - Igaz/Hamis
-  - `measurement` - mérés egységgel
-  - `calculated` - automatikus számítás
-
-### E - cell_reference
-- **Cél**: Melyik Excel cellába kerüljön a válasz
-- **Példák**: 
-  - `F9` - egyszerű cella
-  - `A68,B68,C68` - yes_no_na típusnál 3 cella
-  - `I278` - mérési adat cellája
-
-### F - unit
-- **Cél**: Mértékegység
-- **Példák**: `mm`, `kg`, `m/s`, `db`
-- **Használat**: Measurement típusnál kötelező
-
-### G - calculation_formula
-- **Cél**: Számítási képlet
-- **Példák**: `m1 - m3`, `m2 + m1`
-- **Használat**: Csak calculated típusnál
-
-### H - calculation_inputs
-- **Cél**: Mely változókat használja a képlet
-- **Példa**: `m1,m3` (vesszővel elválasztva)
-- **Használat**: Calculated típusnál kötelező
-
-### I - min_value
-- **Cél**: Minimum érték
-- **Példa**: `500`, `1000`
-- **Használat**: Number és measurement típusnál
-
-### J - max_value
-- **Cél**: Maximum érték
-- **Példa**: `3000`, `9999`
-- **Használat**: Number és measurement típusnál
-
-### K - group_name
-- **Cél**: Kérdéscsoport neve
-- **Példák**: 
-  - `"Általános adatok"`
-  - `"Mérési adatok"`
-  - `"Gépház"`
-
-### L - group_order
-- **Cél**: Sorrend a csoporton belül
-- **Értékek**: `1`, `2`, `3`...
-- **Használat**: Kérdések sorrendje
-
-### M - required
-- **Értékek**: `true` vagy `false`
-- **Cél**: Kötelező-e kitölteni
-- **Alapértelmezett**: `true`
-
-### N - placeholder
-- **Cél**: Segítő szöveg
-- **Példák**: 
-  - `"Teljes név megadása"`
-  - `"pl. 1051"`
-  - `"Mérés mm-ben"`
-
-## 💡 Gyakorlati Példák
-
-### 1. Egyszerű szöveg kérdés:
-```excel
-1 | Átvevő neve | Name des Abnehmers | text | F9 | | | | | | Általános adatok | 1 | true | Teljes név
+```
+| question_id | title_hu | title_de | type | cell_reference | unit | calculation_formula | calculation_inputs | min_value | max_value |
+|-------------|----------|----------|------|----------------|------|---------------------|-------------------|-----------|-----------|
+| c1 | Szabadmagasság összesen | Gesamte Kopfhöhe | calculated | D28 | mm | m1 + m2 | m1,m2 | 2500 | 5000 |
+| c2 | Biztonsági távolság | Sicherheitsabstand | calculated | D29 | mm | m3 - 100 | m3 | 150 | 800 |
 ```
 
-### 2. Szám validációval:
-```excel
-3 | Irányítószám | Postleitzahl | number | G13 | | | | 1000 | 9999 | Általános adatok | 3 | true | pl. 1051
+### Magyarázat:
+- **type**: "calculated"
+- **calculation_formula**: Matematikai képlet (pl. "m1 + m2", "m3 - 100")
+- **calculation_inputs**: Vesszővel elválasztott input kérdés ID-k (pl. "m1,m2")
+
+## 4. Protocol munkálap formázása
+
+A "protocol" munkalapon a megfelelő celláknak (D25, D26, D27, D28, D29) formázottnak kell lenniük:
+
+```
+| C oszlop | D oszlop |
+|----------|----------|
+| Aknatető-kabintető távolság: | [D25] mm |
+| Ajtóküszöb-kabinküszöb távolság: | [D26] mm |
+| Ellensúly puffer távolság: | [D27] mm |
+| Szabadmagasság összesen: | [D28] mm |
+| Biztonsági távolság: | [D29] mm |
 ```
 
-### 3. Mérési adat:
-```excel
-m1 | Kabintető távolság | Abstand Kabinendach | measurement | I278 | mm | | | 500 | 3000 | Mérési adatok | 1 | true | Mérés mm-ben
-```
+## 5. Template feltöltése a rendszerbe
 
-### 4. Számított érték:
-```excel
-m4 | Effektív távolság | Effektiver Abstand | calculated | I283 | mm | m1 - m3 | m1,m3 | 700 | 9000 | Mérési adatok | 4 | true | Automatikusan számolt
-```
+1. **Admin felület** → **Template Management**
+2. **"Upload Questions Template"** gomb
+3. Excel fájl kiválasztása
+4. **Language**: "Multilingual (HU/DE)" kiválasztása
+5. **Upload** gomb
+6. **Activate** gomb a feltöltött template mellett
 
-Ez a 14 oszlopos struktúra teszi lehetővé, hogy minden kérdés típus egy helyen legyen definiálva az egyesített template-ben!
+## 6. Működési logika
+
+### Mérési kérdések:
+- A felhasználó számot ad meg
+- A program ellenőrzi a min/max értékeket
+- Ha kívül esik → automatikusan hozzáadja a hibalistához
+- Excel-ben: "1250 mm" formátumban jelenik meg
+
+### Számított kérdések:
+- Automatikusan számítódnak a mérési értékekből
+- Ha a számított érték kívül esik a határértékeken → hibalistára kerül
+- Excel-ben: "1350 mm" formátumban jelenik meg
+
+## 7. Hibakeresés
+
+Ha a kérdések nem jelennek meg:
+
+1. **Ellenőrizd a munkálap neveket**: "questions" és "protocol"
+2. **Ellenőrizd az oszlop fejléceket**: question_id, title_hu, title_de, type, stb.
+3. **Ellenőrizd a type értékeket**: "measurement" vagy "calculated" (kisbetűvel!)
+4. **Console log**: F12 → Console → nézd meg a hibákat
+
+## 8. Teljes példa Excel template
+
+Létrehoztam egy demo template-et a `measurement-demo-template.xlsx` fájlban, amit referenciaként használhatsz.
+
+## 9. Tesztelés
+
+1. Template feltöltése után frissítsd az oldalt
+2. Indítsd el a protokoll kitöltést
+3. A mérési kérdések új input mezőkként jelennek meg
+4. A számított kérdések automatikusan frissülnek
+5. Az Excel letöltésnél minden érték megjelenik a megfelelő cellákban

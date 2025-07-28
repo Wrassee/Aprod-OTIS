@@ -80,6 +80,16 @@ export function MeasurementQuestion({ question, value, onChange }: MeasurementQu
 
   return (
     <div className="space-y-2">
+      <Label htmlFor={question.id} className="flex items-center gap-2">
+        {getTitle()}
+        {question.unit && (
+          <span className="text-sm text-gray-500">({question.unit})</span>
+        )}
+        {question.required && (
+          <span className="text-red-500">*</span>
+        )}
+      </Label>
+      
       <StableInput
         questionId={question.id}
         type="number"
@@ -91,6 +101,12 @@ export function MeasurementQuestion({ question, value, onChange }: MeasurementQu
         max={question.maxValue}
         step="0.1"
       />
+      
+      {question.minValue !== undefined && question.maxValue !== undefined && (
+        <p className="text-xs text-gray-500">
+          {language === 'de' ? 'Bereich' : 'Tartomány'}: {question.minValue} - {question.maxValue} {question.unit || ''}
+        </p>
+      )}
       
       {isOutOfRange && (
         <p className="text-xs text-red-500">

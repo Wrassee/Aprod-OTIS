@@ -100,7 +100,7 @@ const IsolatedQuestionComponent = memo(({
             type="text"
             initialValue={value?.toString() || ''}
             onValueChange={(newValue) => onChange(newValue)}
-            placeholder={question.placeholder || 'Szöveg megadása'}
+            placeholder={question.placeholder || t.enterText || 'Szöveg megadása'}
             className="w-full"
           />
         );
@@ -110,86 +110,61 @@ const IsolatedQuestionComponent = memo(({
   return (
     <Card className="w-full">
       <CardContent className="p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-          {/* Left side - Question title and details */}
-          <div className="space-y-2">
-            <h3 className="text-lg font-medium text-gray-800">
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-medium text-gray-800 mb-3">
               {question.title}
               {question.required && <span className="text-red-500 ml-1">*</span>}
             </h3>
             
-            {question.placeholder && (
-              <p className="text-sm text-gray-600">{question.placeholder}</p>
-            )}
-            
-            {question.unit && (
-              <p className="text-sm text-gray-500">
-                Egység: {question.unit}
-              </p>
-            )}
-            
-            {(question.minValue !== undefined || question.maxValue !== undefined) && (
-              <p className="text-sm text-gray-500">
-                Tartomány: 
-                {question.minValue !== undefined ? ` ${question.minValue}` : ' -∞'} - 
-                {question.maxValue !== undefined ? `${question.maxValue}` : '+∞'} 
-                {question.unit || ''}
-              </p>
-            )}
+            {renderInput()}
           </div>
-
-          {/* Right side - Input control */}
-          <div className="space-y-4">
-            <div>
-              {renderInput()}
-            </div>
-            
-            {/* Image upload section */}
-            {onImageUpload && (
-              <div className="border-t pt-4">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-gray-700">
-                    {t.attachPhotos || 'Fotók csatolása'}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => document.getElementById(`file-${question.id}`)?.click()}
-                  >
-                    <Camera className="h-4 w-4 mr-2" />
-                    {t.selectFiles || 'Fájlok kiválasztása'}
-                  </Button>
-                </div>
-                
-                <input
-                  id={`file-${question.id}`}
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                />
-                
-                {images.length > 0 && (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-3">
-                    {images.map((image, index) => (
-                      <div key={index} className="relative">
-                        <img
-                          src={image}
-                          alt={`Uploaded ${index + 1}`}
-                          className="w-full h-20 object-cover rounded border"
-                        />
-                        <div className="absolute top-1 right-1 bg-white rounded-full p-1">
-                          <Image className="h-3 w-3 text-gray-500" />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+          
+          {/* Image upload section */}
+          {onImageUpload && (
+            <div className="border-t pt-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-medium text-gray-700">
+                  {t.attachPhotos || 'Fotók csatolása'}
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => document.getElementById(`file-${question.id}`)?.click()}
+                >
+                  <Camera className="h-4 w-4 mr-2" />
+                  {t.selectFiles || 'Fájlok kiválasztása'}
+                </Button>
               </div>
-            )}
-          </div>
+              
+              <input
+                id={`file-${question.id}`}
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+              
+              {images.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-3">
+                  {images.map((image, index) => (
+                    <div key={index} className="relative">
+                      <img
+                        src={image}
+                        alt={`Uploaded ${index + 1}`}
+                        className="w-full h-20 object-cover rounded border"
+                      />
+                      <div className="absolute top-1 right-1 bg-white rounded-full p-1">
+                        <Image className="h-3 w-3 text-gray-500" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -4,8 +4,8 @@
 
 This is a full-stack TypeScript application that digitizes the OTIS elevator acceptance protocol process. The system guides users through a step-by-step questionnaire, allows error documentation with images, generates PDFs, and enables sharing via email or cloud storage. It supports both Hungarian and German languages.
 
-**Current Version**: OTIS APROD 0.4.0 - Egyesített Template Rendszer (January 28, 2025)
-**Status**: FULLY OPERATIONAL ✅ - EGYESÍTETT TEMPLATE KÉSZ!
+**Current Version**: OTIS APROD 0.3.0 - Production Release with Measurement Data Block (January 27, 2025)
+**Status**: FULLY OPERATIONAL ✅ - MÉRÉSI ADATOK BLOKK KÉSZ!
 
 ## User Preferences
 
@@ -21,11 +21,11 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Database Integration**: ✅ COMPLETED - Full PostgreSQL integration with Neon serverless configuration
 - **Component Architecture**: ✅ COMPLETED - Isolated question components with full memoization
 
-### Recent Fixes (January 28, 2025) - Version 0.4.1
-- **UI Revert to Original**: ✅ COMPLETED - Táblázatos UI eltávolítva felhasználói kérésre, minden kérdés típus visszaáll eredeti megjelenítéshez
-- **IsolatedQuestion Standard**: ✅ COMPLETED - Minden kérdés (text, number, yes_no_na, true_false, measurement, calculated) ugyanazt a megszokott kezelőfelületet használja
-- **True/False Groups**: ✅ MAINTAINED - True_false csoportok külön kezelése megmaradt
-- **Egyesített Template**: ✅ STABLE - 14 oszlopos template rendszer változatlan és működőképes
+### Recent Fixes (January 27, 2025)
+- **Radio Button Stability**: ✅ RESOLVED - CacheRadio with global Map cache prevents unwanted page navigation
+- **UI Performance**: ✅ COMPLETED - All input components stabilized with proper debouncing
+- **Logo Display**: ✅ COMPLETED - Moved logo to client/public/ for proper static serving
+- **Yes/No/NA Logic**: ✅ COMPLETED - X-based logic implemented for multi-column questions
 
 ### Measurement Data Block Implementation (January 27, 2025) - Version 0.3.0
 - **New Question Types**: ✅ COMPLETED - Added 'measurement' and 'calculated' question types to schema and components
@@ -55,15 +55,6 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **UI Component Updates**: ✅ COMPLETED - All components (QuestionGroupHeader, StableQuestionnaire) use LanguageProvider
 - **Translation System**: ✅ WORKING - Complete German translations active for all UI elements
 - **User Validation**: ✅ CONFIRMED - User confirmed "Működik" - system fully operational in German
-
-### Egyesített Template Rendszer (January 28, 2025) - Version 0.4.0
-- **Template Egyesítés**: ✅ COMPLETED - Két külön template (protocol + measurement) helyett egyetlen egyesített Excel fájl
-- **Új Template Szintaxis**: ✅ COMPLETED - 14 oszlopos questions lap + protocol lap struktúra implementálva
-- **Táblázatos UI**: ✅ COMPLETED - Bal oldal: kérdések felsorolva számozással, jobb oldal: válasz mezők egymás alatt
-- **Kérdés Típus Integráció**: ✅ COMPLETED - Mind a 6 típus (text, number, yes_no_na, true_false, measurement, calculated) egy template-ben
-- **Példa Template**: ✅ COMPLETED - OTIS-TEMPLATE-PELDA.xlsx elkészítve 25 mintakérdéssel és részletes dokumentációval
-- **Admin Egyszerűsítés**: ✅ COMPLETED - Egyetlen fájl feltöltés helyett két külön template kezelés
-- **Dokumentáció**: ✅ COMPLETED - Teljes szintaxis leírás és példák TEMPLATE-SZINTAXIS-PELDA.md fájlban
 
 ### Latest Update (January 27, 2025) - Version 0.1.7
 - **True/False Question Type**: ✅ COMPLETED - New binary choice input with Excel "X"/"-" output
