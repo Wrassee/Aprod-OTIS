@@ -187,16 +187,22 @@ class SimpleXmlExcelService {
       // Update the ZIP with modified worksheet
       zip.file(sheetFile, worksheetXml);
       
-      // Generate the final Excel buffer with UTF-8 encoding preservation
+      // Generate the final Excel buffer with proper compression settings
       const result = await zip.generateAsync({ 
         type: 'nodebuffer',
         compression: 'DEFLATE',
         compressionOptions: { level: 6 },
         streamFiles: false,
-        platform: 'UNIX'
+        platform: 'DOS'  // Changed from UNIX for better Excel compatibility
       });
       
+      // Verify buffer is valid before returning
+      if (!result || result.length < 1000) {
+        throw new Error('Generated Excel buffer is too small or invalid');
+      }
+      
       console.log(`XML Excel generation successful with ${modifiedCount} modifications`);
+      console.log(`Generated buffer size: ${result.length} bytes`);
       return result;
       
     } catch (error) {
@@ -322,9 +328,9 @@ class SimpleXmlExcelService {
           console.log(`DEBUG: Answer === 'false':`, answer === 'false');
           console.log(`DEBUG: Answer === false:`, answer === false);
           
-          if (answer === 'true' || answer === true) {
+          if (answer === 'true' || answer === 'TRUE' || String(answer).toLowerCase() === 'true') {
             cellValue = 'X';
-          } else if (answer === 'false' || answer === false) {
+          } else if (answer === 'false' || answer === 'FALSE' || String(answer).toLowerCase() === 'false') {
             cellValue = '-';
           } else {
             // Handle any unexpected values

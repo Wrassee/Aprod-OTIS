@@ -160,8 +160,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { formData, language } = req.body;
       
-      // Generate Excel from template
+      // Generate Excel from template with buffer validation
       const excelBuffer = await excelService.generateExcel(formData, language);
+      
+      // Validate buffer before sending
+      if (!excelBuffer || excelBuffer.length < 1000) {
+        throw new Error('Generated Excel buffer is invalid or corrupted');
+      }
+      
+      console.log(`Excel buffer generated successfully: ${excelBuffer.length} bytes`);
       
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.setHeader('Content-Disposition', 'attachment; filename=acceptance-protocol.xlsx');
