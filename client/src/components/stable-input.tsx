@@ -47,13 +47,14 @@ export function StableInput({ questionId, type = 'text', placeholder, initialVal
     // REMOVED: Trigger custom event - causes UI flicker
     // window.dispatchEvent(new CustomEvent('input-change'));
     
-    // Call onValueChange with debounce to allow measurement calculations
-    if (onValueChange) {
-      clearTimeout((window as any)[`stable-timeout-${questionId}`]);
-      (window as any)[`stable-timeout-${questionId}`] = setTimeout(() => {
-        onValueChange(value);
-      }, 500); // Debounced callback
-    }
+    // DISABLED: onValueChange callback causes UI flicker and re-renders
+    // Values are stored in cache and will be picked up during save/submit
+    // if (onValueChange) {
+    //   clearTimeout((window as any)[`stable-timeout-${questionId}`]);
+    //   (window as any)[`stable-timeout-${questionId}`] = setTimeout(() => {
+    //     onValueChange(value);
+    //   }, 500); // Debounced callback
+    // }
   };
 
   return (
