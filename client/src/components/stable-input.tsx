@@ -51,8 +51,8 @@ export function StableInput({ questionId, type = 'text', placeholder, initialVal
       (window as any).measurementValues[questionId] = value;
     }
     
-    // Trigger custom event for cache update
-    window.dispatchEvent(new CustomEvent('input-change'));
+    // NO EVENTS during typing to prevent UI refresh!
+    // window.dispatchEvent(new CustomEvent('input-change'));
   };
   
   const handleBlur = () => {
@@ -60,7 +60,14 @@ export function StableInput({ questionId, type = 'text', placeholder, initialVal
     const currentValue = (window as any).stableInputValues?.[questionId] || '';
     if (onValueChange && currentValue) {
       console.log(`Stable input blur sync: ${questionId} = ${currentValue}`);
-      onValueChange(currentValue);
+      
+      // Use setTimeout to avoid immediate UI updates that cause refresh
+      setTimeout(() => {
+        onValueChange(currentValue);
+        
+        // Only trigger events on blur, not during typing
+        window.dispatchEvent(new CustomEvent('input-change'));
+      }, 50);
     }
   };
 

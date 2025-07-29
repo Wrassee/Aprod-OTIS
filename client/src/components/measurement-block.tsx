@@ -233,19 +233,19 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
                         // Use MeasurementCache for persistent storage
                         MeasurementCache.setValue(question.id, value);
                         
-                        // Also call onChange to keep form system in sync
-                        onChange(question.id, value);
-                        
-                        const numValue = parseFloat(value);
-                        if (!isNaN(numValue)) {
-                          // Use debounced calculation updates to prevent UI flicker
-                          clearTimeout((window as any)[`calc-timeout-${question.id}`]);
-                          (window as any)[`calc-timeout-${question.id}`] = setTimeout(() => {
-                            // Only trigger updates if value actually changed
-                            const currentTrigger = measurementTrigger;
-                            setMeasurementTrigger(currentTrigger + 1);
-                          }, 500); // Increased timeout to reduce flicker
-                        }
+                        // Call onChange but with timeout to prevent immediate UI refresh
+                        setTimeout(() => {
+                          onChange(question.id, value);
+                          
+                          const numValue = parseFloat(value);
+                          if (!isNaN(numValue)) {
+                            // Trigger calculations only after user stops typing
+                            clearTimeout((window as any)[`calc-timeout-${question.id}`]);
+                            (window as any)[`calc-timeout-${question.id}`] = setTimeout(() => {
+                              setMeasurementTrigger(prev => prev + 1);
+                            }, 1000); // Long timeout to prevent flicker
+                          }
+                        }, 100); // Delay to prevent immediate callback during typing
                       }}
                       style={{ 
                         fontSize: '16px',
