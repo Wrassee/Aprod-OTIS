@@ -227,7 +227,20 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
                       className="w-20 text-center font-mono border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       min={question.minValue}
                       max={question.maxValue}
-
+                      onValueChange={(value) => {
+                        // ONLY update measurement cache and trigger recalculation
+                        // NO form onChange calls to prevent UI refresh
+                        MeasurementCache.setValue(question.id, value);
+                        
+                        const numValue = parseFloat(value);
+                        if (!isNaN(numValue)) {
+                          // Debounced recalculation trigger
+                          clearTimeout((window as any)[`calc-timeout-${question.id}`]);
+                          (window as any)[`calc-timeout-${question.id}`] = setTimeout(() => {
+                            setMeasurementTrigger(prev => prev + 1);
+                          }, 300);
+                        }
+                      }}
                       style={{ 
                         fontSize: '16px',
                         backgroundColor: 'white',

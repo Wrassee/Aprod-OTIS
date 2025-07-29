@@ -47,8 +47,13 @@ export function StableInput({ questionId, type = 'text', placeholder, initialVal
     // Trigger custom event for cache update
     window.dispatchEvent(new CustomEvent('input-change'));
     
-    // DON'T call onValueChange during typing - it causes page refresh!
-    // Only save to localStorage directly during validation and sync
+    // Call onValueChange with debounce to allow measurement calculations
+    if (onValueChange) {
+      clearTimeout((window as any)[`stable-timeout-${questionId}`]);
+      (window as any)[`stable-timeout-${questionId}`] = setTimeout(() => {
+        onValueChange(value);
+      }, 500); // Debounced callback
+    }
   };
 
   return (
