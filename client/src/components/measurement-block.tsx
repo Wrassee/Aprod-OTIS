@@ -227,26 +227,7 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
                       className="w-20 text-center font-mono border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       min={question.minValue}
                       max={question.maxValue}
-                      onValueChange={(value) => {
-                        console.log(`Stable measurement input: ${question.id} = ${value}`);
-                        
-                        // Use MeasurementCache for persistent storage
-                        MeasurementCache.setValue(question.id, value);
-                        
-                        // Call onChange but with timeout to prevent immediate UI refresh
-                        setTimeout(() => {
-                          onChange(question.id, value);
-                          
-                          const numValue = parseFloat(value);
-                          if (!isNaN(numValue)) {
-                            // Trigger calculations only after user stops typing
-                            clearTimeout((window as any)[`calc-timeout-${question.id}`]);
-                            (window as any)[`calc-timeout-${question.id}`] = setTimeout(() => {
-                              setMeasurementTrigger(prev => prev + 1);
-                            }, 1000); // Long timeout to prevent flicker
-                          }
-                        }, 100); // Delay to prevent immediate callback during typing
-                      }}
+
                       style={{ 
                         fontSize: '16px',
                         backgroundColor: 'white',

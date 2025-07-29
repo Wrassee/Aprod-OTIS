@@ -18,23 +18,16 @@ export function StableInput({ questionId, type = 'text', placeholder, initialVal
 
   useEffect(() => {
     if (inputRef.current && !mountedRef.current) {
-      // Restore value from cache first
-      const cachedValue = (window as any).stableInputValues?.[questionId] ||
-                         (window as any).measurementValues?.[questionId] || 
-                         initialValue || '';
-      
-      if (cachedValue) {
-        inputRef.current.value = cachedValue;
-        console.log(`StableInput restored: ${questionId} = ${cachedValue}`);
+      // Set initial value only once on mount
+      if (initialValue) {
+        inputRef.current.value = initialValue;
       }
       mountedRef.current = true;
     }
-  }, [questionId, initialValue]);
+  }, [initialValue]);
 
-  const handleInput = (e: React.FormEvent<HTMLInputElement>) => {
-    const target = e.target as HTMLInputElement;
-    const value = target.value;
-    
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
     console.log(`Stable input typing: ${questionId} = ${value}`);
     
     // Store in global cache immediately (no React state update!)
@@ -51,32 +44,18 @@ export function StableInput({ questionId, type = 'text', placeholder, initialVal
       (window as any).measurementValues[questionId] = value;
     }
     
-    // NO EVENTS during typing to prevent UI refresh!
-    // window.dispatchEvent(new CustomEvent('input-change'));
-  };
-  
-  const handleBlur = () => {
-    // Only call onValueChange when user finishes typing
-    const currentValue = (window as any).stableInputValues?.[questionId] || '';
-    if (onValueChange && currentValue) {
-      console.log(`Stable input blur sync: ${questionId} = ${currentValue}`);
-      
-      // Use setTimeout to avoid immediate UI updates that cause refresh
-      setTimeout(() => {
-        onValueChange(currentValue);
-        
-        // Only trigger events on blur, not during typing
-        window.dispatchEvent(new CustomEvent('input-change'));
-      }, 50);
-    }
+    // Trigger custom event for cache update
+    window.dispatchEvent(new CustomEvent('input-change'));
+    
+    // DON'T call onValueChange during typing - it causes page refresh!
+    // Only save to localStorage directly during validation and sync
   };
 
   return (
     <input
       ref={inputRef}
       type={type}
-      onInput={handleInput}
-      onBlur={handleBlur}
+      onChange={handleChange}
       onKeyDown={(e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
