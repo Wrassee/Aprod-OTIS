@@ -54,26 +54,42 @@ export function MeasurementBlock({ questions, onChange, onAddError }: Measuremen
       
       let formula = question.calculationFormula;
       
+      // Parse calculationInputs - it can be a string or array
+      const inputIds = Array.isArray(question.calculationInputs) 
+        ? question.calculationInputs 
+        : question.calculationInputs.split(',').map(id => id.trim());
+      
+      console.log(`Calculating ${question.id}: formula="${formula}", inputs=[${inputIds.join(',')}]`);
+      console.log('Available measurement values:', measurementValues);
+      
       // Replace input variables with actual values
-      question.calculationInputs.forEach(inputId => {
+      for (const inputId of inputIds) {
         const value = measurementValues[inputId];
+        console.log(`  Input ${inputId}: ${value}`);
+        
         if (value !== undefined && value !== null && value !== '') {
           const numValue = typeof value === 'string' ? parseFloat(value) : value;
           if (!isNaN(numValue)) {
             formula = formula.replace(new RegExp(`\\b${inputId}\\b`, 'g'), numValue.toString());
           } else {
+            console.log(`  -> Invalid numeric value for ${inputId}: ${value}`);
             return null; // Invalid input value
           }
         } else {
+          console.log(`  -> Missing value for ${inputId}`);
           return null; // Missing input value
         }
-      });
+      }
+      
+      console.log(`  Final formula: ${formula}`);
       
       // Safely evaluate the formula
       try {
         // Simple evaluation for basic arithmetic
         const result = Function(`"use strict"; return (${formula})`)();
-        return typeof result === 'number' && !isNaN(result) ? Math.round(result) : null;
+        const roundedResult = typeof result === 'number' && !isNaN(result) ? Math.round(result) : null;
+        console.log(`  Result: ${result} -> ${roundedResult}`);
+        return roundedResult;
       } catch (evalError) {
         console.error('Formula evaluation error:', evalError);
         return null;
