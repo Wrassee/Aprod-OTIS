@@ -36,13 +36,14 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Auto Error Detection**: ✅ COMPLETED - Automatically adds out-of-range calculated values to protocol error list
 - **Multi-language Support**: ✅ COMPLETED - Full Hungarian/German support for measurement interface
 
-### Measurement Input System Restoration (January 28, 2025) - Version 0.3.1 ROLLBACK
-- **System Rollback**: ✅ RESTORED - Visszaállítva az eredeti működő measurement input rendszer
-- **Original onChange Logic**: ✅ RESTORED - Standard onChange + MeasurementCache + form sync
-- **Debounced Calculations**: ✅ RESTORED - 300ms timeout a számításokhoz, nem 1000ms
-- **Event System**: ✅ RESTORED - Normál React synthetic events, nem native DOM
-- **User Request**: ✅ HONORED - "Ez az adatbeviteli rész egyszer már működött tökéletesen!" - visszaállítva
-- **Complexity Reduction**: ✅ COMPLETED - Eltávolítva a túlbonyolított event stopping és onInput logika
+### Excel & UI Stability Fix (January 28, 2025) - Version 0.3.3 FINAL
+- **Excel Corruption Solution**: ✅ FIXED - Calculated values removed from Excel output, only measurement values written
+- **Excel Formula Logic**: ✅ IMPLEMENTED - Excel built-in formulas handle calculations automatically
+- **UI Flicker Reduction**: ✅ IMPROVED - Increased debounce timeout to 500ms, reduced trigger frequency
+- **Error Duplication Fix**: ✅ RESOLVED - Added Set-based tracking to prevent duplicate boundary errors
+- **Measurement Input Stability**: ✅ WORKING - StableInput + onInput/onBlur pattern prevents cursor jumping
+- **User Requirements Met**: ✅ COMPLETED - "Az OTIS protokoll excelben benne van a számítási képlet" - Excel handles calculations
+- **System Architecture**: ✅ FINALIZED - UI shows calculated values, Excel only gets measurement inputs
 
 ### Final Measurement Cache System Implementation (January 28, 2025) - Version 0.3.2
 - **MeasurementCache Class**: ✅ COMPLETED - Persistent cache system with localStorage + global cache dual storage

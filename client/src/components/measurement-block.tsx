@@ -238,13 +238,13 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
                         
                         const numValue = parseFloat(value);
                         if (!isNaN(numValue)) {
-                          // Use debounced calculation updates
+                          // Use debounced calculation updates to prevent UI flicker
                           clearTimeout((window as any)[`calc-timeout-${question.id}`]);
                           (window as any)[`calc-timeout-${question.id}`] = setTimeout(() => {
-                            setMeasurementTrigger(prev => prev + 1);
-                            window.dispatchEvent(new CustomEvent('input-change'));
-                            window.dispatchEvent(new CustomEvent('measurement-change'));
-                          }, 300);
+                            // Only trigger updates if value actually changed
+                            const currentTrigger = measurementTrigger;
+                            setMeasurementTrigger(currentTrigger + 1);
+                          }, 500); // Increased timeout to reduce flicker
                         }
                       }}
                       style={{ 

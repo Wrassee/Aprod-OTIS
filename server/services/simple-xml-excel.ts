@@ -391,15 +391,8 @@ class SimpleXmlExcelService {
             });
           }
         } else if (config.type === 'calculated') {
-          // Handle calculated questions - keep as pure number for Excel
-          const numericValue = parseFloat(String(answer));
-          if (!isNaN(numericValue)) {
-            mappings.push({
-              cell: config.cellReference,
-              value: String(numericValue), // Pure number, no unit
-              label: config.title || `Question ${questionId}`
-            });
-          }
+          // SKIP calculated questions - let Excel handle calculations automatically!
+          console.log(`SKIPPED calculated question ${questionId} - Excel will calculate automatically with built-in formulas`);
         } else {
           // Handle other question types normally
           mappings.push({
