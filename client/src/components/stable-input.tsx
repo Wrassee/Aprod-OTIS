@@ -44,8 +44,8 @@ export function StableInput({ questionId, type = 'text', placeholder, initialVal
       (window as any).measurementValues[questionId] = value;
     }
     
-    // REMOVED: Trigger custom event - causes UI flicker
-    // window.dispatchEvent(new CustomEvent('input-change'));
+    // Trigger ONLY button-check event for validation - no UI re-render
+    window.dispatchEvent(new CustomEvent('button-check'));
     
     // DISABLED: onValueChange callback causes UI flicker and re-renders
     // Values are stored in cache and will be picked up during save/submit
