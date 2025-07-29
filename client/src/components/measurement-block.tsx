@@ -219,6 +219,24 @@ export function MeasurementBlock({ questions, onChange, onAddError }: Measuremen
                     (window as any).calculatedValues = {};
                   }
                   (window as any).calculatedValues[question.id] = calculatedValue;
+                  
+                  // Check bounds and schedule error adding (to avoid React render error)
+                  const isOutOfBounds = !checkValueBounds(question, calculatedValue);
+                  if (isOutOfBounds) {
+                    // Use Set to prevent duplicate errors
+                    if (!(window as any).addedBoundaryErrors) {
+                      (window as any).addedBoundaryErrors = new Set();
+                    }
+                    const errorKey = `${question.id}-${calculatedValue}`;
+                    if (!(window as any).addedBoundaryErrors.has(errorKey)) {
+                      console.log(`Scheduling boundary error for ${question.id}: ${calculatedValue}`);
+                      // Schedule error adding to avoid React render error
+                      setTimeout(() => {
+                        addCalculatedValueError(question, calculatedValue);
+                      }, 0);
+                      (window as any).addedBoundaryErrors.add(errorKey);
+                    }
+                  }
                 }
 
                 const isOutOfBounds = calculatedValue !== null && !checkValueBounds(question, calculatedValue);
