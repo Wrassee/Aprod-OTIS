@@ -191,12 +191,13 @@ const Questionnaire = memo(function Questionnaire({
     };
 
     window.addEventListener('radio-change', handleCacheChange);
-    window.addEventListener('input-change', handleCacheChange);
+    // REMOVED input-change - causes UI flicker on every keystroke
+    // window.addEventListener('input-change', handleCacheChange);
     window.addEventListener('measurement-change', handleCacheChange);
 
     return () => {
       window.removeEventListener('radio-change', handleCacheChange);
-      window.removeEventListener('input-change', handleCacheChange);
+      // window.removeEventListener('input-change', handleCacheChange);
       window.removeEventListener('measurement-change', handleCacheChange);
     };
   }, []);

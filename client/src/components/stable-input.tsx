@@ -44,8 +44,8 @@ export function StableInput({ questionId, type = 'text', placeholder, initialVal
       (window as any).measurementValues[questionId] = value;
     }
     
-    // Trigger custom event for cache update
-    window.dispatchEvent(new CustomEvent('input-change'));
+    // REMOVED: Trigger custom event - causes UI flicker
+    // window.dispatchEvent(new CustomEvent('input-change'));
     
     // Call onValueChange with debounce to allow measurement calculations
     if (onValueChange) {
