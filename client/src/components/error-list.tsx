@@ -14,10 +14,13 @@ interface ErrorListProps {
   onDeleteError: (id: string) => void;
 }
 
-export function ErrorList({ errors, onAddError, onEditError, onDeleteError }: ErrorListProps) {
+export function ErrorList({ errors = [], onAddError, onEditError, onDeleteError }: ErrorListProps) {
   const { t } = useLanguageContext();
   const [showModal, setShowModal] = useState(false);
   const [editingError, setEditingError] = useState<ProtocolError | null>(null);
+  
+  // Ensure errors is always an array
+  const safeErrors = Array.isArray(errors) ? errors : [];
 
   const getSeverityColor = (severity: ProtocolError['severity']) => {
     switch (severity) {
@@ -78,14 +81,14 @@ export function ErrorList({ errors, onAddError, onEditError, onDeleteError }: Er
             </Button>
           </div>
 
-          {!errors || errors.length === 0 ? (
+          {safeErrors.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-500" />
               <p>{t.noErrors}</p>
             </div>
           ) : (
             <div className="space-y-4">
-              {(errors || []).map((error) => (
+              {safeErrors.map((error) => (
                 <div key={error.id} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
