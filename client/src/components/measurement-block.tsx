@@ -1,196 +1,127 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useLanguageContext } from '@/components/language-provider';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-
 import { Calculator, Ruler, AlertTriangle } from 'lucide-react';
-import { Question, ProtocolError } from '@shared/schema';
-import { getAllMeasurementValues } from './measurement-question';
-import { MeasurementCache } from '@/utils/measurement-cache';
 import { StableInput } from './stable-input';
+import { MeasurementCache } from '@/utils/measurement-cache';
+import { useLanguage } from '@/hooks/use-language';
 
-interface MeasurementBlockProps {
-  questions: Question[]; // All measurement and calculated questions
-  values: Record<string, any>;
-  onChange: (questionId: string, value: any) => void;
-  onAddError?: (error: Omit<ProtocolError, 'id'>) => void;
+interface Question {
+  id: string;
+  title: string;
+  titleDe?: string;
+  type: string;
+  unit?: string;
+  minValue?: number;
+  maxValue?: number;
+  calculationFormula?: string;
+  calculationInputs?: string[];
 }
 
-export function MeasurementBlock({ questions, values, onChange, onAddError }: MeasurementBlockProps) {
-  const { language } = useLanguageContext();
+interface MeasurementBlockProps {
+  questions: Question[];
+  onChange: (questionId: string, value: string | number) => void;
+  onAddError?: (error: { title: string; description: string; severity: 'low' | 'medium' | 'critical' }) => void;
+}
+
+export function MeasurementBlock({ questions, onChange, onAddError }: MeasurementBlockProps) {
+  const { language } = useLanguage();
   const [measurementTrigger, setMeasurementTrigger] = useState(0);
   
-  // Restore measurement values on component mount
-  useEffect(() => {
-    MeasurementCache.restoreFromStorage();
-    
-    // Update inputs after a brief delay
-    setTimeout(() => {
-      MeasurementCache.updateInputs();
-    }, 100);
-  }, []);
-
-  // Get current measurement values with proper trigger updates
-  const currentMeasurementValues = useMemo(() => {
-    const cached = getAllMeasurementValues();
-    const stableCache = (window as any).stableInputValues || {};
-    
-    const combined: Record<string, number> = {};
-    
-    // Combine all sources - prioritize stableInputValues (most recent)
-    Object.keys(cached).forEach((key: string) => {
-      const value = parseFloat(cached[key].toString());
-      if (!isNaN(value)) {
-        combined[key] = value;
-      }
-    });
-    
-    Object.keys(stableCache).forEach((key: string) => {
-      const value = parseFloat(stableCache[key]);
-      if (!isNaN(value)) {
-        combined[key] = value;
-      }
-    });
-
-    return combined;
-  }, [measurementTrigger]);
-
-  // Separate measurement and calculated questions
   const measurementQuestions = questions.filter(q => q.type === 'measurement');
   const calculatedQuestions = questions.filter(q => q.type === 'calculated');
-
-  // Check if calculated value is out of bounds
-  const checkValueBounds = (question: Question, value: number): boolean => {
-    if (question.minValue !== undefined && value < question.minValue) return false;
-    if (question.maxValue !== undefined && value > question.maxValue) return false;
-    return true;
+  
+  const t = {
+    measurementTitle: language === 'de' ? 'Messdaten' : 'Mérési adatok',
+    calculatedTitle: language === 'de' ? 'Berechnete Werte' : 'Számított értékek',
+    calculateButton: language === 'de' ? '🧮 Berechnung durchführen' : '🧮 Számítás elvégzése'
   };
 
-  // Auto-add error for out of bounds calculated values (prevent duplicates)
-  const addCalculatedValueError = (question: Question, value: number) => {
-    if (!onAddError) return;
-    
-    // Check if error already exists for this question
-    const errorId = `calc-${question.id}`;
-    if ((window as any).addedCalculationErrors && (window as any).addedCalculationErrors.has(errorId)) {
-      return; // Don't add duplicate errors
-    }
-    
-    if (!(window as any).addedCalculationErrors) {
-      (window as any).addedCalculationErrors = new Set();
-    }
-    
-    console.log(`Adding boundary error for ${question.id}: ${value}`);
-    
-    const questionTitle = language === 'de' ? question.titleDe : question.title;
-    const unit = question.unit || '';
-    
-    let boundaryInfo = '';
-    if (question.minValue !== undefined && question.maxValue !== undefined) {
-      boundaryInfo = `(${question.minValue}-${question.maxValue} ${unit})`;
-    } else if (question.minValue !== undefined) {
-      boundaryInfo = `(min: ${question.minValue} ${unit})`;
-    } else if (question.maxValue !== undefined) {
-      boundaryInfo = `(max: ${question.maxValue} ${unit})`;
-    }
+  // Restore cached values on component mount
+  useEffect(() => {
+    MeasurementCache.restoreFromStorage();
+    console.log('MeasurementCache: Restored from storage');
+  }, []);
 
-    const errorTitle = language === 'de' 
-      ? `Berechneter Wert außerhalb der Grenzen: ${questionTitle}`
-      : `Határértéken kívüli számított érték: ${questionTitle}`;
-    
-    const errorDescription = language === 'de'
-      ? `Der berechnete Wert ${value} ${unit} liegt außerhalb der zulässigen Grenzen ${boundaryInfo}. Bitte überprüfen Sie die Eingabewerte.`
-      : `A számított érték ${value} ${unit} kívül esik a megengedett határokon ${boundaryInfo}. Kérjük, ellenőrizze a bemeneti értékeket.`;
-
-    (window as any).addedCalculationErrors.add(errorId);
-    
-    onAddError({
-      title: errorTitle,
-      description: errorDescription,
-      severity: 'critical',
-      images: []
-    });
-  };
-
-  // Get current measurement values for calculations - simplified without real-time updates
-  const getCurrentMeasurementValues = (): Record<string, number> => {
-    const cached = getAllMeasurementValues();
-    const stableCache = (window as any).stableInputValues || {};
-    
-    const combined: Record<string, number> = {};
-    
-    // Combine all sources - prioritize stableInputValues (most recent)
-    Object.keys(cached).forEach((key: string) => {
-      const value = parseFloat(cached[key].toString());
-      if (!isNaN(value)) {
-        combined[key] = value;
-      }
-    });
-    
-    Object.keys(stableCache).forEach((key: string) => {
-      const value = parseFloat(stableCache[key]);
-      if (!isNaN(value)) {
-        combined[key] = value;
-      }
-    });
-
-    return combined;
-  };
-
-  // Calculate values for calculated questions
+  // Calculation function for evaluated formulas
   const calculateValue = (question: Question): number | null => {
     if (!question.calculationFormula || !question.calculationInputs) {
       return null;
     }
 
     try {
-      const inputIds = question.calculationInputs.split(',').map((id: string) => id.trim());
+      // Get current measurement values from cache
+      const measurementValues = (window as any).measurementValues || {};
+      
       let formula = question.calculationFormula;
-      let hasAllInputs = true;
-
-      // Replace input references with actual values
-      inputIds.forEach((inputId: string) => {
-        const value = currentMeasurementValues[inputId];
-        if (value !== undefined) {
-          // Replace both 'inputX' and 'X' patterns in formula
-          formula = formula.replace(new RegExp(`input${inputId}`, 'g'), value.toString());
-          formula = formula.replace(new RegExp(`\\b${inputId}\\b`, 'g'), value.toString());
+      
+      // Replace input variables with actual values
+      question.calculationInputs.forEach(inputId => {
+        const value = measurementValues[inputId];
+        if (value !== undefined && value !== null && value !== '') {
+          const numValue = typeof value === 'string' ? parseFloat(value) : value;
+          if (!isNaN(numValue)) {
+            formula = formula.replace(new RegExp(`\\b${inputId}\\b`, 'g'), numValue.toString());
+          } else {
+            return null; // Invalid input value
+          }
         } else {
-          hasAllInputs = false;
+          return null; // Missing input value
         }
       });
-
-      if (!hasAllInputs) {
+      
+      // Safely evaluate the formula
+      try {
+        // Simple evaluation for basic arithmetic
+        const result = Function(`"use strict"; return (${formula})`)();
+        return typeof result === 'number' && !isNaN(result) ? Math.round(result) : null;
+      } catch (evalError) {
+        console.error('Formula evaluation error:', evalError);
         return null;
       }
-
-      // Safely evaluate the formula
-      const result = Function(`"use strict"; return (${formula})`)();
-      return typeof result === 'number' && !isNaN(result) ? Math.round(result * 100) / 100 : null;
     } catch (error) {
+      console.error('Calculation error for question', question.id, ':', error);
       return null;
     }
   };
 
-  // Remove handleMeasurementChange as we now use StableInput with onValueChange
-
-  const translations = {
-    hu: {
-      measurementTitle: 'Mérési Adatok',
-      calculatedTitle: 'Számított Értékek'
-    },
-    de: {
-      measurementTitle: 'Messdaten',
-      calculatedTitle: 'Berechnete Werte'
+  // Check if calculated value is within bounds
+  const checkValueBounds = (question: Question, value: number): boolean => {
+    if (question.minValue !== undefined && value < question.minValue) {
+      return false;
     }
+    if (question.maxValue !== undefined && value > question.maxValue) {
+      return false;
+    }
+    return true;
   };
 
-  const t = translations[language as keyof typeof translations] || translations.hu;
+  // Add error for out-of-bounds calculated values
+  const addCalculatedValueError = (question: Question, value: number) => {
+    if (!onAddError) return;
+    
+    const questionTitle = language === 'de' ? question.titleDe : question.title;
+    const errorTitle = language === 'de' 
+      ? `Berechneter Wert außerhalb der Grenzen: ${questionTitle}`
+      : `Határértéken kívüli számított érték: ${questionTitle}`;
+    
+    const errorDescription = language === 'de'
+      ? `Der berechnete Wert ${value} ${question.unit} liegt außerhalb der zulässigen Grenzen (${question.minValue}-${question.maxValue} ${question.unit}). Bitte überprüfen Sie die Eingabewerte.`
+      : `A számított érték ${value} ${question.unit} kívül esik a megengedett határokon (${question.minValue}-${question.maxValue} ${question.unit}). Kérjük, ellenőrizze a bemeneti értékeket.`;
+
+    onAddError({
+      title: errorTitle,
+      description: errorDescription,
+      severity: 'critical'
+    });
+  };
+
+  if (measurementQuestions.length === 0 && calculatedQuestions.length === 0) {
+    return null;
+  }
 
   return (
     <div className="space-y-6">
-      {/* Measurement Questions Table */}
+      {/* Measurement Questions */}
       {measurementQuestions.length > 0 && (
         <Card>
           <CardHeader>
@@ -227,25 +158,6 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
                       className="w-20 text-center font-mono border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       min={question.minValue}
                       max={question.maxValue}
-                      onValueChange={(value) => {
-                        // ONLY update measurement cache and trigger recalculation
-                        // NO form onChange calls to prevent UI refresh
-                        MeasurementCache.setValue(question.id, value);
-                        
-                        const numValue = parseFloat(value);
-                        if (!isNaN(numValue)) {
-                          // Debounced recalculation trigger
-                          clearTimeout((window as any)[`calc-timeout-${question.id}`]);
-                          (window as any)[`calc-timeout-${question.id}`] = setTimeout(() => {
-                            setMeasurementTrigger(prev => prev + 1);
-                          }, 300);
-                        }
-                      }}
-                      style={{ 
-                        fontSize: '16px',
-                        backgroundColor: 'white',
-                        color: '#000'
-                      }}
                     />
                     {question.unit && (
                       <span className="text-sm text-gray-500 w-8">{question.unit}</span>
@@ -253,6 +165,19 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
                   </div>
                 </div>
               ))}
+            </div>
+            
+            {/* Calculate Button */}
+            <div className="flex justify-center pt-4 border-t border-gray-200">
+              <button
+                onClick={() => {
+                  console.log('Manual calculation triggered');
+                  setMeasurementTrigger(prev => prev + 1);
+                }}
+                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+              >
+                {t.calculateButton}
+              </button>
             </div>
           </CardContent>
         </Card>
@@ -278,64 +203,9 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
                     (window as any).calculatedValues = {};
                   }
                   (window as any).calculatedValues[question.id] = calculatedValue;
-                  
-                  // Check if value is out of bounds and add error automatically
-                  const isWithinBounds = checkValueBounds(question, calculatedValue);
-                  if (!isWithinBounds) {
-                    // Only add error if not already present with the same value
-                    const errorKey = `calc-error-${question.id}-${calculatedValue}`;
-                    if (!(window as any)[errorKey]) {
-                      // Check if we already have this type of error in the actual error list
-                      const questionTitle = language === 'de' ? question.titleDe : question.title;
-                      const errorExists = onAddError && (window as any).lastBoundaryErrors && 
-                        (window as any).lastBoundaryErrors.some((e: any) => 
-                          e.title.includes(questionTitle) && e.description.includes(calculatedValue.toString())
-                        );
-                      
-                      if (!errorExists) {
-                        // Add error but DON'T trigger measurement clearing
-                        setTimeout(() => {
-                          if (onAddError) {
-                            addCalculatedValueError(question, calculatedValue);
-                          }
-                        }, 500);
-                        (window as any)[errorKey] = true;
-                        
-                        // Keep track of added errors to prevent duplicates
-                        if (!(window as any).lastBoundaryErrors) {
-                          (window as any).lastBoundaryErrors = [];
-                        }
-                        (window as any).lastBoundaryErrors.push({
-                          title: language === 'de' 
-                            ? `Berechneter Wert außerhalb der Grenzen: ${questionTitle}`
-                            : `Határértéken kívüli számított érték: ${questionTitle}`,
-                          description: calculatedValue.toString(),
-                          questionId: question.id
-                        });
-                      }
-                      
-                      // Clear old error keys for this question
-                      Object.keys(window as any).forEach(key => {
-                        if (key.startsWith(`calc-error-${question.id}-`) && key !== errorKey) {
-                          delete (window as any)[key];
-                        }
-                      });
-                    }
-                  } else {
-                    // Clear error flags when value becomes valid
-                    Object.keys(window as any).forEach(key => {
-                      if (key.startsWith(`calc-error-${question.id}-`)) {
-                        delete (window as any)[key];
-                      }
-                    });
-                  }
-                  
-                  // Don't call onChange during render - it causes React warnings
-                  // onChange will be called during Save/Next button processing
                 }
 
-                // Determine if this value is out of bounds for styling
-                const isOutOfBounds = calculatedValue !== null && typeof calculatedValue === 'number' && !checkValueBounds(question, calculatedValue);
+                const isOutOfBounds = calculatedValue !== null && !checkValueBounds(question, calculatedValue);
 
                 return (
                   <div key={question.id} className="flex items-center gap-4 py-3 border-b border-gray-100 last:border-b-0">
@@ -346,25 +216,23 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
                       <p className="text-base font-medium text-gray-800 leading-relaxed">
                         {language === 'de' ? question.titleDe : question.title}
                       </p>
-                      {question.unit && (
-                        <p className="text-sm text-gray-500 mt-1">{question.unit}</p>
-                      )}
+                      <p className="text-sm text-gray-500 mt-1">
+                        {question.unit}
+                        {isOutOfBounds && (
+                          <span className="ml-2 text-red-500 font-medium">
+                            ⚠️ {calculatedValue} {question.unit} határértéken kívül ({question.minValue}-{question.maxValue} {question.unit})
+                          </span>
+                        )}
+                      </p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <div className={`w-20 border rounded px-3 py-2 text-center ${
-                        isOutOfBounds 
-                          ? 'bg-red-50 border-red-300 text-red-700' 
-                          : 'bg-gray-50 border-gray-300'
+                      <div className={`text-center font-mono text-lg font-bold px-3 py-2 rounded-md ${
+                        isOutOfBounds ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-green-50 text-green-600'
                       }`}>
-                        <span className="font-mono text-sm">
-                          {calculatedValue !== null ? calculatedValue.toFixed(2) : '—'}
-                        </span>
+                        {calculatedValue !== null ? calculatedValue.toFixed(0) : '-'}
                       </div>
                       {question.unit && (
                         <span className="text-sm text-gray-500 w-8">{question.unit}</span>
-                      )}
-                      {isOutOfBounds && (
-                        <AlertTriangle className="h-4 w-4 text-red-500" />
                       )}
                     </div>
                   </div>
