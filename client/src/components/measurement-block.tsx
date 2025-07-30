@@ -127,7 +127,8 @@ export function MeasurementBlock({ questions, onChange, onAddError }: Measuremen
     onAddError({
       title: errorTitle,
       description: errorDescription,
-      severity: 'critical'
+      severity: 'critical',
+      images: []
     });
   };
 

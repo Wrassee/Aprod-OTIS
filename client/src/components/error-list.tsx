@@ -100,7 +100,7 @@ export function ErrorList({ errors = [], onAddError, onEditError, onDeleteError 
                       </div>
                       <p className="text-gray-600 text-sm mb-3">{error.description}</p>
                       
-                      {error.images.length > 0 && (
+                      {error.images && error.images.length > 0 && (
                         <div className="flex space-x-2">
                           {error.images.map((image, index) => (
                             <img
