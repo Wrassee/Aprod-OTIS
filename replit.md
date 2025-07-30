@@ -4,14 +4,23 @@
 
 This is a full-stack TypeScript application that digitizes the OTIS elevator acceptance protocol process. The system guides users through a step-by-step questionnaire, allows error documentation with images, generates PDFs, and enables sharing via email or cloud storage. It supports both Hungarian and German languages.
 
-**Current Version**: OTIS APROD 0.3.0 - Production Release with Measurement Data Block (January 27, 2025)
-**Status**: FULLY OPERATIONAL ✅ - MÉRÉSI ADATOK BLOKK KÉSZ!
+**Current Version**: OTIS APROD 0.4.1 - Excel Generation Fix (January 28, 2025)
+**Status**: FULLY OPERATIONAL ✅ - EXCEL GENERÁLÁS TÖKÉLETESEN MŰKÖDIK!
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language (Hungarian preferred).
 
 ## Recent Changes
+
+### Critical Excel Generation Fix (January 28, 2025) - Version 0.4.1 - VÉGRE MŰKÖDIK!
+- **XML Format Preservation Fix**: ✅ MEGOLDVA - Helyreállította a formázásmegőrző XML manipulációt
+- **Template Keresési Hiba**: ✅ JAVÍTVA - simple-xml-excel.ts most már megtalálja a "unified" típusú template-eket
+- **Pontos Cellakitöltés**: ✅ MŰKÖDIK - Mind a 23 cella helyesen kitöltődik `<is><t>` formátummal  
+- **Stílus Megőrzés**: ✅ TÖKÉLETES - `s="styleValue"` attribútumok változatlanul maradnak
+- **Minden Kérdéstípus**: ✅ TÁMOGATOTT - text, number, yes_no_na, true_false, measurement, calculated
+- **Template Keresési Sorrend**: ✅ JAVÍTVA - questions/multilingual → unified/multilingual → questions/language → unified/language
+- **User Visszajelzés**: ✅ CONFIRMED - "Végre most működik az EXCEL generálás is"
 
 ### January 26, 2025 - UI Stability Improvements
 - **Text Input Stabilization**: ✅ COMPLETED - MegaStableInput component with 1.5-second debouncing eliminates cursor jumping and UI flickering during text entry
