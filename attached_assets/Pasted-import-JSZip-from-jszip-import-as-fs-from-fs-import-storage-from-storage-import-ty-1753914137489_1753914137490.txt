@@ -1,7 +1,7 @@
 import JSZip from 'jszip';
 import * as fs from 'fs';
 import { storage } from '../storage';
-import type { FormData } from '../../shared/types';
+import type { FormData } from '../../client/src/lib/types';
 
 class SimpleXmlExcelService {
   async generateExcelFromTemplate(formData: FormData, language: string): Promise<Buffer> {
@@ -35,7 +35,7 @@ class SimpleXmlExcelService {
         console.log('Question config IDs:', questionConfigs.map(q => q.questionId));
       }
 
-      // Process with XML manipulation for format preservation
+      // Process with simple string replacement in XML
       return await this.replaceInXmlArchive(templateBuffer, formData, questionConfigs, language);
       
     } catch (error) {
@@ -111,6 +111,12 @@ class SimpleXmlExcelService {
             );
             modifiedCount++;
             console.log(`XML: Added ${cell} = "${value}" (exact style preserved: s="${styleValue}")`);
+            
+            // Special debug for Q13
+            if (cell === 'Q13') {
+              console.log(`Q13 DEBUG: Original pattern found and replaced`);
+              console.log(`Q13 DEBUG: Replacement = ${replacement}`);
+            }
           } else {
             console.log(`XML: Style match failed for ${cell}`);
           }
@@ -298,20 +304,23 @@ class SimpleXmlExcelService {
             label: config.title || `Question ${questionId}`
           });
         } else if (config.type === 'measurement') {
-          // Handle measurement questions - just the numeric value for Excel
-          const numValue = parseFloat(String(answer));
-          if (!isNaN(numValue)) {
-            mappings.push({
-              cell: config.cellReference,
-              value: String(numValue),
-              label: config.title || `Question ${questionId}`
-            });
-          }
-        } else if (config.type === 'calculated') {
-          // Handle calculated questions - just the computed value for Excel
+          // Handle measurement questions - display number with unit
+          const unit = config.unit || '';
+          const cellValue = unit ? `${answer} ${unit}` : String(answer);
+          
           mappings.push({
             cell: config.cellReference,
-            value: String(answer),
+            value: cellValue,
+            label: config.title || `Question ${questionId}`
+          });
+        } else if (config.type === 'calculated') {
+          // Handle calculated questions - display computed value with unit
+          const unit = config.unit || '';
+          const cellValue = unit ? `${answer} ${unit}` : String(answer);
+          
+          mappings.push({
+            cell: config.cellReference,
+            value: cellValue,
             label: config.title || `Question ${questionId}`
           });
         } else {
