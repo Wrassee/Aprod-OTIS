@@ -47,7 +47,10 @@ export const CalculatedResult = memo(function CalculatedResult({
     if (missingInputs.length > 0) {
       setResult(undefined);
       setError(undefined);
-      onChange(undefined);
+      // Only call onChange if result actually changed
+      if (result !== undefined) {
+        onChange(undefined);
+      }
       return;
     }
 
@@ -57,11 +60,19 @@ export const CalculatedResult = memo(function CalculatedResult({
     if (calculation.error) {
       setError(calculation.error);
       setResult(undefined);
-      onChange(undefined);
+      // Only call onChange if result actually changed
+      if (result !== undefined) {
+        onChange(undefined);
+      }
     } else if (calculation.result !== null) {
-      setResult(calculation.result);
+      const newResult = calculation.result;
+      setResult(newResult);
       setError(undefined);
-      onChange(calculation.result);
+      
+      // Only call onChange if result actually changed
+      if (newResult !== result) {
+        onChange(newResult);
+      }
 
       // Check if result is within valid range
       const outOfRange = (
@@ -70,7 +81,7 @@ export const CalculatedResult = memo(function CalculatedResult({
       );
       setIsOutOfRange(outOfRange);
     }
-  }, [question, measurementValues, onChange, language]);
+  }, [question.calculationFormula, question.calculationInputs, question.minValue, question.maxValue, question.id, measurementValues, language]); // Removed onChange from deps to prevent infinite loop
 
   const getValidationIcon = () => {
     if (result === undefined) return null;

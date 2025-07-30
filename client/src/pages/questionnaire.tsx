@@ -371,12 +371,7 @@ const Questionnaire = memo(function Questionnaire({
           ) : (
             <div className="space-y-6">
               {/* Measurement and Calculated Questions Block */}
-              {(() => {
-                const hasMeasurementQuestions = (currentQuestions as Question[]).some(q => q.type === 'measurement' || q.type === 'calculated');
-                console.log('DEBUG: Current questions:', (currentQuestions as Question[]).map(q => ({ id: q.id, type: q.type, title: q.title })));
-                console.log('DEBUG: Has measurement questions:', hasMeasurementQuestions);
-                return hasMeasurementQuestions;
-              })() && (
+              {(currentQuestions as Question[]).some(q => q.type === 'measurement' || q.type === 'calculated') && (
                 <MeasurementBlock
                   questions={currentQuestions as Question[]}
                   measurementValues={measurementValues}

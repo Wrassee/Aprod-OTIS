@@ -87,10 +87,15 @@ export const MeasurementQuestion = memo(function MeasurementQuestion({
             <Input
               type="number"
               step="0.01"
-              value={value || ''}
+              value={value !== undefined ? value.toString() : ''}
               onChange={handleChange}
               placeholder={question.placeholder || (language === 'hu' ? `Mérés ${unit}-ben` : `Messung in ${unit}`)}
               className={`pr-12 ${error || !isValid ? 'border-red-500' : ''}`}
+              autoComplete="off"
+              onFocus={(e) => {
+                // Select text on focus for better UX
+                setTimeout(() => e.target.select(), 0);
+              }}
             />
             <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
               <span className="text-sm text-gray-500 dark:text-gray-400">
