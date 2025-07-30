@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useCallback, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
@@ -27,7 +27,12 @@ export const MeasurementQuestion = memo(function MeasurementQuestion({
   const title = language === 'de' && question.titleDe ? question.titleDe : question.title;
   const unit = question.unit || 'mm';
   
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     const inputValue = e.target.value;
     console.log('MeasurementQuestion handleChange:', question.id, 'input:', inputValue);
     
@@ -43,7 +48,7 @@ export const MeasurementQuestion = memo(function MeasurementQuestion({
         console.log('Invalid number, ignoring input');
       }
     }
-  };
+  }, [question.id, onChange]);
 
   const getValidationIcon = () => {
     if (value === undefined) return null;
@@ -88,19 +93,26 @@ export const MeasurementQuestion = memo(function MeasurementQuestion({
             </div>
           )}
 
-          {/* Input Field */}
+          {/* Input Field - Using native input to avoid re-render issues */}
           <div className="relative">
-            <Input
+            <input
+              ref={inputRef}
               type="number"
               step="0.01"
-              value={value !== undefined ? value.toString() : ''}
+              defaultValue={value !== undefined ? value.toString() : ''}
               onChange={handleChange}
               placeholder={question.placeholder || (language === 'hu' ? `Mérés ${unit}-ben` : `Messung in ${unit}`)}
-              className={`pr-12 ${error || !isValid ? 'border-red-500' : ''}`}
+              className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pr-12 ${error || !isValid ? 'border-red-500' : 'border-input bg-background'}`}
               autoComplete="off"
               onFocus={(e) => {
                 // Select text on focus for better UX
                 setTimeout(() => e.target.select(), 0);
+              }}
+              onKeyDown={(e) => {
+                // Allow numbers, decimal point, backspace, delete, tab, escape, enter, arrow keys
+                if (!/[0-9.]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+                  e.preventDefault();
+                }
               }}
             />
             <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">

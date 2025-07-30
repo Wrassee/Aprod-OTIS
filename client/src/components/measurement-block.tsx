@@ -90,6 +90,7 @@ export const MeasurementBlock = memo(function MeasurementBlock({
   }, [measurementValues, calculatedResults, measurementQuestions, calculatedQuestions, language, onErrorsChange]);
 
   const handleMeasurementChange = useCallback((questionId: string, value: number | undefined) => {
+    console.log('MeasurementBlock handleMeasurementChange:', questionId, value);
     onMeasurementChange(questionId, value);
   }, [onMeasurementChange]);
 
