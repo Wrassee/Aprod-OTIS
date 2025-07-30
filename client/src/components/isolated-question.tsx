@@ -66,7 +66,8 @@ const IsolatedQuestionComponent = memo(({
             questionId={question.id}
             type="number"
             initialValue={value?.toString() || ''}
-            onValueChange={(newValue) => onChange(parseFloat(newValue) || 0)}
+            // DISABLED onValueChange to prevent UI flicker
+            // onValueChange={(newValue) => onChange(parseFloat(newValue) || 0)}
             placeholder={question.placeholder || '0'}
             className="w-full"
           />
@@ -99,7 +100,8 @@ const IsolatedQuestionComponent = memo(({
             questionId={question.id}
             type="text"
             initialValue={value?.toString() || ''}
-            onValueChange={(newValue) => onChange(newValue)}
+            // DISABLED onValueChange to prevent UI flicker
+            // onValueChange={(newValue) => onChange(newValue)}
             placeholder={question.placeholder || t.enterText || 'Szöveg megadása'}
             className="w-full"
           />

@@ -1,217 +1,180 @@
-import type { Question, ProtocolError } from '@shared/schema';
+import { Question } from '@shared/schema';
+
+export interface MeasurementCalculationResult {
+  questionId: string;
+  value: number | null;
+  isValid: boolean;
+  isWithinLimits: boolean;
+  error?: string;
+}
 
 export class MeasurementService {
-  private static instance: MeasurementService;
-  
-  private constructor() {}
-  
-  public static getInstance(): MeasurementService {
-    if (!MeasurementService.instance) {
-      MeasurementService.instance = new MeasurementService();
-    }
-    return MeasurementService.instance;
+  /**
+   * Calculate values for all calculated questions based on measurement inputs
+   */
+  static calculateAll(
+    questions: Question[],
+    measurementValues: Record<string, number>
+  ): Record<string, MeasurementCalculationResult> {
+    const results: Record<string, MeasurementCalculationResult> = {};
+    
+    const calculatedQuestions = questions.filter(q => q.type === 'calculated');
+    
+    calculatedQuestions.forEach(question => {
+      results[question.id] = this.calculateSingle(question, measurementValues);
+    });
+    
+    return results;
   }
 
   /**
-   * Validates a measurement value against defined limits
+   * Calculate value for a single calculated question
    */
-  public validateMeasurement(
-    value: number, 
-    minValue?: number, 
-    maxValue?: number
-  ): { isValid: boolean; error?: string } {
-    if (isNaN(value)) {
-      return { isValid: false, error: 'Invalid numeric value' };
+  static calculateSingle(
+    question: Question,
+    measurementValues: Record<string, number>
+  ): MeasurementCalculationResult {
+    if (!question.calculationFormula || !question.calculationInputs) {
+      return {
+        questionId: question.id,
+        value: null,
+        isValid: false,
+        isWithinLimits: false,
+        error: 'No calculation formula defined'
+      };
+    }
+
+    try {
+      const inputIds = question.calculationInputs.split(',').map(id => id.trim());
+      let formula = question.calculationFormula;
+      let hasAllInputs = true;
+
+      // Replace variable names in formula with actual values
+      inputIds.forEach(inputId => {
+        const value = measurementValues[inputId];
+        if (value === undefined || value === null || isNaN(value)) {
+          hasAllInputs = false;
+          return;
+        }
+        // Replace variable name with actual value - ensure we match whole words only
+        formula = formula.replace(new RegExp(`\\b${inputId}\\b`, 'g'), value.toString());
+      });
+
+      if (!hasAllInputs) {
+        return {
+          questionId: question.id,
+          value: null,
+          isValid: false,
+          isWithinLimits: false,
+          error: 'Missing input values'
+        };
+      }
+
+      // Evaluate the mathematical expression safely
+      const result = this.evaluateFormula(formula);
+      
+      if (isNaN(result)) {
+        return {
+          questionId: question.id,
+          value: null,
+          isValid: false,
+          isWithinLimits: false,
+          error: 'Invalid calculation result'
+        };
+      }
+
+      const roundedResult = Math.round(result * 100) / 100; // Round to 2 decimal places
+      
+      // Check if result is within acceptable range
+      const isWithinLimits = this.checkLimits(roundedResult, question.minValue, question.maxValue);
+
+      return {
+        questionId: question.id,
+        value: roundedResult,
+        isValid: true,
+        isWithinLimits,
+        error: isWithinLimits ? undefined : this.getLimitError(roundedResult, question.minValue, question.maxValue, question.unit)
+      };
+
+    } catch (error) {
+      return {
+        questionId: question.id,
+        value: null,
+        isValid: false,
+        isWithinLimits: false,
+        error: 'Calculation error: ' + (error as Error).message
+      };
+    }
+  }
+
+  /**
+   * Safely evaluate mathematical formula
+   */
+  private static evaluateFormula(formula: string): number {
+    // Basic security: only allow numbers, operators, parentheses, and decimal points
+    if (!/^[0-9+\-*/.() ]+$/.test(formula)) {
+      throw new Error('Invalid characters in formula');
     }
     
+    // Use Function constructor for safer evaluation than eval
+    return Function(`"use strict"; return (${formula})`)();
+  }
+
+  /**
+   * Check if value is within specified limits
+   */
+  private static checkLimits(value: number, minValue?: number, maxValue?: number): boolean {
+    if (minValue !== undefined && value < minValue) return false;
+    if (maxValue !== undefined && value > maxValue) return false;
+    return true;
+  }
+
+  /**
+   * Generate error message for out-of-limits values
+   */
+  private static getLimitError(value: number, minValue?: number, maxValue?: number, unit?: string): string {
+    const unitStr = unit || '';
+    
     if (minValue !== undefined && value < minValue) {
-      return { isValid: false, error: `Value ${value} is below minimum ${minValue}` };
+      return `Value ${value}${unitStr} is below minimum limit ${minValue}${unitStr}`;
     }
     
     if (maxValue !== undefined && value > maxValue) {
-      return { isValid: false, error: `Value ${value} is above maximum ${maxValue}` };
+      return `Value ${value}${unitStr} is above maximum limit ${maxValue}${unitStr}`;
     }
     
-    return { isValid: true };
+    return 'Value is out of limits';
   }
 
   /**
-   * Safely evaluates a calculation formula with given values
+   * Generate protocol errors for out-of-range calculated values
    */
-  public evaluateFormula(
-    formula: string, 
-    values: Record<string, number>
-  ): { result: number | null; error?: string } {
-    try {
-      console.log(`Calculating ${formula}: formula="${formula}", inputs=[${Object.keys(values).join(',')}]`);
-      
-      // Replace variable names with values
-      let processedFormula = formula;
-      for (const [key, value] of Object.entries(values)) {
-        if (isNaN(value)) {
-          console.log(`  Missing or invalid value for ${key}`);
-          return { result: null, error: `Missing or invalid value for ${key}` };
-        }
-        console.log(`  Input ${key}: ${value}`);
-        processedFormula = processedFormula.replace(new RegExp(`\\b${key}\\b`, 'g'), value.toString());
-      }
-      
-      console.log(`  Final formula: ${processedFormula}`);
-      
-      // Basic security check - only allow numbers, operators, parentheses
-      if (!/^[0-9+\-*/.() ]+$/.test(processedFormula)) {
-        return { result: null, error: 'Invalid characters in formula' };
-      }
-      
-      // Evaluate safely
-      const result = Function(`"use strict"; return (${processedFormula})`)();
-      
-      if (isNaN(result)) {
-        return { result: null, error: 'Calculation resulted in NaN' };
-      }
-      
-      const roundedResult = Math.round(result * 100) / 100; // Round to 2 decimal places
-      console.log(`  Result: ${result} -> ${roundedResult}`);
-      
-      return { result: roundedResult };
-    } catch (error) {
-      console.error(`Calculation error: ${(error as Error).message}`);
-      return { result: null, error: `Calculation error: ${(error as Error).message}` };
-    }
-  }
-
-  /**
-   * Processes all measurement and calculated values, generates errors for out-of-range values
-   */
-  public processAllMeasurements(
+  static generateProtocolErrors(
+    calculations: Record<string, MeasurementCalculationResult>,
     questions: Question[],
-    measurementValues: Record<string, number>,
-    calculatedResults: Record<string, any>,
-    language: string
-  ): ProtocolError[] {
-    const errors: ProtocolError[] = [];
-
-    // Process measurement questions
-    const measurementQuestions = questions.filter(q => q.type === 'measurement');
-    measurementQuestions.forEach(question => {
-      const value = measurementValues[question.id];
-      if (value !== undefined) {
-        const validation = this.validateMeasurement(value, question.minValue, question.maxValue);
-        if (!validation.isValid) {
+    language: 'hu' | 'de' = 'hu'
+  ) {
+    const errors: any[] = [];
+    
+    Object.values(calculations).forEach(calc => {
+      if (calc.isValid && !calc.isWithinLimits && calc.error) {
+        const question = questions.find(q => q.id === calc.questionId);
+        if (question) {
+          const title = language === 'de' ? (question.titleDe || question.title) : (question.titleHu || question.title);
+          
           errors.push({
-            id: `measurement-${question.id}`,
-            title: language === 'hu' 
-              ? `Mérési hiba: ${question.title}`
-              : `Messfehler: ${question.titleDe || question.title}`,
-            description: language === 'hu'
-              ? `A mért érték (${value} ${question.unit || 'mm'}) nem felel meg a határértékeknek.`
-              : `Der gemessene Wert (${value} ${question.unit || 'mm'}) entspricht nicht den Grenzwerten.`,
-            severity: 'medium' as const,
-            images: []
-          });
-        }
-      }
-    });
-
-    // Process calculated questions
-    const calculatedQuestions = questions.filter(q => q.type === 'calculated');
-    calculatedQuestions.forEach(question => {
-      const value = calculatedResults[question.id];
-      if (value !== undefined) {
-        const validation = this.validateMeasurement(value, question.minValue, question.maxValue);
-        if (!validation.isValid) {
-          errors.push({
-            id: `calculated-${question.id}`,
-            title: language === 'hu' 
-              ? `Számítási hiba: ${question.title}`
-              : `Berechnungsfehler: ${question.titleDe || question.title}`,
-            description: language === 'hu'
-              ? `A számított érték (${value} ${question.unit || 'mm'}) nem felel meg az OTIS előírásoknak.`
-              : `Der berechnete Wert (${value} ${question.unit || 'mm'}) entspricht nicht den OTIS-Vorschriften.`,
+            id: `measurement-calc-${calc.questionId}-${Date.now()}`,
+            title: `${title}: ${language === 'de' ? 'Wert außerhalb der Grenzwerte' : 'Érték határértéken kívül'}`,
+            description: calc.error || (language === 'de' 
+              ? 'Der berechnete Wert entspricht nicht den Spezifikationen'
+              : 'A számított érték nem felel meg a specifikációknak'),
             severity: 'critical' as const,
             images: []
           });
         }
       }
     });
-
+    
     return errors;
   }
-
-  /**
-   * Calculates all derived values based on measurement inputs
-   */
-  public calculateDerivedValues(
-    questions: Question[],
-    measurementValues: Record<string, number>
-  ): Record<string, number> {
-    const results: Record<string, number> = {};
-    
-    const calculatedQuestions = questions.filter(q => q.type === 'calculated');
-    
-    for (const question of calculatedQuestions) {
-      if (!question.calculationFormula || !question.calculationInputs) {
-        continue;
-      }
-
-      const inputIds = question.calculationInputs.split(',').map((id: string) => id.trim());
-      const values: Record<string, number> = {};
-      
-      // Collect values for calculation (including previously calculated values)
-      let allInputsAvailable = true;
-      for (const inputId of inputIds) {
-        if (measurementValues[inputId] !== undefined) {
-          values[inputId] = measurementValues[inputId];
-        } else if (results[inputId] !== undefined) {
-          values[inputId] = results[inputId];
-        } else {
-          allInputsAvailable = false;
-          break;
-        }
-      }
-
-      if (allInputsAvailable) {
-        const calculation = this.evaluateFormula(question.calculationFormula, values);
-        if (calculation.result !== null) {
-          results[question.id] = calculation.result;
-        }
-      }
-    }
-
-    return results;
-  }
-
-  /**
-   * Gets all measurement and calculated values formatted for Excel export
-   */
-  public getFormattedValues(
-    questions: Question[],
-    measurementValues: Record<string, number>,
-    calculatedResults: Record<string, any>
-  ): Record<string, string> {
-    const formatted: Record<string, string> = {};
-
-    // Format measurement values
-    questions.filter(q => q.type === 'measurement').forEach(question => {
-      const value = measurementValues[question.id];
-      if (value !== undefined) {
-        const unit = question.unit || 'mm';
-        formatted[question.id] = `${value} ${unit}`;
-      }
-    });
-
-    // Format calculated values
-    questions.filter(q => q.type === 'calculated').forEach(question => {
-      const value = calculatedResults[question.id];
-      if (value !== undefined) {
-        const unit = question.unit || 'mm';
-        formatted[question.id] = `${value} ${unit}`;
-      }
-    });
-
-    return formatted;
-  }
 }
-
-// Export singleton instance
-export const measurementService = MeasurementService.getInstance();

@@ -1,0 +1,21 @@
+# Egyesített Template Példa (XLSX)
+
+A valódi Excel fájl létrehozásához használjuk a Python szkriptet, de itt van a struktúra:
+
+## Sheet: questions (Minden kérdéstípus egy helyen)
+
+| A | B | C | D | E | F | G | H | I | J | K | L | M | N |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| id | title_hu | title_de | type | required | cell_reference | group | group_de | order | unit | min_value | max_value | calculation_formula | calculation_inputs |
+| 1 | Átvevő neve | Name des Empfängers | text | TRUE | F9 | Általános adatok | Allgemeine Daten | 1 | | | | | |
+| 2 | Létesítmény címe | Anschrift der Anlage | text | TRUE | Q9 | Általános adatok | Allgemeine Daten | 2 | | | | | |
+| 3 | Emelet szám | Anzahl Stockwerke | number | TRUE | G13 | Általános adatok | Allgemeine Daten | 3 | | | | | |
+| m1 | Távolság kabintető-aknatető | Abstand Kabinendach-Schachtkopf | measurement | TRUE | I278 | Mérési adatok | Messdaten | 1 | mm | 0 | 10000 | | |
+| m2 | Távolság kabintető legmagasabb pont-aknatető | Abstand höchster Punkt Kabinendach-Schachtkopf | measurement | TRUE | N278 | Mérési adatok | Messdaten | 2 | mm | 0 | 10000 | | |
+| m3 | Távolság aknapadló-ellensúly puffer | Abstand Schachtgrube-Gegengewichtpuffer | measurement | TRUE | I280 | Mérési adatok | Messdaten | 3 | mm | 0 | 10000 | | |
+| m4 | Effektív távolság A | Effektive Entfernung A | calculated | TRUE | I283 | Számított értékek | Berechnete Werte | 1 | mm | 700 | 9000 | m1 - m3 | m1,m3 |
+| m5 | Effektív távolság B | Effektive Entfernung B | calculated | TRUE | N283 | Számított értékek | Berechnete Werte | 2 | mm | 400 | 9000 | m2 - m3 | m2,m3 |
+| 10 | Bejelentés megtörtént | Anmeldung erfolgt | yes_no_na | TRUE | A75;A76;A77,B75;B76;B77,C75;C76;C77 | Adminisztratív | Administrativ | 1 | | | | | |
+| 12 | Invertercsere | Frequenzumrichter-Austausch | true_false | TRUE | Q25 | Modernizáció | Modernisierung | 1 | | | | | |
+
+Minden kérdéstípus egy helyen van, az Excel parser automatikusan felismeri és megfelelően kezeli őket!

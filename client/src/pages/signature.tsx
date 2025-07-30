@@ -27,17 +27,16 @@ export function Signature({
   const currentDate = formatDate(new Date(), language);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const canComplete = signature.length > 0;
+  const canComplete = signature.length > 0; // Only signature is required for completion, not printed name
 
-  // Setup direct DOM event listener to bypass React - only run once
+  // Stable input handling - prevent cursor jumping
   useEffect(() => {
     const input = inputRef.current;
     if (!input) return;
 
-    // Only set initial value on first mount
-    if (!input.hasAttribute('data-initialized')) {
+    // Set initial value only if empty
+    if (!input.value) {
       input.value = signatureName || '';
-      input.setAttribute('data-initialized', 'true');
     }
 
     const handleInput = (e: Event) => {
@@ -45,23 +44,24 @@ export function Signature({
       const newValue = target.value;
       console.log(`Signature name typing: ${newValue}`);
       
-      // Store globally without React updates
+      // Store globally without triggering React updates
       (window as any).signatureNameValue = newValue;
       
-      // Debounced parent callback
+      // Debounced update to prevent cursor jumping
       clearTimeout((window as any).signatureNameTimeout);
       (window as any).signatureNameTimeout = setTimeout(() => {
         onSignatureNameChange(newValue);
-      }, 1000);
+      }, 500);
     };
 
-    // Add native DOM event listener
+    // Only use input event to prevent focus loss
     input.addEventListener('input', handleInput);
     
     return () => {
       input.removeEventListener('input', handleInput);
+      clearTimeout((window as any).signatureNameTimeout);
     };
-  }, []); // Empty deps array - only run once
+  }, []); // Only run once on mount
 
   return (
     <div className="min-h-screen bg-light-surface">
@@ -102,8 +102,8 @@ export function Signature({
                 ref={inputRef}
                 type="text"
                 placeholder={t.printedName}
-                key="signature-name-stable"
                 className="w-full h-12 px-4 text-lg border-2 border-gray-300 rounded-lg focus:border-otis-blue focus:outline-none bg-white"
+                autoComplete="off"
                 style={{ 
                   fontSize: '18px',
                   minHeight: '48px'
@@ -121,14 +121,17 @@ export function Signature({
           
           {/* Navigation */}
           <div className="flex justify-between">
-            <Button
-              variant="outline"
-              onClick={onBack}
-              className="flex items-center"
+            <button
+              className="flex items-center px-4 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 transition-colors"
+              type="button"
+              onClick={() => {
+                console.log('🔙 Signature Back button clicked - direct call');
+                onBack();
+              }}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               {t.back}
-            </Button>
+            </button>
             
             <Button
               onClick={() => {
