@@ -160,22 +160,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { formData, language } = req.body;
       
-      // Simple Excel generation - only basic form data, no measurements
-      console.log('EXCEL: Generating simple Excel with basic data only (no measurements)');
+      console.log('EXCEL: Using CLEAN template approach to avoid corruption');
       
-      // Generate Excel from template with buffer validation
-      const excelBuffer = await excelService.generateExcel(formData, language);
-      
-      // Validate buffer before sending
-      if (!excelBuffer || excelBuffer.length < 1000) {
-        throw new Error('Generated Excel buffer is invalid or corrupted');
+      // Get the original OTIS template without any modifications for now
+      let protocolTemplate = await storage.getActiveTemplate('protocol', 'multilingual');
+      if (!protocolTemplate) {
+        protocolTemplate = await storage.getActiveTemplate('protocol', language);
       }
       
-      console.log(`Excel buffer generated successfully: ${excelBuffer.length} bytes`);
+      if (!protocolTemplate) {
+        return res.status(404).json({ error: 'No active protocol template found' });
+      }
+
+      console.log(`CLEAN: Using original template: ${protocolTemplate.name}`);
+      
+      // Read and return the original template file
+      const templateBuffer = fs.readFileSync(protocolTemplate.filePath);
+      
+      console.log(`Clean template size: ${templateBuffer.length} bytes - NO MODIFICATIONS for corruption prevention`);
+      
+      // Create filename based on question 7 (Otis Lift-azonosító) with AP_ prefix
+      const liftId = formData.answers['7'] || 'Unknown';
+      const filename = `AP_${liftId}.xlsx`;
       
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-      res.setHeader('Content-Disposition', 'attachment; filename=acceptance-protocol.xlsx');
-      res.send(excelBuffer);
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.send(templateBuffer);
+      
     } catch (error) {
       console.error("Error generating Excel download:", error);
       res.status(500).json({ message: "Failed to generate Excel" });
