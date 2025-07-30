@@ -317,13 +317,14 @@ function App() {
                 language={language}
                 onAdminAccess={handleAdminAccess}
                 onHome={handleHome}
+                onStartNew={handleStartNew}
               />
             );
           }
           
           switch (currentScreen) {
             case 'start':
-              return <StartScreen onLanguageSelect={handleLanguageSelect} onStartNew={handleStartNew} />;
+              return <StartScreen onLanguageSelect={handleLanguageSelect} />;
             case 'signature':
               return (
                 <Signature
@@ -353,7 +354,7 @@ function App() {
             case 'protocol-preview':
               return <ProtocolPreview onBack={() => setCurrentScreen('completion')} />;
             default:
-              return <StartScreen onLanguageSelect={handleLanguageSelect} onStartNew={handleStartNew} />;
+              return <StartScreen onLanguageSelect={handleLanguageSelect} />;
           }
         }} />
         <Route component={NotFound} />

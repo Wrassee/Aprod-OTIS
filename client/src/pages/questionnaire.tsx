@@ -9,7 +9,7 @@ import { TrueFalseGroup } from '@/components/true-false-group';
 import { ErrorList } from '@/components/error-list';
 import { QuestionGroupHeader } from '@/components/question-group-header';
 import { useLanguageContext } from '@/components/language-provider';
-import { ArrowLeft, ArrowRight, Save, Settings, Home, Check, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Save, Settings, Home, Check, X, RotateCcw } from 'lucide-react';
 import { getAllCachedValues } from '@/components/cache-radio';
 import { getAllTrueFalseValues } from '@/components/true-false-radio';
 import { getAllStableInputValues } from '@/components/stable-input';
@@ -29,6 +29,7 @@ interface QuestionnaireProps {
   language: 'hu' | 'de';
   onAdminAccess?: () => void;
   onHome?: () => void;
+  onStartNew?: () => void;
 }
 
 const Questionnaire = memo(function Questionnaire({
@@ -43,6 +44,7 @@ const Questionnaire = memo(function Questionnaire({
   language,
   onAdminAccess,
   onHome,
+  onStartNew,
 }: QuestionnaireProps) {
   const { t, language: contextLanguage } = useLanguageContext();
   
@@ -338,7 +340,7 @@ const Questionnaire = memo(function Questionnaire({
               <span className="text-lg font-medium text-gray-800">{t.title}</span>
             </div>
             
-            {/* Date Picker and Admin */}
+            {/* Date Picker, Start New and Admin */}
             <div className="flex items-center space-x-4">
               <Label className="text-sm font-medium text-gray-600">{t.receptionDate}</Label>
               <Input
@@ -356,6 +358,17 @@ const Questionnaire = memo(function Questionnaire({
                 }}
                 className="w-auto"
               />
+              {onStartNew && (
+                <Button
+                  onClick={onStartNew}
+                  className="bg-green-600 hover:bg-green-700 text-white flex items-center"
+                  size="sm"
+                  title={t.startNew || 'Új protokoll indítása'}
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  {t.startNew || 'Új protokoll'}
+                </Button>
+              )}
               {onAdminAccess && (
                 <Button
                   variant="ghost"

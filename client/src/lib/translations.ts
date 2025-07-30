@@ -18,6 +18,7 @@ export interface Translation {
   autoSaved: string;
   back: string;
   complete: string;
+  startNew: string;
   
   // Answers
   yes: string;
@@ -117,6 +118,7 @@ export const translations: Record<string, Translation> = {
     autoSaved: "Automatikusan mentve",
     back: "Vissza",
     complete: "Protokoll befejezése",
+    startNew: "Új protokoll indítása",
     
     // Answers
     yes: "Igen",
@@ -214,6 +216,7 @@ export const translations: Record<string, Translation> = {
     autoSaved: "Automatisch gespeichert",
     back: "Zurück",
     complete: "Protokoll abschließen",
+    startNew: "Neues Protokoll starten",
     
     // Answers
     yes: "Ja",

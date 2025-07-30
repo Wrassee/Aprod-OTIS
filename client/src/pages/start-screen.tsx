@@ -1,30 +1,15 @@
 import { Button } from '@/components/ui/button';
 import { useLanguageContext } from '@/components/language-provider';
-import { Plus, RotateCcw } from 'lucide-react';
 
 interface StartScreenProps {
   onLanguageSelect: (language: 'hu' | 'de') => void;
-  onStartNew?: () => void;
 }
 
-export function StartScreen({ onLanguageSelect, onStartNew }: StartScreenProps) {
+export function StartScreen({ onLanguageSelect }: StartScreenProps) {
   const { t } = useLanguageContext();
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white">
-      {/* New Protocol Button - Top right corner */}
-      {onStartNew && (
-        <div className="absolute top-6 right-6">
-          <Button
-            onClick={onStartNew}
-            className="bg-green-600 hover:bg-green-700 text-white flex items-center px-6 py-3"
-          >
-            <RotateCcw className="h-4 w-4 mr-2" />
-            {t.startNew || 'Új protokoll indítása'}
-          </Button>
-        </div>
-      )}
-      
       {/* OTIS Logo */}
       <div className="mb-3">
         <img 
@@ -71,18 +56,6 @@ export function StartScreen({ onLanguageSelect, onStartNew }: StartScreenProps) 
           <span className="text-lg font-medium text-gray-700">{t.german}</span>
         </Button>
       </div>
-      
-      {/* Additional info for new protocol */}
-      {onStartNew && (
-        <div className="mt-12 text-center text-gray-600">
-          <p className="text-sm">
-            {t.hungarian === 'Magyar' ? 
-              'Válasszon nyelvet új protokoll indításához, vagy kattintson az "Új protokoll indítása" gombra a jelenlegi beállítások tisztításához.' :
-              'Wählen Sie eine Sprache für ein neues Protokoll oder klicken Sie auf "Neues Protokoll starten", um die aktuellen Einstellungen zu löschen.'
-            }
-          </p>
-        </div>
-      )}
     </div>
   );
 }

@@ -22,7 +22,8 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Template Keresési Sorrend**: ✅ JAVÍTVA - questions/multilingual → unified/multilingual → questions/language → unified/language
 - **User Visszajelzés**: ✅ CONFIRMED - "Végre most működik az EXCEL generálás is"
 - **Hibalista Törlés Fix**: ✅ MEGOLDVA - Új protokoll indításakor a hibalista teljesen törlődik
-- **Új Protokoll Gomb**: ✅ HOZZÁADVA - Start screen-en "Új protokoll indítása" gomb a jobb felső sarokban
+- **Új Protokoll Gomb**: ✅ HOZZÁADVA - Questionnaire első oldalán "Új protokoll indítása" gomb a header-ben
+- **Többnyelvű Új Protokoll**: ✅ KÉSZ - Magyar/német fordítás a "startNew" szövegekhez
 
 ### January 26, 2025 - UI Stability Improvements
 - **Text Input Stabilization**: ✅ COMPLETED - MegaStableInput component with 1.5-second debouncing eliminates cursor jumping and UI flickering during text entry
