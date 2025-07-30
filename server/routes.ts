@@ -160,24 +160,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { formData, language } = req.body;
       
-      console.log('EXCEL: Using CLEAN template approach to avoid corruption');
+      console.log('EXCEL: Using SAFE approach - clean XLSX manipulation with data filling');
       
-      // Get the original OTIS template without any modifications for now
-      let protocolTemplate = await storage.getActiveTemplate('protocol', 'multilingual');
-      if (!protocolTemplate) {
-        protocolTemplate = await storage.getActiveTemplate('protocol', language);
+      // Import the safe Excel service dynamically
+      const { safeExcelService } = await import('./services/safe-excel-service');
+      
+      // Generate Excel with safe data filling
+      const excelBuffer = await safeExcelService.generateExcelFromTemplate(formData, language);
+      
+      if (!excelBuffer || excelBuffer.length < 1000) {
+        throw new Error('Generated Excel buffer is invalid or too small');
       }
       
-      if (!protocolTemplate) {
-        return res.status(404).json({ error: 'No active protocol template found' });
-      }
-
-      console.log(`CLEAN: Using original template: ${protocolTemplate.name}`);
-      
-      // Read and return the original template file
-      const templateBuffer = fs.readFileSync(protocolTemplate.filePath);
-      
-      console.log(`Clean template size: ${templateBuffer.length} bytes - NO MODIFICATIONS for corruption prevention`);
+      console.log(`SAFE: Generated Excel with data: ${excelBuffer.length} bytes`);
       
       // Create filename based on question 7 (Otis Lift-azonosító) with AP_ prefix
       const liftId = formData.answers['7'] || 'Unknown';
@@ -185,7 +180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-      res.send(templateBuffer);
+      res.send(excelBuffer);
       
     } catch (error) {
       console.error("Error generating Excel download:", error);
