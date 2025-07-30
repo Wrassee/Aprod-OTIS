@@ -159,21 +159,62 @@ class SimpleXmlExcelService {
   private createBasicTextMappings(formData: FormData, questionConfigs: any[]) {
     const mappings: Array<{cell: string, value: string, label: string}> = [];
     
-    // Add ONLY basic text/number answers - skip all complex question types
+    // Process ALL question types with XML-based approach for perfect formatting
     Object.entries(formData.answers).forEach(([questionId, answer]) => {
       const config = questionConfigs.find(q => q.questionId === questionId || q.questionId === String(questionId));
       
       if (config && config.cellReference && answer !== '' && answer !== null && answer !== undefined) {
-        // Only process text and number question types
-        if (config.type === 'text' || config.type === 'number') {
+        
+        if (config.type === 'yes_no_na') {
+          // Handle multi-column yes/no/na questions
+          if (config.cellReference.includes(',')) {
+            const cellRefs = config.cellReference.split(',');
+            cellRefs.forEach((cellRef: string, index: number) => {
+              const cell = cellRef.trim();
+              let value = '';
+              if ((index === 0 && answer === 'yes') ||
+                  (index === 1 && answer === 'no') ||
+                  (index === 2 && answer === 'na')) {
+                value = 'X';
+              }
+              if (value) {
+                mappings.push({
+                  cell: cell,
+                  value: value,
+                  label: `${config.title} (${index === 0 ? 'Yes' : index === 1 ? 'No' : 'NA'})`
+                });
+                console.log(`XML: Added yes_no_na mapping: ${cell} = "${value}"`);
+              }
+            });
+          }
+        } else if (config.type === 'true_false') {
+          // Handle true/false questions with X/-
+          const displayValue = (answer === true || answer === 'true') ? 'X' : '-';
+          mappings.push({
+            cell: config.cellReference,
+            value: displayValue,
+            label: config.title || `Question ${questionId}`
+          });
+          console.log(`XML: Added true_false mapping: ${questionId} -> ${config.cellReference} = "${displayValue}"`);
+        } else if (config.type === 'measurement') {
+          // Handle measurement questions (just the numeric value)
+          const numValue = parseFloat(String(answer));
+          if (!isNaN(numValue)) {
+            mappings.push({
+              cell: config.cellReference,
+              value: String(numValue),
+              label: config.title || `Question ${questionId}`
+            });
+            console.log(`XML: Added measurement mapping: ${questionId} -> ${config.cellReference} = "${numValue}"`);
+          }
+        } else {
+          // Handle text, number and other types
           mappings.push({
             cell: config.cellReference,
             value: String(answer),
             label: config.title || `Question ${questionId}`
           });
-          console.log(`SIMPLE: Added basic ${config.type} mapping: ${questionId} -> ${config.cellReference} = "${answer}"`);
-        } else {
-          console.log(`SIMPLE: Skipping complex question type: ${config.type} (${questionId})`);
+          console.log(`XML: Added ${config.type} mapping: ${questionId} -> ${config.cellReference} = "${answer}"`);
         }
       }
     });
@@ -185,7 +226,7 @@ class SimpleXmlExcelService {
         value: formData.signatureName,
         label: 'Signature name'
       });
-      console.log(`SIMPLE: Added signature name: F9 = "${formData.signatureName}"`);
+      console.log(`XML: Added signature name: F9 = "${formData.signatureName}"`);
     }
     
     return mappings;

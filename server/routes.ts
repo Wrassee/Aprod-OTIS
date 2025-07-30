@@ -160,13 +160,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { formData, language } = req.body;
       
-      console.log('EXCEL: Using SAFE approach - clean XLSX manipulation with data filling');
+      console.log('EXCEL: Using XML-based approach for PERFECT format preservation');
       
-      // Import the safe Excel service dynamically
-      const { safeExcelService } = await import('./services/safe-excel-service');
+      // Import the proven XML-based service that preserves formatting
+      const { simpleXmlExcelService } = await import('./services/simple-xml-excel');
       
-      // Generate Excel with safe data filling
-      const excelBuffer = await safeExcelService.generateExcelFromTemplate(formData, language);
+      // Generate Excel with XML manipulation (proven to preserve formatting)
+      const excelBuffer = await simpleXmlExcelService.generateExcelFromTemplate(formData, language);
       
       if (!excelBuffer || excelBuffer.length < 1000) {
         throw new Error('Generated Excel buffer is invalid or too small');
