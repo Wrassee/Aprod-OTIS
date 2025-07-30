@@ -29,38 +29,37 @@ export function Signature({
 
   const canComplete = signature.length > 0; // Only signature is required for completion, not printed name
 
-  // Simplified input handling - no React state dependencies
+  // Stable input handling - prevent cursor jumping
   useEffect(() => {
     const input = inputRef.current;
     if (!input) return;
 
-    // Set initial value once
-    input.value = signatureName || '';
+    // Set initial value only if empty
+    if (!input.value) {
+      input.value = signatureName || '';
+    }
 
     const handleInput = (e: Event) => {
       const target = e.target as HTMLInputElement;
       const newValue = target.value;
       console.log(`Signature name typing: ${newValue}`);
       
-      // Store globally and immediately update parent
+      // Store globally without triggering React updates
       (window as any).signatureNameValue = newValue;
-      onSignatureNameChange(newValue);
+      
+      // Debounced update to prevent cursor jumping
+      clearTimeout((window as any).signatureNameTimeout);
+      (window as any).signatureNameTimeout = setTimeout(() => {
+        onSignatureNameChange(newValue);
+      }, 500);
     };
 
-    const handleBlur = (e: Event) => {
-      const target = e.target as HTMLInputElement;
-      const finalValue = target.value;
-      console.log(`Signature name final: ${finalValue}`);
-      onSignatureNameChange(finalValue);
-    };
-
-    // Use both input and blur for immediate and final updates
+    // Only use input event to prevent focus loss
     input.addEventListener('input', handleInput);
-    input.addEventListener('blur', handleBlur);
     
     return () => {
       input.removeEventListener('input', handleInput);
-      input.removeEventListener('blur', handleBlur);
+      clearTimeout((window as any).signatureNameTimeout);
     };
   }, []); // Only run once on mount
 
@@ -103,8 +102,8 @@ export function Signature({
                 ref={inputRef}
                 type="text"
                 placeholder={t.printedName}
-                defaultValue={signatureName || ''}
                 className="w-full h-12 px-4 text-lg border-2 border-gray-300 rounded-lg focus:border-otis-blue focus:outline-none bg-white"
+                autoComplete="off"
                 style={{ 
                   fontSize: '18px',
                   minHeight: '48px'
