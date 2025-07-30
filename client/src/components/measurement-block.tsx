@@ -25,7 +25,6 @@ interface MeasurementBlockProps {
 
 export function MeasurementBlock({ questions, onChange, onAddError }: MeasurementBlockProps) {
   const { language } = useLanguage();
-  const [measurementTrigger, setMeasurementTrigger] = useState(0);
   
   const measurementQuestions = questions.filter(q => q.type === 'measurement');
   const calculatedQuestions = questions.filter(q => q.type === 'calculated');
@@ -189,7 +188,6 @@ export function MeasurementBlock({ questions, onChange, onAddError }: Measuremen
               <button
                 onClick={() => {
                   console.log('Manual calculation triggered');
-                  setMeasurementTrigger(prev => prev + 1);
                   
                   // Check all calculated values and add errors for out-of-bounds
                   calculatedQuestions.forEach(question => {
