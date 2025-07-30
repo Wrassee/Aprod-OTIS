@@ -160,12 +160,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { formData, language } = req.body;
       
-      // Generate Excel from template
-      const excelBuffer = await excelService.generateExcel(formData, language);
+      console.log('EXCEL: Using XML-based approach for PERFECT format preservation');
+      
+      // Import the proven XML-based service that preserves formatting
+      const { simpleXmlExcelService } = await import('./services/simple-xml-excel');
+      
+      // Generate Excel with XML manipulation (proven to preserve formatting)
+      const excelBuffer = await simpleXmlExcelService.generateExcelFromTemplate(formData, language);
+      
+      if (!excelBuffer || excelBuffer.length < 1000) {
+        throw new Error('Generated Excel buffer is invalid or too small');
+      }
+      
+      console.log(`SAFE: Generated Excel with data: ${excelBuffer.length} bytes`);
+      
+      // Create filename based on question 7 (Otis Lift-azonosító) with AP_ prefix
+      const liftId = formData.answers['7'] || 'Unknown';
+      const filename = `AP_${liftId}.xlsx`;
       
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-      res.setHeader('Content-Disposition', 'attachment; filename=acceptance-protocol.xlsx');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
       res.send(excelBuffer);
+      
     } catch (error) {
       console.error("Error generating Excel download:", error);
       res.status(500).json({ message: "Failed to generate Excel" });
@@ -252,10 +268,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // If it's a questions template, parse and create question configs
-      if (type === 'questions') {
+      if (type === 'questions' || type === 'unified') {
         try {
           const buffer = fs.readFileSync(filePath);
           const questions = await excelParserService.parseQuestionsFromExcel(buffer);
+          
+          console.log(`Parsed ${questions.length} questions from ${type} template`);
           
           // Save question configurations
           for (const question of questions) {
@@ -274,6 +292,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
               groupName: question.groupName || null,
               groupNameDe: question.groupNameDe || null,
               groupOrder: question.groupOrder || 0,
+              unit: question.unit || null,
+              minValue: question.minValue || null,
+              maxValue: question.maxValue || null,
+              calculationFormula: question.calculationFormula || null,
+              calculationInputs: question.calculationInputs || null,
             });
           }
         } catch (parseError) {
@@ -382,10 +405,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { language } = req.params;
       
-      // First try to find multilingual template, then language-specific
-      let questionsTemplate = await storage.getActiveTemplate('questions', 'multilingual');
+      // First try to find unified template (contains all question types)
+      let questionsTemplate = await storage.getActiveTemplate('unified', 'multilingual');
       if (!questionsTemplate) {
-        questionsTemplate = await storage.getActiveTemplate('questions', language);
+        questionsTemplate = await storage.getActiveTemplate('unified', language);
+      }
+      
+      // If no unified template, try traditional questions template
+      if (!questionsTemplate) {
+        questionsTemplate = await storage.getActiveTemplate('questions', 'multilingual');
+        if (!questionsTemplate) {
+          questionsTemplate = await storage.getActiveTemplate('questions', language);
+        }
       }
       
       if (!questionsTemplate) {
@@ -408,6 +439,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sheetName: config.sheetName || undefined,
         groupName: language === 'de' && config.groupNameDe ? config.groupNameDe : config.groupName || undefined,
         groupOrder: config.groupOrder || 0,
+        unit: config.unit || undefined,
+        minValue: config.minValue || undefined,
+        maxValue: config.maxValue || undefined,
+        calculationFormula: config.calculationFormula || undefined,
+        calculationInputs: config.calculationInputs || undefined,
       }));
 
       res.json(questions);

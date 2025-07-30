@@ -144,14 +144,19 @@ export interface MeasurementCalculation {
 export interface Question {
   id: string;
   title: string;
+  titleHu?: string;
+  titleDe?: string;
   type: QuestionType;
   required?: boolean;
   placeholder?: string;
+  cellReference?: string;
+  sheetName?: string;
   groupName?: string;
   groupOrder?: number;
   // Measurement-specific properties
   unit?: string;
   minValue?: number;
   maxValue?: number;
-  calculation?: MeasurementCalculation;
+  calculationFormula?: string;
+  calculationInputs?: string;
 }

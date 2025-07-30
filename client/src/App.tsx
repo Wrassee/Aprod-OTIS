@@ -73,6 +73,14 @@ function App() {
   };
 
   const handleSignatureBack = () => {
+    console.log('🔙 Signature Back button clicked - returning to questionnaire');
+    
+    // Restore questionnaire page to the last page
+    const lastPage = localStorage.getItem('questionnaire-current-page');
+    if (lastPage) {
+      console.log('🔙 Restoring questionnaire page:', lastPage);
+    }
+    
     setCurrentScreen('questionnaire');
   };
 
