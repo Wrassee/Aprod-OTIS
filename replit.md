@@ -4,30 +4,12 @@
 
 This is a full-stack TypeScript application that digitizes the OTIS elevator acceptance protocol process. The system guides users through a step-by-step questionnaire, allows error documentation with images, generates PDFs, and enables sharing via email or cloud storage. It supports both Hungarian and German languages.
 
-**Current Version**: OTIS APROD 0.3.0 - Excel Corruption Issues (January 30, 2025)
-**Status**: EXCEL CORRUPTION PROBLÉMÁK ❌ - Measurement funkció dokumentálva rollback előtt
+**Current Version**: OTIS APROD 0.3.0 - Production Release with Measurement Data Block (January 27, 2025)
+**Status**: FULLY OPERATIONAL ✅ - MÉRÉSI ADATOK BLOKK KÉSZ!
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language (Hungarian preferred).
-
-## MEASUREMENT FUNKCIÓ KOMPONENSEK LISTÁJA (ROLLBACK ELŐTT)
-
-### Fájlok amelyek measurement funkciót tartalmaznak:
-1. **client/src/components/measurement-block.tsx** - Fő measurement komponens
-2. **client/src/components/measurement-question.tsx** - Measurement input kezelő  
-3. **client/src/components/calculated-result.tsx** - Számított eredmények
-4. **client/src/services/measurement-service.ts** - Calculation engine
-5. **shared/schema.ts** - Database schema measurement mezőkkel
-6. **server/services/measurement-cache.ts** - Cache management
-7. Template fájlok measurement/calculated kérdésekkel
-
-### Kritikus funkciók:
-- Real-time calculation: m4 = m1 - m3, m5 = m2 - m3
-- Input validation with min/max ranges
-- Automatic error detection for out-of-range values
-- Multi-language support (Hungarian/German)
-- Cache persistence across page refreshes
 
 ## Recent Changes
 
@@ -45,101 +27,14 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Logo Display**: ✅ COMPLETED - Moved logo to client/public/ for proper static serving
 - **Yes/No/NA Logic**: ✅ COMPLETED - X-based logic implemented for multi-column questions
 
-### MEASUREMENT FUNKCIÓ TELJES DOKUMENTÁCIÓJA (Január 30, 2025)
-**KRITIKUS: Ez a teljes measurement system dokumentációja visszaállításhoz!**
-
-#### Database Schema Extensions (shared/schema.ts):
-```typescript
-// Question configs bővítése:
-unit: text('unit'), // mm, cm, m, kg, stb.
-minValue: real('min_value'), // minimum érték validációhoz
-maxValue: real('max_value'), // maximum érték validációhoz  
-calculationFormula: text('calculation_formula'), // pl: "m1 - m2"
-calculationInputs: text('calculation_inputs').array(), // ["m1", "m2"]
-```
-
-#### Kérdés Típusok:
-- **measurement**: Numerikus input mérési értékekhez (pl. távolság mm-ben)
-- **calculated**: Automatikusan számolt eredmények (pl. m4 = m1 - m3)
-
-#### Komponensek:
-1. **MeasurementQuestion** - Measurement input mezők kezelése
-2. **CalculatedResult** - Számított eredmények megjelenítése
-3. **MeasurementBlock** - Teljes mérési blokk wrapper
-4. **MeasurementService** - Képletek biztonságos kiértékelése
-
-#### Calculation Engine Logic:
-```typescript
-// MeasurementService.ts-ben:
-// 1. Képlet parsing (pl. "m1 - m3" -> ["m1", "-", "m3"])
-// 2. Változók helyettesítése értékekkel
-// 3. Biztonságos eval() Function() segítségével
-// 4. Hatókör/range validáció (min/max értékek)
-// 5. Automatikus error detection tartományon kívüli értékeknél
-```
-
-#### Excel Integration:
-- Measurement értékek: csak a numerikus érték kerül az Excel-be
-- Calculated értékek: UI-ban láthatók, de Excel-ben csak measurement értékek
-- Formula logic: az Excel saját képletei számolnak
-
-#### Cache System:
-- **MeasurementCache**: localStorage + global cache dual storage
-- Automatic value restoration on component mount
-- Persistent values across React re-renders
-
-#### UI Features:
-- Real-time calculation updates
-- Input validation with min/max ranges  
-- Multi-language labels and error messages
-- Automatic error list population for out-of-range values
-
-#### Template Support:
-- Excel templates contain measurement/calculated question definitions
-- Cell references for measurement inputs (pl. m1 -> H25, m2 -> H26)
-- Calculated questions use calculationFormula field
-
-#### Teljes fájlok listája:
-1. **client/src/services/measurement-service.ts** - Calculation engine
-2. **client/src/components/measurement-question.tsx** - Measurement input komponens
-3. **client/src/components/calculated-result.tsx** - Számított eredmény komponens  
-4. **client/src/components/measurement-block.tsx** - Wrapper komponens
-5. **client/src/utils/measurement-cache.ts** - Cache kezelés
-6. **server/services/measurement-calculator.ts** - Server oldali számítások
-7. **shared/schema.ts** - Database schema measurement mezőkkel
-
-#### Példa template kérdések:
-```
-m1 (measurement): "Távolság 1" - cellReference: H25, unit: mm, minValue: 0, maxValue: 3000
-m2 (measurement): "Távolság 2" - cellReference: H26, unit: mm, minValue: 0, maxValue: 3000  
-m3 (measurement): "Távolság 3" - cellReference: H27, unit: mm, minValue: 0, maxValue: 3000
-m4 (calculated): "Hatékony távolság 1" - calculationFormula: "m1 - m3", calculationInputs: ["m1", "m3"]
-m5 (calculated): "Hatékony távolság 2" - calculationFormula: "m2 - m3", calculationInputs: ["m2", "m3"]
-```
-
-#### Cache működés:
-- localStorage + global window cache dual storage
-- Automatikus visszaállítás component mount-kor  
-- Persistens értékek React re-render során
-- MeasurementCache class localStorage sync-kel
-
-### Excel & UI Stability Fix (January 28, 2025) - Version 0.3.3 FINAL
-- **Excel Corruption Solution**: ✅ FIXED - Calculated values removed from Excel output, only measurement values written
-- **Excel Formula Logic**: ✅ IMPLEMENTED - Excel built-in formulas handle calculations automatically
-- **UI Flicker Reduction**: ✅ IMPROVED - Increased debounce timeout to 500ms, reduced trigger frequency
-- **Error Duplication Fix**: ✅ RESOLVED - Added Set-based tracking to prevent duplicate boundary errors
-- **Measurement Input Stability**: ✅ WORKING - StableInput + onInput/onBlur pattern prevents cursor jumping
-- **User Requirements Met**: ✅ COMPLETED - "Az OTIS protokoll excelben benne van a számítási képlet" - Excel handles calculations
-- **System Architecture**: ✅ FINALIZED - UI shows calculated values, Excel only gets measurement inputs
-
-### Final Measurement Cache System Implementation (January 28, 2025) - Version 0.3.2
-- **MeasurementCache Class**: ✅ COMPLETED - Persistent cache system with localStorage + global cache dual storage
-- **Input Value Restoration**: ✅ IMPLEMENTED - Automatic restoration of measurement values on component mount using ref callbacks
-- **Excel Buffer Corruption Fix**: ✅ ADDRESSED - Enhanced error handling and buffer validation for Excel generation
-- **TypeScript Error Resolution**: ✅ FIXED - Corrected true/false comparison logic in simple-xml-excel.ts
-- **Platform Compatibility**: ✅ IMPROVED - Changed ZIP platform from 'UNIX' to 'DOS' for better Excel compatibility
-- **Measurement Data Persistence**: ✅ WORKING - Values survive React re-renders and maintain in both UI and Excel output
-- **Excel Corruption Detection**: ✅ ADDED - Buffer size validation and write verification prevent corrupted file downloads
+### Measurement Data Block Implementation (January 27, 2025) - Version 0.3.0
+- **New Question Types**: ✅ COMPLETED - Added 'measurement' and 'calculated' question types to schema and components
+- **Measurement Components**: ✅ COMPLETED - Created MeasurementQuestion, CalculatedResult, and MeasurementBlock components
+- **Calculation Engine**: ✅ COMPLETED - Built MeasurementService for safe formula evaluation and validation
+- **Excel Integration**: ✅ COMPLETED - Extended simple-xml-excel.ts to handle measurement/calculated values with units
+- **Database Schema**: ✅ COMPLETED - Added unit, minValue, maxValue, calculationFormula, calculationInputs fields
+- **Auto Error Detection**: ✅ COMPLETED - Automatically adds out-of-range calculated values to protocol error list
+- **Multi-language Support**: ✅ COMPLETED - Full Hungarian/German support for measurement interface
 
 ### Critical German UI Localization Fix (January 27, 2025) - Version 0.2.1
 - **German UI Translation Issue**: ✅ RESOLVED - Complete German interface now working perfectly
@@ -199,25 +94,6 @@ m5 (calculated): "Hatékony távolság 2" - calculationFormula: "m2 - m3", calcu
 - **Display Logic**: ✅ COMPLETED - Admin template list shows "HU/DE" badge for multilingual templates
 - **Backward Compatibility**: ✅ MAINTAINED - Existing Hungarian/German specific templates still supported
 - **User Validation**: ✅ CONFIRMED - User successfully tested new upload flow and confirmed "Nagyszerű!" - system working perfectly with single Excel for both languages
-
-### Complete Unified Template Implementation (January 28, 2025) - Version 0.4.0 - SIKERESEN TELEPÍTVE!
-- **Missing Question Types Issue**: ✅ IDENTIFIED - EGYESÍTETT-TEMPLATE-FULL.xlsx only contained text/number/yes_no_na/true_false types
-- **Template Analysis**: ✅ COMPLETED - Original template had wrong column headers and missing measurement/calculated questions
-- **FIXED-UNIFIED-TEMPLATE.xlsx Created**: ✅ COMPLETED - Complete template with all 6 question types:
-  - 7 text questions (names, addresses)
-  - 2 number questions (postal code, house number)
-  - 2 yes_no_na questions (machine room questions with multicell support)
-  - 10 true_false questions (modernization Q25-Q34)
-  - 3 measurement questions (distance measurements with mm units)
-  - 2 calculated questions (effective distance calculations with formulas)
-- **API Route Enhanced**: ✅ COMPLETED - /api/questions/:language now prioritizes 'unified' template type
-- **UI Components Working**: ✅ VERIFIED - MeasurementQuestion and CalculatedResult components fully operational
-- **Excel Parser Working**: ✅ COMPLETED - Proper column header mapping for all question types
-- **Template Upload Success**: ✅ CONFIRMED - 26 questions parsed and loaded successfully
-- **Q Column Positioning**: ✅ VERIFIED - Q9, Q25-Q34 positioning follows OTIS protocol standards
-- **Multicell Support**: ✅ WORKING - A68,B68,C68 and multirow A75;A76;A77 references functional
-- **Real-time Calculations**: ✅ OPERATIONAL - m4 and m5 calculated values update automatically from m1,m2,m3 measurements
-- **User Validation**: ✅ CONFIRMED - User confirmed "most működik!" with all question types displaying correctly
 
 ### Critical Excel Generation Fix (January 27, 2025) - Hotfix 0.1.9.1
 - **Problem Identified**: ✅ RESOLVED - Excel generation broke after multilingual implementation due to template lookup failures

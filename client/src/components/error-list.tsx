@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ProtocolError } from '@shared/schema';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,41 +14,10 @@ interface ErrorListProps {
   onDeleteError: (id: string) => void;
 }
 
-export function ErrorList({ errors = [], onAddError, onEditError, onDeleteError }: ErrorListProps) {
+export function ErrorList({ errors, onAddError, onEditError, onDeleteError }: ErrorListProps) {
   const { t } = useLanguageContext();
   const [showModal, setShowModal] = useState(false);
   const [editingError, setEditingError] = useState<ProtocolError | null>(null);
-  const [localStorageErrors, setLocalStorageErrors] = useState<ProtocolError[]>([]);
-  
-  // Listen for localStorage errors added from measurement boundary violations
-  useEffect(() => {
-    const updateLocalStorageErrors = () => {
-      try {
-        const stored = localStorage.getItem('protocol-errors');
-        if (stored) {
-          const parsedErrors = JSON.parse(stored);
-          setLocalStorageErrors(Array.isArray(parsedErrors) ? parsedErrors : []);
-        }
-      } catch (error) {
-        console.error('Error reading localStorage errors:', error);
-      }
-    };
-
-    // Initial load
-    updateLocalStorageErrors();
-
-    // Listen for custom events from measurement block
-    const handleProtocolErrorAdded = () => {
-      updateLocalStorageErrors();
-    };
-
-    window.addEventListener('protocol-error-added', handleProtocolErrorAdded);
-    return () => window.removeEventListener('protocol-error-added', handleProtocolErrorAdded);
-  }, []);
-  
-  // Combine React state errors with localStorage errors
-  const allErrors = [...(Array.isArray(errors) ? errors : []), ...localStorageErrors];
-  const safeErrors = Array.isArray(allErrors) ? allErrors : [];
 
   const getSeverityColor = (severity: ProtocolError['severity']) => {
     switch (severity) {
@@ -109,14 +78,14 @@ export function ErrorList({ errors = [], onAddError, onEditError, onDeleteError 
             </Button>
           </div>
 
-          {safeErrors.length === 0 ? (
+          {!errors || errors.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-500" />
               <p>{t.noErrors}</p>
             </div>
           ) : (
             <div className="space-y-4">
-              {safeErrors.map((error) => (
+              {(errors || []).map((error) => (
                 <div key={error.id} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -128,7 +97,7 @@ export function ErrorList({ errors = [], onAddError, onEditError, onDeleteError 
                       </div>
                       <p className="text-gray-600 text-sm mb-3">{error.description}</p>
                       
-                      {error.images && error.images.length > 0 && (
+                      {error.images.length > 0 && (
                         <div className="flex space-x-2">
                           {error.images.map((image, index) => (
                             <img
@@ -147,21 +116,7 @@ export function ErrorList({ errors = [], onAddError, onEditError, onDeleteError 
                         variant="ghost"
                         size="sm"
                         className="text-gray-400 hover:text-otis-blue"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          
-                          // Boundary errors (automatically generated) cannot be edited
-                          if (error.id.startsWith('boundary-')) {
-                            const toast = document.createElement('div');
-                            toast.textContent = 'Automatikus hibák nem szerkeszthetők!';
-                            toast.style.cssText = 'position:fixed;top:20px;right:20px;background:#f59e0b;color:white;padding:12px 24px;border-radius:8px;z-index:9999;font-weight:500;';
-                            document.body.appendChild(toast);
-                            setTimeout(() => document.body.removeChild(toast), 2000);
-                          } else {
-                            startEdit(error);
-                          }
-                        }}
+                        onClick={() => startEdit(error)}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -169,33 +124,7 @@ export function ErrorList({ errors = [], onAddError, onEditError, onDeleteError 
                         variant="ghost"
                         size="sm"
                         className="text-gray-400 hover:text-red-500"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          
-                          // Check if this is a localStorage error (boundary errors have 'boundary-' prefix)
-                          if (error.id.startsWith('boundary-')) {
-                            console.log('🗑️ Deleting localStorage boundary error:', error.id);
-                            
-                            // Remove from localStorage directly without React state updates
-                            const currentErrors = JSON.parse(localStorage.getItem('protocol-errors') || '[]');
-                            const filteredErrors = currentErrors.filter((e: any) => e.id !== error.id);
-                            localStorage.setItem('protocol-errors', JSON.stringify(filteredErrors));
-                            
-                            // Update local state without triggering parent re-renders
-                            setLocalStorageErrors(filteredErrors);
-                            
-                            // Show confirmation toast
-                            const toast = document.createElement('div');
-                            toast.textContent = 'Hiba törölve a hibalistából!';
-                            toast.style.cssText = 'position:fixed;top:20px;right:20px;background:#ef4444;color:white;padding:12px 24px;border-radius:8px;z-index:9999;font-weight:500;';
-                            document.body.appendChild(toast);
-                            setTimeout(() => document.body.removeChild(toast), 2000);
-                          } else {
-                            // Handle regular React state errors
-                            onDeleteError(error.id);
-                          }
-                        }}
+                        onClick={() => onDeleteError(error.id)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

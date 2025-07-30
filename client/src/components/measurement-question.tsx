@@ -1,8 +1,8 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { useLanguageContext } from '@/components/language-provider';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Question } from '@shared/schema';
-import { StableInput } from './stable-input';
 
 interface MeasurementQuestionProps {
   question: Question;
@@ -10,56 +10,22 @@ interface MeasurementQuestionProps {
   onChange: (value: number) => void;
 }
 
-// Global helper functions for measurement values
-export function getAllMeasurementValues(): Record<string, number> {
-  // Check both caches for measurement values
-  const measurementCached = (window as any).measurementValues || {};
-  const stableInputCached = (window as any).stableInputValues || {};
-  const combined = { ...measurementCached, ...stableInputCached };
-  
-  const result: Record<string, number> = {};
-  
-  Object.keys(combined).forEach(key => {
-    const value = parseFloat(combined[key]);
-    if (!isNaN(value)) {
-      result[key] = value;
-    }
-  });
-  
-  return result;
-}
-
-export function clearAllMeasurementValues() {
-  (window as any).measurementValues = {};
-}
-
 export function MeasurementQuestion({ question, value, onChange }: MeasurementQuestionProps) {
   const { language } = useLanguageContext();
+  const [localValue, setLocalValue] = useState<string>(value?.toString() || '');
 
-  const handleValueChange = (newValue: string) => {
-    // Store values PERSISTENTLY in dual cache system
-    if (!(window as any).measurementValues) {
-      (window as any).measurementValues = {};
+  useEffect(() => {
+    setLocalValue(value?.toString() || '');
+  }, [value]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    setLocalValue(inputValue);
+    
+    const numValue = parseFloat(inputValue);
+    if (!isNaN(numValue)) {
+      onChange(numValue);
     }
-    (window as any).measurementValues[question.id] = newValue;
-    
-    // ALSO store in stableInputValues for StableInput compatibility
-    if (!(window as any).stableInputValues) {
-      (window as any).stableInputValues = {};
-    }
-    (window as any).stableInputValues[question.id] = newValue;
-    
-    // Mark this value as protected from clearing
-    if (!(window as any).protectedMeasurements) {
-      (window as any).protectedMeasurements = new Set();
-    }
-    (window as any).protectedMeasurements.add(question.id);
-    
-    // Trigger measurement change event for calculations
-    window.dispatchEvent(new CustomEvent('measurement-change'));
-    
-    // DON'T call onChange immediately to avoid React state conflicts
-    // Values will be picked up from cache during form submission
   };
 
   const getTitle = () => {
@@ -68,16 +34,9 @@ export function MeasurementQuestion({ question, value, onChange }: MeasurementQu
     return question.title;
   };
 
-  // Check range from cached value to avoid re-renders
-  const getCachedValue = () => {
-    const cached = (window as any).measurementValues?.[question.id];
-    return cached ? parseFloat(cached) : value;
-  };
-  
-  const currentValue = getCachedValue();
-  const isOutOfRange = currentValue !== undefined && !isNaN(currentValue) && (
-    (question.minValue !== undefined && currentValue < question.minValue) ||
-    (question.maxValue !== undefined && currentValue > question.maxValue)
+  const isOutOfRange = value !== undefined && (
+    (question.minValue !== undefined && value < question.minValue) ||
+    (question.maxValue !== undefined && value > question.maxValue)
   );
 
   return (
@@ -92,11 +51,11 @@ export function MeasurementQuestion({ question, value, onChange }: MeasurementQu
         )}
       </Label>
       
-      <StableInput
-        questionId={question.id}
+      <Input
+        id={question.id}
         type="number"
-        initialValue={value?.toString() || ''}
-        onValueChange={handleValueChange}
+        value={localValue}
+        onChange={handleChange}
         placeholder={question.placeholder || (language === 'de' ? 'Wert eingeben' : 'Érték megadása')}
         className={`w-full ${isOutOfRange ? 'border-red-500' : ''}`}
         min={question.minValue}
