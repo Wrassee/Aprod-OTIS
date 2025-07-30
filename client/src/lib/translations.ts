@@ -63,7 +63,6 @@ export interface Translation {
   downloadPDF: string;
   downloadExcel: string;
   viewProtocol: string;
-  startNew: string;
   home: string;
   
   // Validation
@@ -163,7 +162,6 @@ export const translations: Record<string, Translation> = {
     downloadPDF: "PDF letöltése",
     downloadExcel: "Excel letöltése",
     viewProtocol: "Protokoll előnézete",
-    startNew: "Új protokoll indítása",
     home: "Kezdőlap",
     
     // Validation
@@ -261,7 +259,6 @@ export const translations: Record<string, Translation> = {
     downloadPDF: "PDF herunterladen",
     downloadExcel: "Excel herunterladen",
     viewProtocol: "Protokoll-Vorschau",
-    startNew: "Neues Protokoll starten",
     home: "Startseite",
     
     // Validation
