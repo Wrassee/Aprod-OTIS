@@ -233,7 +233,7 @@ export function MeasurementBlock({ questions, onChange, onAddError }: Measuremen
                         {question.unit}
                         {isOutOfBounds && (
                           <span className="ml-2 text-red-500 font-medium">
-                            ⚠️ {calculatedValue} {question.unit} határértéken kívül ({question.minValue}-{question.maxValue} {question.unit})
+                            ⚠️ Határértéken kívül ({question.minValue}-{question.maxValue} {question.unit})
                           </span>
                         )}
                       </p>
@@ -246,6 +246,31 @@ export function MeasurementBlock({ questions, onChange, onAddError }: Measuremen
                       </div>
                       {question.unit && (
                         <span className="text-sm text-gray-500 w-8">{question.unit}</span>
+                      )}
+                      {isOutOfBounds && onAddError && (
+                        <button
+                          onClick={() => {
+                            const questionTitle = language === 'de' ? question.titleDe : question.title;
+                            const errorTitle = language === 'de' 
+                              ? `Berechneter Wert außerhalb der Grenzen: ${questionTitle}`
+                              : `Határértéken kívüli számított érték: ${questionTitle}`;
+                            
+                            const errorDescription = language === 'de'
+                              ? `Der berechnete Wert ${calculatedValue} ${question.unit} liegt außerhalb der zulässigen Grenzen (${question.minValue}-${question.maxValue} ${question.unit}). Bitte überprüfen Sie die Eingabewerte.`
+                              : `A számított érték ${calculatedValue} ${question.unit} kívül esik a megengedett határokon (${question.minValue}-${question.maxValue} ${question.unit}). Kérjük, ellenőrizze a bemeneti értékeket.`;
+
+                            onAddError({
+                              title: errorTitle,
+                              description: errorDescription,
+                              severity: 'critical',
+                              images: []
+                            });
+                          }}
+                          className="ml-2 p-1 text-red-600 hover:bg-red-100 rounded-full transition-colors"
+                          title={language === 'de' ? 'Fehler zur Liste hinzufügen' : 'Hiba hozzáadása a listához'}
+                        >
+                          <div className="w-0 h-0 border-l-[6px] border-r-[6px] border-b-[10px] border-l-transparent border-r-transparent border-b-red-600"></div>
+                        </button>
                       )}
                     </div>
                   </div>
