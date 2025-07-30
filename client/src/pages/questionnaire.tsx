@@ -13,9 +13,8 @@ import { ArrowLeft, ArrowRight, Save, Settings, Home, Check, X } from 'lucide-re
 import { getAllCachedValues } from '@/components/cache-radio';
 import { getAllTrueFalseValues } from '@/components/true-false-radio';
 import { getAllStableInputValues } from '@/components/stable-input';
-import { CalculatedResult } from '@/components/calculated-result';
-import { MeasurementService } from '@/services/measurement-service';
-import { evaluateFormula, validateMeasurement } from '@/lib/measurement-examples';
+import { MeasurementBlock } from '@/components/measurement-block';
+import { measurementService } from '@/services/measurement-service';
 
 interface QuestionnaireProps {
   receptionDate: string;
@@ -370,35 +369,40 @@ const Questionnaire = memo(function Questionnaire({
               groupName={currentGroup?.name || 'Kérdések'}
             />
           ) : (
-            /* Regular Question Grid (2x2 Layout) for non-true_false questions */
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {(currentQuestions as Question[]).map((question: Question) => {
-                // Handle calculated questions specially
-                if (question.type === 'calculated') {
-                  return (
-                    <CalculatedResult
+            <div className="space-y-6">
+              {/* Measurement and Calculated Questions Block */}
+              {(currentQuestions as Question[]).some(q => q.type === 'measurement' || q.type === 'calculated') && (
+                <MeasurementBlock
+                  questions={currentQuestions as Question[]}
+                  measurementValues={measurementValues}
+                  calculatedResults={calculatedResults}
+                  onMeasurementChange={(questionId, value) => {
+                    setMeasurementValues(prev => ({ ...prev, [questionId]: value }));
+                    onAnswerChange(questionId, value);
+                  }}
+                  onCalculatedChange={(questionId, value) => {
+                    setCalculatedResults(prev => ({ ...prev, [questionId]: value }));
+                    onAnswerChange(questionId, value);
+                  }}
+                  onErrorsChange={(errors) => {
+                    setMeasurementErrors(errors);
+                  }}
+                />
+              )}
+
+              {/* Regular Question Grid (2x2 Layout) for non-measurement/calculated questions */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {(currentQuestions as Question[])
+                  .filter(q => q.type !== 'measurement' && q.type !== 'calculated')
+                  .map((question: Question) => (
+                    <IsolatedQuestion
                       key={question.id}
                       question={question}
-                      inputValues={measurementValues}
+                      value={answers[question.id]}
+                      onChange={(value) => onAnswerChange(question.id, value)}
                     />
-                  );
-                }
-                
-                return (
-                  <IsolatedQuestion
-                    key={question.id}
-                    question={question}
-                    value={answers[question.id]}
-                    onChange={(value) => {
-                      onAnswerChange(question.id, value);
-                      // If this is a measurement question, also update measurementValues
-                      if (question.type === 'measurement' && typeof value === 'number') {
-                        setMeasurementValues(prev => ({ ...prev, [question.id]: value }));
-                      }
-                    }}
-                  />
-                );
-              })}
+                  ))}
+              </div>
             </div>
           )}
         </div>
@@ -520,6 +524,16 @@ const Questionnaire = memo(function Questionnaire({
                   console.log('Radio values:', cachedRadioValues);
                   console.log('True/False values:', cachedTrueFalseValues);
                   console.log('Input values:', cachedInputValues);
+                  console.log('Measurement values:', measurementValues);
+                  console.log('Calculated values:', calculatedResults);
+                  
+                  // Sync measurement and calculated values
+                  Object.entries(measurementValues).forEach(([questionId, value]) => {
+                    onAnswerChange(questionId, value);
+                  });
+                  Object.entries(calculatedResults).forEach(([questionId, value]) => {
+                    onAnswerChange(questionId, value);
+                  });
                   
                   Object.entries(cachedRadioValues).forEach(([questionId, value]) => {
                     onAnswerChange(questionId, value as string);

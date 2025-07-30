@@ -1,82 +1,122 @@
-import { useState, useEffect } from 'react';
-import { useLanguageContext } from '@/components/language-provider';
+import { memo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Question } from '@shared/schema';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { AlertTriangle, CheckCircle } from 'lucide-react';
+import { useLanguage } from '@/hooks/use-language';
+import type { Question } from '@shared/schema';
 
 interface MeasurementQuestionProps {
   question: Question;
   value: number | undefined;
-  onChange: (value: number) => void;
+  onChange: (value: number | undefined) => void;
+  error?: string;
+  isValid?: boolean;
 }
 
-export function MeasurementQuestion({ question, value, onChange }: MeasurementQuestionProps) {
-  const { language } = useLanguageContext();
-  const [localValue, setLocalValue] = useState<string>(value?.toString() || '');
-
-  useEffect(() => {
-    setLocalValue(value?.toString() || '');
-  }, [value]);
-
+export const MeasurementQuestion = memo(function MeasurementQuestion({
+  question,
+  value,
+  onChange,
+  error,
+  isValid = true
+}: MeasurementQuestionProps) {
+  const { language, t } = useLanguage();
+  
+  const title = language === 'de' && question.titleDe ? question.titleDe : question.title;
+  const unit = question.unit || 'mm';
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
-    setLocalValue(inputValue);
-    
-    const numValue = parseFloat(inputValue);
-    if (!isNaN(numValue)) {
-      onChange(numValue);
+    if (inputValue === '') {
+      onChange(undefined);
+    } else {
+      const numValue = parseFloat(inputValue);
+      if (!isNaN(numValue)) {
+        onChange(numValue);
+      }
     }
   };
 
-  const getTitle = () => {
-    if (language === 'de' && question.titleDe) return question.titleDe;
-    if (language === 'hu' && question.titleHu) return question.titleHu;
-    return question.title;
+  const getValidationIcon = () => {
+    if (value === undefined) return null;
+    
+    if (error || !isValid) {
+      return <AlertTriangle className="h-4 w-4 text-red-500" />;
+    }
+    
+    return <CheckCircle className="h-4 w-4 text-green-500" />;
   };
 
-  const isOutOfRange = value !== undefined && (
-    (question.minValue !== undefined && value < question.minValue) ||
-    (question.maxValue !== undefined && value > question.maxValue)
-  );
+  const getRangeDisplay = () => {
+    if (question.minValue !== undefined && question.maxValue !== undefined) {
+      return `${question.minValue} - ${question.maxValue} ${unit}`;
+    } else if (question.minValue !== undefined) {
+      return `≥ ${question.minValue} ${unit}`;
+    } else if (question.maxValue !== undefined) {
+      return `≤ ${question.maxValue} ${unit}`;
+    }
+    return null;
+  };
 
   return (
-    <div className="space-y-2">
-      <Label htmlFor={question.id} className="flex items-center gap-2">
-        {getTitle()}
-        {question.unit && (
-          <span className="text-sm text-gray-500">({question.unit})</span>
-        )}
-        {question.required && (
-          <span className="text-red-500">*</span>
-        )}
-      </Label>
-      
-      <Input
-        id={question.id}
-        type="number"
-        value={localValue}
-        onChange={handleChange}
-        placeholder={question.placeholder || (language === 'de' ? 'Wert eingeben' : 'Érték megadása')}
-        className={`w-full ${isOutOfRange ? 'border-red-500' : ''}`}
-        min={question.minValue}
-        max={question.maxValue}
-        step="0.1"
-      />
-      
-      {question.minValue !== undefined && question.maxValue !== undefined && (
-        <p className="text-xs text-gray-500">
-          {language === 'de' ? 'Bereich' : 'Tartomány'}: {question.minValue} - {question.maxValue} {question.unit || ''}
-        </p>
-      )}
-      
-      {isOutOfRange && (
-        <p className="text-xs text-red-500">
-          {language === 'de' 
-            ? 'Wert außerhalb des zulässigen Bereichs' 
-            : 'Az érték a megengedett tartományon kívül esik'
-          }
-        </p>
-      )}
-    </div>
+    <Card className={`border-l-4 ${isValid && !error ? 'border-l-blue-500' : 'border-l-red-500'}`}>
+      <CardContent className="p-4">
+        <div className="space-y-3">
+          {/* Question Title */}
+          <div className="flex items-start justify-between">
+            <Label className="text-sm font-medium text-gray-900 dark:text-gray-100 leading-5">
+              {title}
+              {question.required && <span className="text-red-500 ml-1">*</span>}
+            </Label>
+            {getValidationIcon()}
+          </div>
+
+          {/* Range Display */}
+          {getRangeDisplay() && (
+            <div className="flex items-center space-x-2">
+              <Badge variant="outline" className="text-xs">
+                {language === 'hu' ? 'Határérték' : 'Grenzwert'}: {getRangeDisplay()}
+              </Badge>
+            </div>
+          )}
+
+          {/* Input Field */}
+          <div className="relative">
+            <Input
+              type="number"
+              step="0.01"
+              value={value || ''}
+              onChange={handleChange}
+              placeholder={question.placeholder || (language === 'hu' ? `Mérés ${unit}-ben` : `Messung in ${unit}`)}
+              className={`pr-12 ${error || !isValid ? 'border-red-500' : ''}`}
+            />
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                {unit}
+              </span>
+            </div>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="flex items-center space-x-2 text-sm text-red-600 dark:text-red-400">
+              <AlertTriangle className="h-4 w-4" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* Validation Info */}
+          {!error && value !== undefined && !isValid && (
+            <div className="text-sm text-amber-600 dark:text-amber-400">
+              {language === 'hu' 
+                ? 'Az érték kívül esik a megengedett tartományon'
+                : 'Der Wert liegt außerhalb des zulässigen Bereichs'}
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
-}
+});

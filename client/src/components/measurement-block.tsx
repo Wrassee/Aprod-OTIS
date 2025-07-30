@@ -1,268 +1,222 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useLanguageContext } from '@/components/language-provider';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { memo, useCallback, useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { Calculator, AlertTriangle, CheckCircle } from 'lucide-react';
-import { ProtocolError } from '@shared/schema';
-
-interface MeasurementInput {
-  id: string;
-  title: string;
-  titleHu?: string;
-  titleDe?: string;
-  unit: string;
-  minValue?: number;
-  maxValue?: number;
-  placeholder?: string;
-}
-
-interface MeasurementCalculation {
-  id: string;
-  name: string;
-  nameHu?: string;
-  nameDe?: string;
-  formula: string; // e.g., "m1 + m2 - m3"
-  inputIds: string[]; // References to measurement input IDs
-  minValue?: number;
-  maxValue?: number;
-  unit: string;
-  targetCellReference?: string;
-  sheetName?: string;
-}
+import { Ruler, Calculator, AlertTriangle } from 'lucide-react';
+import { useLanguage } from '@/hooks/use-language';
+import { MeasurementQuestion } from './measurement-question';
+import { CalculatedResult } from './calculated-result';
+import { validateMeasurement } from '@/lib/measurement-examples';
+import type { Question, ProtocolError } from '@shared/schema';
 
 interface MeasurementBlockProps {
-  measurements: MeasurementInput[];
-  calculations: MeasurementCalculation[];
-  values: Record<string, number>;
-  onValuesChange: (values: Record<string, number>) => void;
+  questions: Question[];
+  measurementValues: Record<string, number>;
+  calculatedResults: Record<string, any>;
+  onMeasurementChange: (questionId: string, value: number | undefined) => void;
+  onCalculatedChange: (questionId: string, value: number | undefined) => void;
   onErrorsChange: (errors: ProtocolError[]) => void;
-  groupName: string;
 }
 
-export function MeasurementBlock({
-  measurements,
-  calculations,
-  values,
-  onValuesChange,
-  onErrorsChange,
-  groupName
+export const MeasurementBlock = memo(function MeasurementBlock({
+  questions,
+  measurementValues,
+  calculatedResults,
+  onMeasurementChange,
+  onCalculatedChange,
+  onErrorsChange
 }: MeasurementBlockProps) {
-  const { t, language } = useLanguageContext();
-  const [calculatedValues, setCalculatedValues] = useState<Record<string, number>>({});
+  const { language, t } = useLanguage();
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
-  // Get localized title
-  const getLocalizedTitle = (item: MeasurementInput | MeasurementCalculation) => {
-    if (language === 'de' && 'titleDe' in item && item.titleDe) return item.titleDe;
-    if (language === 'hu' && 'titleHu' in item && item.titleHu) return item.titleHu;
-    return item.title || (item as any).name;
-  };
+  const measurementQuestions = questions.filter(q => q.type === 'measurement');
+  const calculatedQuestions = questions.filter(q => q.type === 'calculated');
 
-  // Calculate derived values
-  const calculateValues = useMemo(() => {
-    const results: Record<string, number> = {};
+  // Validate measurement values and update errors
+  useEffect(() => {
     const errors: Record<string, string> = {};
-
-    calculations.forEach(calc => {
-      try {
-        // Replace variable names in formula with actual values
-        let formula = calc.formula;
-        let hasAllInputs = true;
-
-        calc.inputIds.forEach(inputId => {
-          const value = values[inputId];
-          if (value === undefined || value === null || isNaN(value)) {
-            hasAllInputs = false;
-            return;
-          }
-          // Replace variable name with actual value
-          formula = formula.replace(new RegExp(`\\b${inputId}\\b`, 'g'), value.toString());
-        });
-
-        if (hasAllInputs) {
-          // Evaluate the mathematical expression
-          const result = Function(`"use strict"; return (${formula})`)();
-          
-          if (isNaN(result)) {
-            errors[calc.id] = language === 'de' ? 'Ungültige Berechnung' : 'Érvénytelen számítás';
-          } else {
-            results[calc.id] = Math.round(result * 100) / 100; // Round to 2 decimal places
-            
-            // Check if result is within acceptable range
-            if (calc.minValue !== undefined && result < calc.minValue) {
-              errors[calc.id] = language === 'de' 
-                ? `Wert zu niedrig (min: ${calc.minValue}${calc.unit})`
-                : `Érték túl alacsony (min: ${calc.minValue}${calc.unit})`;
-            } else if (calc.maxValue !== undefined && result > calc.maxValue) {
-              errors[calc.id] = language === 'de'
-                ? `Wert zu hoch (max: ${calc.maxValue}${calc.unit})`
-                : `Érték túl magas (max: ${calc.maxValue}${calc.unit})`;
-            }
-          }
-        }
-      } catch (error) {
-        errors[calc.id] = language === 'de' ? 'Berechnungsfehler' : 'Számítási hiba';
-      }
-    });
-
-    return { results, errors };
-  }, [values, calculations, language]);
-
-  // Update calculated values and validation errors
-  useEffect(() => {
-    setCalculatedValues(calculateValues.results);
-    setValidationErrors(calculateValues.errors);
-  }, [calculateValues]);
-
-  // Generate protocol errors for out-of-range values
-  useEffect(() => {
     const protocolErrors: ProtocolError[] = [];
-    
-    Object.entries(validationErrors).forEach(([calcId, errorMessage]) => {
-      const calculation = calculations.find(c => c.id === calcId);
-      if (calculation) {
-        protocolErrors.push({
-          id: `measurement-${calcId}-${Date.now()}`,
-          title: `${getLocalizedTitle(calculation)}: ${errorMessage}`,
-          description: language === 'de' 
-            ? `Berechneter Wert entspricht nicht den Spezifikationen`
-            : `A számított érték nem felel meg a specifikációknak`,
-          severity: 'critical' as const,
-          images: []
-        });
+
+    // Validate measurement questions
+    measurementQuestions.forEach(question => {
+      const value = measurementValues[question.id];
+      if (value !== undefined) {
+        const validation = validateMeasurement(value, question.minValue, question.maxValue);
+        if (!validation.isValid && validation.error) {
+          errors[question.id] = validation.error;
+          
+          // Add to protocol errors if out of range
+          protocolErrors.push({
+            id: `measurement-${question.id}`,
+            title: language === 'hu' 
+              ? `Mérési hiba: ${question.title}`
+              : `Messfehler: ${question.titleDe || question.title}`,
+            description: language === 'hu'
+              ? `A mért érték (${value} ${question.unit}) nem felel meg a határértékeknek.`
+              : `Der gemessene Wert (${value} ${question.unit}) entspricht nicht den Grenzwerten.`,
+            severity: 'medium' as const,
+            images: []
+          });
+        }
       }
     });
 
+    // Validate calculated questions
+    calculatedQuestions.forEach(question => {
+      const value = calculatedResults[question.id];
+      if (value !== undefined) {
+        const validation = validateMeasurement(value, question.minValue, question.maxValue);
+        if (!validation.isValid && validation.error) {
+          errors[question.id] = validation.error;
+          
+          // Add to protocol errors if out of range
+          protocolErrors.push({
+            id: `calculated-${question.id}`,
+            title: language === 'hu' 
+              ? `Számítási hiba: ${question.title}`
+              : `Berechnungsfehler: ${question.titleDe || question.title}`,
+            description: language === 'hu'
+              ? `A számított érték (${value} ${question.unit}) nem felel meg az OTIS előírásoknak.`
+              : `Der berechnete Wert (${value} ${question.unit}) entspricht nicht den OTIS-Vorschriften.`,
+            severity: 'critical' as const,
+            images: []
+          });
+        }
+      }
+    });
+
+    setValidationErrors(errors);
     onErrorsChange(protocolErrors);
-  }, [validationErrors, calculations, language, onErrorsChange]);
+  }, [measurementValues, calculatedResults, measurementQuestions, calculatedQuestions, language, onErrorsChange]);
 
-  const handleInputChange = (measurementId: string, value: string) => {
-    const numValue = parseFloat(value) || 0;
-    const newValues = { ...values, [measurementId]: numValue };
-    onValuesChange(newValues);
+  const handleMeasurementChange = useCallback((questionId: string, value: number | undefined) => {
+    onMeasurementChange(questionId, value);
+  }, [onMeasurementChange]);
+
+  const handleCalculatedChange = useCallback((questionId: string, value: number | undefined) => {
+    onCalculatedChange(questionId, value);
+  }, [onCalculatedChange]);
+
+  if (measurementQuestions.length === 0 && calculatedQuestions.length === 0) {
+    return null;
+  }
+
+  const getTotalErrors = () => {
+    return Object.keys(validationErrors).length;
   };
-
-  const translations = {
-    hu: {
-      measurements: 'Mérési adatok',
-      calculations: 'Számítások',
-      enterValue: 'Adja meg az értéket',
-      result: 'Eredmény',
-      withinLimits: 'Határértéken belül',
-      outOfLimits: 'Határértéken kívül'
-    },
-    de: {
-      measurements: 'Messdaten',
-      calculations: 'Berechnungen',
-      enterValue: 'Wert eingeben',
-      result: 'Ergebnis',
-      withinLimits: 'Innerhalb der Grenzwerte',
-      outOfLimits: 'Außerhalb der Grenzwerte'
-    }
-  };
-
-  const currentT = translations[language] || translations.hu;
 
   return (
-    <div className="space-y-6">
-      {/* Measurement Inputs */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calculator className="h-5 w-5" />
-            {currentT.measurements} - {groupName}
+    <Card className="border-2 border-blue-200 dark:border-blue-800">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center space-x-2 text-lg">
+            <Ruler className="h-5 w-5 text-blue-600" />
+            <span>
+              {language === 'hu' ? 'Mérési adatok és számítások' : 'Messdaten und Berechnungen'}
+            </span>
           </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {measurements.map(measurement => (
-              <div key={measurement.id} className="space-y-2">
-                <Label htmlFor={measurement.id}>
-                  {getLocalizedTitle(measurement)}
-                  <span className="text-sm text-gray-500 ml-2">({measurement.unit})</span>
-                </Label>
-                <Input
-                  id={measurement.id}
-                  type="number"
-                  value={values[measurement.id]?.toString() || ''}
-                  onChange={(e) => handleInputChange(measurement.id, e.target.value)}
-                  placeholder={measurement.placeholder || currentT.enterValue}
-                  className="w-full"
-                  min={measurement.minValue}
-                  max={measurement.maxValue}
-                />
-                {measurement.minValue !== undefined && measurement.maxValue !== undefined && (
-                  <p className="text-xs text-gray-500">
-                    {language === 'de' ? 'Bereich' : 'Tartomány'}: {measurement.minValue} - {measurement.maxValue} {measurement.unit}
-                  </p>
-                )}
-              </div>
-            ))}
+          
+          <div className="flex items-center space-x-2">
+            {getTotalErrors() > 0 && (
+              <Badge variant="destructive" className="flex items-center space-x-1">
+                <AlertTriangle className="h-3 w-3" />
+                <span>{getTotalErrors()}</span>
+              </Badge>
+            )}
+            <Badge variant="outline">
+              {language === 'hu' 
+                ? `${measurementQuestions.length + calculatedQuestions.length} elem`
+                : `${measurementQuestions.length + calculatedQuestions.length} Elemente`}
+            </Badge>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </CardHeader>
 
-      {/* Calculations Results */}
-      {calculations.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calculator className="h-5 w-5" />
-              {currentT.calculations}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {calculations.map(calc => {
-                const result = calculatedValues[calc.id];
-                const error = validationErrors[calc.id];
-                const hasResult = result !== undefined && !isNaN(result);
-                const isValid = hasResult && !error;
-
-                return (
-                  <div key={calc.id} className="p-4 border rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium">{getLocalizedTitle(calc)}</h4>
-                      <Badge variant={isValid ? "default" : "destructive"}>
-                        {isValid ? (
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                        ) : (
-                          <AlertTriangle className="h-3 w-3 mr-1" />
-                        )}
-                        {isValid ? currentT.withinLimits : currentT.outOfLimits}
-                      </Badge>
-                    </div>
-                    
-                    <div className="text-lg font-mono bg-gray-50 p-2 rounded">
-                      {hasResult ? `${result} ${calc.unit}` : '-- ' + calc.unit}
-                    </div>
-                    
-                    <p className="text-xs text-gray-500 mt-1">
-                      {calc.formula}
-                    </p>
-                    
-                    {error && (
-                      <Alert className="mt-2">
-                        <AlertTriangle className="h-4 w-4" />
-                        <AlertDescription>{error}</AlertDescription>
-                      </Alert>
-                    )}
-                    
-                    {calc.minValue !== undefined && calc.maxValue !== undefined && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        {language === 'de' ? 'Zulässig' : 'Megengedett'}: {calc.minValue} - {calc.maxValue} {calc.unit}
-                      </p>
-                    )}
-                  </div>
-                );
-              })}
+      <CardContent className="space-y-6">
+        {/* Measurement Questions Section */}
+        {measurementQuestions.length > 0 && (
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Ruler className="h-4 w-4 text-blue-500" />
+              <h3 className="text-md font-semibold">
+                {language === 'hu' ? 'Mérési adatok' : 'Messdaten'}
+              </h3>
+              <Badge variant="secondary" className="text-xs">
+                {measurementQuestions.length}
+              </Badge>
             </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+            
+            <div className="grid gap-4">
+              {measurementQuestions.map(question => (
+                <MeasurementQuestion
+                  key={question.id}
+                  question={question}
+                  value={measurementValues[question.id]}
+                  onChange={(value) => handleMeasurementChange(question.id, value)}
+                  error={validationErrors[question.id]}
+                  isValid={!validationErrors[question.id]}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Separator between sections */}
+        {measurementQuestions.length > 0 && calculatedQuestions.length > 0 && (
+          <Separator className="my-6" />
+        )}
+
+        {/* Calculated Results Section */}
+        {calculatedQuestions.length > 0 && (
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Calculator className="h-4 w-4 text-green-500" />
+              <h3 className="text-md font-semibold">
+                {language === 'hu' ? 'Számított értékek' : 'Berechnete Werte'}
+              </h3>
+              <Badge variant="secondary" className="text-xs">
+                {calculatedQuestions.length}
+              </Badge>
+            </div>
+            
+            <div className="grid gap-4">
+              {calculatedQuestions.map(question => (
+                <CalculatedResult
+                  key={question.id}
+                  question={question}
+                  measurementValues={measurementValues}
+                  onChange={(value) => handleCalculatedChange(question.id, value)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Summary Info */}
+        <div className="mt-6 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
+          <div className="text-sm text-blue-800 dark:text-blue-200">
+            {language === 'hu' ? (
+              <>
+                <strong>Összesítés:</strong> {measurementQuestions.length} mérés, {calculatedQuestions.length} számítás.
+                {getTotalErrors() > 0 && (
+                  <span className="text-red-600 dark:text-red-400 ml-2">
+                    {getTotalErrors()} hiba észlelve.
+                  </span>
+                )}
+              </>
+            ) : (
+              <>
+                <strong>Zusammenfassung:</strong> {measurementQuestions.length} Messungen, {calculatedQuestions.length} Berechnungen.
+                {getTotalErrors() > 0 && (
+                  <span className="text-red-600 dark:text-red-400 ml-2">
+                    {getTotalErrors()} Fehler erkannt.
+                  </span>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
-}
+});

@@ -4,8 +4,8 @@
 
 This is a full-stack TypeScript application that digitizes the OTIS elevator acceptance protocol process. The system guides users through a step-by-step questionnaire, allows error documentation with images, generates PDFs, and enables sharing via email or cloud storage. It supports both Hungarian and German languages.
 
-**Current Version**: OTIS APROD 0.3.0 - Production Release with Measurement Data Block (January 27, 2025)
-**Status**: FULLY OPERATIONAL ✅ - MÉRÉSI ADATOK BLOKK KÉSZ!
+**Current Version**: OTIS APROD 0.3.0 - Production Release with Measurement Data Block (January 30, 2025)
+**Status**: MÉRÉSI ADATOK BLOKK ÚJRA IMPLEMENTÁLVA ✅ - ROLLBACK UTÁN TELJES HELYREÁLLÍTÁS!
 
 ## User Preferences
 
@@ -27,7 +27,12 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Logo Display**: ✅ COMPLETED - Moved logo to client/public/ for proper static serving
 - **Yes/No/NA Logic**: ✅ COMPLETED - X-based logic implemented for multi-column questions
 
-### Measurement Data Block Implementation (January 27, 2025) - Version 0.3.0
+### ROLLBACK TO V0.2.0 AND MEASUREMENT RE-IMPLEMENTATION (January 30, 2025) - Version 0.3.0
+- **User Request**: ✅ COMPLETED - "Csináltunk egy rollbacket a v0.2.0 verzióra. Szeretném ha most beletennéd a measurement rendszert"
+- **Full Re-implementation**: ✅ COMPLETED - Complete measurement system rebuilt from scratch after rollback
+
+### Measurement Data Block Implementation (January 30, 2025) - RE-IMPLEMENTED AFTER ROLLBACK
+- **Database Schema Updated**: ✅ COMPLETED - Extended questionConfigs table with measurement fields (unit, minValue, maxValue, calculationFormula, calculationInputs)
 - **New Question Types**: ✅ COMPLETED - Added 'measurement' and 'calculated' question types to schema and components
 - **Measurement Components**: ✅ COMPLETED - Created MeasurementQuestion, CalculatedResult, and MeasurementBlock components
 - **Calculation Engine**: ✅ COMPLETED - Built MeasurementService for safe formula evaluation and validation
@@ -35,6 +40,10 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Database Schema**: ✅ COMPLETED - Added unit, minValue, maxValue, calculationFormula, calculationInputs fields
 - **Auto Error Detection**: ✅ COMPLETED - Automatically adds out-of-range calculated values to protocol error list
 - **Multi-language Support**: ✅ COMPLETED - Full Hungarian/German support for measurement interface
+- **Component Architecture**: ✅ COMPLETED - MeasurementQuestion, CalculatedResult, MeasurementBlock components created
+- **Service Layer**: ✅ COMPLETED - MeasurementService singleton with validation, calculation, and formatting methods
+- **Integration**: ✅ COMPLETED - Full integration with questionnaire component and Excel export system
+- **LSP Compliance**: ✅ COMPLETED - All TypeScript errors resolved with proper type annotations
 
 ### Critical German UI Localization Fix (January 27, 2025) - Version 0.2.1
 - **German UI Translation Issue**: ✅ RESOLVED - Complete German interface now working perfectly
