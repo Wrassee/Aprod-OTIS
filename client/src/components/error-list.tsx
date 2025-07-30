@@ -147,7 +147,21 @@ export function ErrorList({ errors = [], onAddError, onEditError, onDeleteError 
                         variant="ghost"
                         size="sm"
                         className="text-gray-400 hover:text-otis-blue"
-                        onClick={() => startEdit(error)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          
+                          // Boundary errors (automatically generated) cannot be edited
+                          if (error.id.startsWith('boundary-')) {
+                            const toast = document.createElement('div');
+                            toast.textContent = 'Automatikus hibák nem szerkeszthetők!';
+                            toast.style.cssText = 'position:fixed;top:20px;right:20px;background:#f59e0b;color:white;padding:12px 24px;border-radius:8px;z-index:9999;font-weight:500;';
+                            document.body.appendChild(toast);
+                            setTimeout(() => document.body.removeChild(toast), 2000);
+                          } else {
+                            startEdit(error);
+                          }
+                        }}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -155,7 +169,33 @@ export function ErrorList({ errors = [], onAddError, onEditError, onDeleteError 
                         variant="ghost"
                         size="sm"
                         className="text-gray-400 hover:text-red-500"
-                        onClick={() => onDeleteError(error.id)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          
+                          // Check if this is a localStorage error (boundary errors have 'boundary-' prefix)
+                          if (error.id.startsWith('boundary-')) {
+                            console.log('🗑️ Deleting localStorage boundary error:', error.id);
+                            
+                            // Remove from localStorage directly without React state updates
+                            const currentErrors = JSON.parse(localStorage.getItem('protocol-errors') || '[]');
+                            const filteredErrors = currentErrors.filter((e: any) => e.id !== error.id);
+                            localStorage.setItem('protocol-errors', JSON.stringify(filteredErrors));
+                            
+                            // Update local state without triggering parent re-renders
+                            setLocalStorageErrors(filteredErrors);
+                            
+                            // Show confirmation toast
+                            const toast = document.createElement('div');
+                            toast.textContent = 'Hiba törölve a hibalistából!';
+                            toast.style.cssText = 'position:fixed;top:20px;right:20px;background:#ef4444;color:white;padding:12px 24px;border-radius:8px;z-index:9999;font-weight:500;';
+                            document.body.appendChild(toast);
+                            setTimeout(() => document.body.removeChild(toast), 2000);
+                          } else {
+                            // Handle regular React state errors
+                            onDeleteError(error.id);
+                          }
+                        }}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
