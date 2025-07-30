@@ -107,13 +107,8 @@ class SimpleXmlExcelService {
           if (isNumeric) {
             worksheetXml = worksheetXml.replace(contentCellPattern, `$1<v>${value}</v>$2`);
           } else {
-            // Set t="str" attribute on the cell element for text values
-            worksheetXml = worksheetXml.replace(contentCellPattern, `$1<v>${this.escapeXml(value)}</v>$2`);
-            // Add t="str" to the opening tag if not present
-            worksheetXml = worksheetXml.replace(
-              new RegExp(`(<c r="${cell}"[^>]*)(>)`, 'g'),
-              '$1 t="str"$2'
-            );
+            // Use inline string format for text values (compatible with Excel)
+            worksheetXml = worksheetXml.replace(contentCellPattern, `$1<is><t>${this.escapeXml(value)}</t></is>$2`);
           }
           modifiedCount++;
           console.log(`XML: Replaced content cell ${cell} = "${value}" (${isNumeric ? 'numeric' : 'text'})`);
@@ -136,11 +131,11 @@ class SimpleXmlExcelService {
             let replacement;
             
             if (isNumeric) {
-              // For numeric values (including measurements), use <v> element with NO t attribute
+              // For numeric values, use <v> element
               replacement = `<c r="${cell}" s="${styleValue}"><v>${value}</v></c>`;
             } else {
-              // For text values, use simple t="str" format (not inlineStr)
-              replacement = `<c r="${cell}" s="${styleValue}" t="str"><v>${this.escapeXml(value)}</v></c>`;
+              // For text values, use inline string format
+              replacement = `<c r="${cell}" s="${styleValue}" t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`;
             }
             
             // Replace both self-closing and content versions
@@ -178,7 +173,7 @@ class SimpleXmlExcelService {
               if (isNumeric) {
                 replacement = `<c r="${cell}" s="${styleValue}"><v>${value}</v></c>`;
               } else {
-                replacement = `<c r="${cell}" s="${styleValue}" t="str"><v>${this.escapeXml(value)}</v></c>`;
+                replacement = `<c r="${cell}" s="${styleValue}" t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`;
               }
               
               worksheetXml = worksheetXml.replace(fullCellPattern, replacement);
