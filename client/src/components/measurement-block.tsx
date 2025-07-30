@@ -266,10 +266,10 @@ export function MeasurementBlock({ questions, onChange, onAddError }: Measuremen
                               images: []
                             });
                           }}
-                          className="ml-2 p-1 text-red-600 hover:bg-red-100 rounded-full transition-colors"
+                          className="ml-2 p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
                           title={language === 'de' ? 'Fehler zur Liste hinzufügen' : 'Hiba hozzáadása a listához'}
                         >
-                          <div className="w-0 h-0 border-l-[6px] border-r-[6px] border-b-[10px] border-l-transparent border-r-transparent border-b-red-600"></div>
+                          <AlertTriangle className="h-6 w-6" />
                         </button>
                       )}
                     </div>
