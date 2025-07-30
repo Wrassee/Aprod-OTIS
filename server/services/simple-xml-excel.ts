@@ -387,15 +387,8 @@ class SimpleXmlExcelService {
             label: config.title || `Question ${questionId}`
           });
         } else if (config.type === 'measurement') {
-          // Handle measurement questions - keep as pure number for Excel
-          const numericValue = parseFloat(String(answer));
-          if (!isNaN(numericValue)) {
-            mappings.push({
-              cell: config.cellReference,
-              value: String(numericValue), // Pure number, no unit
-              label: config.title || `Question ${questionId}`
-            });
-          }
+          // SKIP measurement questions - don't write to Excel per user request
+          console.log(`SKIPPED measurement question ${questionId} - removed from Excel generation per user request`);
         } else if (config.type === 'calculated') {
           // SKIP calculated questions - let Excel handle calculations automatically!
           console.log(`SKIPPED calculated question ${questionId} - Excel will calculate automatically with built-in formulas`);

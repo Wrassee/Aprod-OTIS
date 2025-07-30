@@ -160,15 +160,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { formData, language } = req.body;
       
-      // DEBUG: Log received formData to check measurement values
-      console.log('EXCEL DEBUG: Received formData.answers:', JSON.stringify(formData.answers, null, 2));
-      console.log('EXCEL DEBUG: Measurement values in answers:', {
-        m1: formData.answers.m1,
-        m2: formData.answers.m2,
-        m3: formData.answers.m3,
-        m4: formData.answers.m4,
-        m5: formData.answers.m5
-      });
+      // Simple Excel generation - only basic form data, no measurements
+      console.log('EXCEL: Generating simple Excel with basic data only (no measurements)');
       
       // Generate Excel from template with buffer validation
       const excelBuffer = await excelService.generateExcel(formData, language);
