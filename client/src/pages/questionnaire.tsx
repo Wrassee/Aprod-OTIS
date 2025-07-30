@@ -376,12 +376,36 @@ const Questionnaire = memo(function Questionnaire({
             />
           ) : (
             <div className="space-y-6">
-              {/* Measurement and Calculated Questions Block - TEMPORARILY DISABLED */}
+              {/* Measurement and Calculated Questions Block */}
               {(currentQuestions as Question[]).some(q => q.type === 'measurement' || q.type === 'calculated') && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-                  <h3 className="text-lg font-semibold text-yellow-800 mb-2">Mérési adatok blokk</h3>
-                  <p className="text-yellow-700">A mérési rendszer ideiglenesen ki van kapcsolva a stabilitás miatt. A továbblépés engedélyezett.</p>
-                </div>
+                <MeasurementBlock
+                  questions={currentQuestions as Question[]}
+                  measurementValues={measurementValues}
+                  calculatedResults={calculatedResults}
+                  onMeasurementChange={(questionId, value) => {
+                    setMeasurementValues(prev => {
+                      if (value === undefined) {
+                        const { [questionId]: removed, ...rest } = prev;
+                        return rest;
+                      }
+                      return { ...prev, [questionId]: value };
+                    });
+                    // Do NOT call onAnswerChange to avoid Excel export for now
+                  }}
+                  onCalculatedChange={(questionId, value) => {
+                    setCalculatedResults(prev => {
+                      if (value === undefined) {
+                        const { [questionId]: removed, ...rest } = prev;
+                        return rest;
+                      }
+                      return { ...prev, [questionId]: value };
+                    });
+                    // Do NOT call onAnswerChange to avoid Excel export for now
+                  }}
+                  onErrorsChange={(errors) => {
+                    setMeasurementErrors(errors);
+                  }}
+                />
               )}
 
               {/* Regular Question Grid (2x2 Layout) for non-measurement/calculated questions */}

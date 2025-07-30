@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +28,17 @@ export const MeasurementBlock = memo(function MeasurementBlock({
 }: MeasurementBlockProps) {
   const { language, t } = useLanguage();
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  // Helper function to validate measurement values
+  const validateMeasurement = (value: number, minValue?: number, maxValue?: number) => {
+    if (minValue !== undefined && value < minValue) {
+      return { isValid: false, error: `Minimum: ${minValue}` };
+    }
+    if (maxValue !== undefined && value > maxValue) {
+      return { isValid: false, error: `Maximum: ${maxValue}` };
+    }
+    return { isValid: true };
+  };
 
   const measurementQuestions = questions.filter(q => q.type === 'measurement');
   const calculatedQuestions = questions.filter(q => q.type === 'calculated');
@@ -90,7 +101,6 @@ export const MeasurementBlock = memo(function MeasurementBlock({
   }, [measurementValues, calculatedResults, measurementQuestions, calculatedQuestions, language, onErrorsChange]);
 
   const handleMeasurementChange = useCallback((questionId: string, value: number | undefined) => {
-    // console.log('MeasurementBlock handleMeasurementChange:', questionId, value);
     onMeasurementChange(questionId, value);
   }, [onMeasurementChange]);
 
@@ -148,22 +158,16 @@ export const MeasurementBlock = memo(function MeasurementBlock({
             </div>
             
             <div className="grid gap-4">
-              {measurementQuestions.map(question => {
-                // console.log('Rendering MeasurementQuestion:', question.id, 'value:', measurementValues[question.id]);
-                return (
-                  <MeasurementQuestion
-                    key={question.id}
-                    question={question}
-                    value={measurementValues[question.id]}
-                    onChange={(value) => {
-                      // console.log('MeasurementQuestion onChange:', question.id, value);
-                      handleMeasurementChange(question.id, value);
-                    }}
-                    error={validationErrors[question.id]}
-                    isValid={!validationErrors[question.id]}
-                  />
-                );
-              })}
+              {measurementQuestions.map(question => (
+                <MeasurementQuestion
+                  key={question.id}
+                  question={question}
+                  value={measurementValues[question.id]}
+                  onChange={(value) => handleMeasurementChange(question.id, value)}
+                  error={validationErrors[question.id]}
+                  isValid={!validationErrors[question.id]}
+                />
+              ))}
             </div>
           </div>
         )}
