@@ -122,20 +122,17 @@ export function Signature({
           
           {/* Navigation */}
           <div className="flex justify-between">
-            <Button
-              variant="outline"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('🔙 Signature Back button clicked - calling onBack()');
+            <button
+              className="flex items-center px-4 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 transition-colors"
+              type="button"
+              onClick={() => {
+                console.log('🔙 Signature Back button clicked - direct call');
                 onBack();
               }}
-              className="flex items-center"
-              type="button"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               {t.back}
-            </Button>
+            </button>
             
             <Button
               onClick={() => {
