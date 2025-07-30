@@ -181,27 +181,29 @@ class SimpleXmlExcelService {
             }
           }
         }
-        // Fallback for any other empty pattern
-        else if (emptyPattern.test(worksheetXml)) {
-          const rowNum = cell.match(/\d+/)?.[0];
-          const defaultStyle = this.inferCellStyle(cell, rowNum);
-          
-          worksheetXml = worksheetXml.replace(emptyPattern, 
-            `<c r="${cell}"$1${defaultStyle} t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`);
-          modifiedCount++;
-          console.log(`XML: Added ${cell} = "${value}" (with inferred style)`);
-        }
-        // Insert new cell if row exists
+        // Fallback - try to find empty cell pattern or insert new cell
         else {
-          const rowNumber = cell.match(/\d+/)?.[0];
-          if (rowNumber) {
-            const rowPattern = new RegExp(`(<row r="${rowNumber}"[^>]*>)(.*?)(</row>)`, 'g');
-            if (rowPattern.test(worksheetXml)) {
-              const defaultStyle = this.inferCellStyle(cell, rowNumber);
-              worksheetXml = worksheetXml.replace(rowPattern, 
-                `$1$2<c r="${cell}"${defaultStyle} t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>$3`);
-              modifiedCount++;
-              console.log(`XML: Inserted ${cell} = "${value}" (with inferred style)`);
+          const emptyPattern = new RegExp(`<c r="${cell}"([^>]*s="[^"]*"[^>]*)\\s*/>`, 'g');
+          if (emptyPattern.test(worksheetXml)) {
+            const rowNum = cell.match(/\d+/)?.[0];
+            const defaultStyle = this.inferCellStyle(cell, rowNum);
+            
+            worksheetXml = worksheetXml.replace(emptyPattern, 
+              `<c r="${cell}"$1${defaultStyle} t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`);
+            modifiedCount++;
+            console.log(`XML: Added ${cell} = "${value}" (with inferred style)`);
+          } else {
+            // Insert new cell if row exists
+            const rowNumber = cell.match(/\d+/)?.[0];
+            if (rowNumber) {
+              const rowPattern = new RegExp(`(<row r="${rowNumber}"[^>]*>)(.*?)(</row>)`, 'g');
+              if (rowPattern.test(worksheetXml)) {
+                const defaultStyle = this.inferCellStyle(cell, rowNumber);
+                worksheetXml = worksheetXml.replace(rowPattern, 
+                  `$1$2<c r="${cell}"${defaultStyle} t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>$3`);
+                modifiedCount++;
+                console.log(`XML: Inserted ${cell} = "${value}" (with inferred style)`);
+              }
             }
           }
         }
@@ -359,9 +361,7 @@ class SimpleXmlExcelService {
           console.log(`DEBUG: Processing true_false question ${questionId}`);
           console.log(`DEBUG: Raw answer value:`, answer, `(type: ${typeof answer})`);
           console.log(`DEBUG: Answer === 'true':`, answer === 'true');
-          console.log(`DEBUG: Answer === true:`, answer === true);
           console.log(`DEBUG: Answer === 'false':`, answer === 'false');
-          console.log(`DEBUG: Answer === false:`, answer === false);
           
           if (answer === 'true' || answer === 'TRUE' || String(answer).toLowerCase() === 'true') {
             cellValue = 'X';
