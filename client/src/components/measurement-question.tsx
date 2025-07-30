@@ -29,12 +29,18 @@ export const MeasurementQuestion = memo(function MeasurementQuestion({
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
+    console.log('MeasurementQuestion handleChange:', question.id, 'input:', inputValue);
+    
     if (inputValue === '') {
+      console.log('Empty input, calling onChange with undefined');
       onChange(undefined);
     } else {
       const numValue = parseFloat(inputValue);
       if (!isNaN(numValue)) {
+        console.log('Valid number, calling onChange with:', numValue);
         onChange(numValue);
+      } else {
+        console.log('Invalid number, ignoring input');
       }
     }
   };
