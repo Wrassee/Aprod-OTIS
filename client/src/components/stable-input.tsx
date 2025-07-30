@@ -2,17 +2,14 @@ import { useEffect, useRef } from 'react';
 
 interface StableInputProps {
   questionId: string;
-  type?: 'text' | 'number' | 'email';
+  type: 'text' | 'number';
+  placeholder?: string;
   initialValue?: string;
   onValueChange?: (value: string) => void;
-  placeholder?: string;
   className?: string;
-  min?: number;
-  max?: number;  
-  step?: string | number;
 }
 
-export function StableInput({ questionId, type = 'text', placeholder, initialValue, onValueChange, className, min, max, step }: StableInputProps) {
+export function StableInput({ questionId, type, placeholder, initialValue, onValueChange, className }: StableInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const mountedRef = useRef(false);
 
@@ -36,25 +33,17 @@ export function StableInput({ questionId, type = 'text', placeholder, initialVal
     }
     (window as any).stableInputValues[questionId] = value;
     
-    // ALSO store in measurement cache if this is a measurement question
-    if (questionId && questionId.startsWith('m')) {
-      if (!(window as any).measurementValues) {
-        (window as any).measurementValues = {};
-      }
-      (window as any).measurementValues[questionId] = value;
-    }
+    // Trigger custom event for cache update
+    window.dispatchEvent(new CustomEvent('input-change'));
     
-    // Trigger ONLY button-check event for validation - no UI re-render
-    window.dispatchEvent(new CustomEvent('button-check'));
-    
-    // DISABLED: onValueChange callback causes UI flicker and re-renders
-    // Values are stored in cache and will be picked up during save/submit
-    // if (onValueChange) {
-    //   clearTimeout((window as any)[`stable-timeout-${questionId}`]);
-    //   (window as any)[`stable-timeout-${questionId}`] = setTimeout(() => {
+    // DON'T call onValueChange during typing - it causes page refresh!
+    // Only save to localStorage directly during validation and sync
+    // clearTimeout((window as any)[`stable-timeout-${questionId}`]);
+    // (window as any)[`stable-timeout-${questionId}`] = setTimeout(() => {
+    //   if (onValueChange) {
     //     onValueChange(value);
-    //   }, 500); // Debounced callback
-    // }
+    //   }
+    // }, 500);
   };
 
   return (
@@ -70,10 +59,7 @@ export function StableInput({ questionId, type = 'text', placeholder, initialVal
         }
       }}
       placeholder={placeholder}
-      min={min}
-      max={max}
-      step={step}
-      className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-transparent ${className || ''}`}
+      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-transparent"
       style={{ 
         fontSize: '16px',
         backgroundColor: 'white',

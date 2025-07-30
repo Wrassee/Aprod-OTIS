@@ -15,11 +15,6 @@ export interface ParsedQuestion {
   groupName?: string; // Group/block name for organizing questions (Hungarian)
   groupNameDe?: string; // German group/block name
   groupOrder?: number; // Order within the group
-  unit?: string; // Unit for measurement questions
-  minValue?: number; // Minimum value for validation
-  maxValue?: number; // Maximum value for validation
-  calculationFormula?: string; // Formula for calculated questions
-  calculationInputs?: string; // Comma-separated input question IDs
 }
 
 class ExcelParserService {
@@ -59,21 +54,14 @@ class ExcelParserService {
       const typeIndex = getColumnIndex(['type', 'input_type', 'field_type']);
       const requiredIndex = getColumnIndex(['required', 'mandatory', 'kötelező']);
       const placeholderIndex = getColumnIndex(['placeholder', 'hint', 'example']);
-      // Cell reference column - search for multiple possible names
-      const cellRefIndex = getColumnIndex(['cell_reference', 'cellreference', 'cél', 'cell', 'reference']);
-      // MultiCell column 
-      const multiCellIndex = getColumnIndex(['multicell', 'multi_cell', 'multi']);
+      // Direct index for "Cél" column (H = index 7)
+      const cellRefIndex = headerRow.findIndex((col: string) => col?.toString().trim() === 'Cél');
+      // Direct index for "MultiCell" column (I = index 8)
+      const multiCellIndex = headerRow.findIndex((col: string) => col?.toString().trim() === 'MultiCell');
       // Group and Order columns
       const groupIndex = getColumnIndex(['group', 'csoport', 'blokk', 'kategória']);
       const groupDeIndex = getColumnIndex(['group_de', 'gruppe_de', 'german_group', 'deutsch_gruppe']);
       const orderIndex = getColumnIndex(['order', 'sorrend', 'rang']);
-      
-      // Measurement and calculation columns
-      const unitIndex = getColumnIndex(['unit', 'egység', 'einheit', 'mértékegység']);
-      const minValueIndex = getColumnIndex(['min_value', 'minvalue', 'minimum', 'min']);
-      const maxValueIndex = getColumnIndex(['max_value', 'maxvalue', 'maximum', 'max']);
-      const calculationFormulaIndex = getColumnIndex(['calculation_formula', 'formula', 'képlet', 'formel']);
-      const calculationInputsIndex = getColumnIndex(['calculation_inputs', 'inputs', 'bemenet', 'eingabe', 'bemenetek', 'eingaben']);
       
       if (idIndex === -1 || titleIndex === -1 || typeIndex === -1) {
         throw new Error('Required columns not found: ID, Title, Type');
@@ -101,11 +89,6 @@ class ExcelParserService {
           groupName: groupIndex !== -1 ? row[groupIndex]?.toString() : undefined,
           groupNameDe: groupDeIndex !== -1 ? row[groupDeIndex]?.toString() : undefined,
           groupOrder: orderIndex !== -1 ? parseInt(row[orderIndex]?.toString()) || 0 : 0,
-          unit: unitIndex !== -1 ? row[unitIndex]?.toString() : undefined,
-          minValue: minValueIndex !== -1 ? parseFloat(row[minValueIndex]?.toString()) : undefined,
-          maxValue: maxValueIndex !== -1 ? parseFloat(row[maxValueIndex]?.toString()) : undefined,
-          calculationFormula: calculationFormulaIndex !== -1 ? row[calculationFormulaIndex]?.toString() : undefined,
-          calculationInputs: calculationInputsIndex !== -1 ? row[calculationInputsIndex]?.toString() : undefined,
         };
         
         questions.push(question);
@@ -114,7 +97,7 @@ class ExcelParserService {
       return questions;
     } catch (error) {
       console.error('Error parsing Excel file:', error);
-      throw new Error(`Failed to parse Excel file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to parse Excel file: ${error.message}`);
     }
   }
   
@@ -196,12 +179,6 @@ class ExcelParserService {
     if (['true_false', 'truefalse', 'true/false', 'binary'].includes(type)) {
       return 'true_false';
     }
-    if (['measurement', 'measure', 'mérés', 'messung', 'numeric_with_unit'].includes(type)) {
-      return 'measurement';
-    }
-    if (['calculated', 'calc', 'számított', 'berechnet', 'computed'].includes(type)) {
-      return 'calculated';
-    }
     if (['number', 'numeric', 'num', 'int', 'integer', 'float'].includes(type)) {
       return 'number';
     }
@@ -233,9 +210,6 @@ class ExcelParserService {
         if (answer === 'true') return 'X';
         if (answer === 'false') return '-';
         return answer;
-      case 'measurement':
-      case 'calculated':
-        return typeof answer === 'number' ? answer : parseFloat(answer) || 0;
       case 'number':
         return typeof answer === 'number' ? answer : parseFloat(answer) || 0;
       case 'text':

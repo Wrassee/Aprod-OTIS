@@ -37,7 +37,7 @@ export function Admin({ onBack, onHome }: AdminProps) {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [uploadForm, setUploadForm] = useState({
     name: '',
-    type: 'unified',
+    type: 'questions',
     language: 'multilingual',
     file: null as File | null,
   });
@@ -98,7 +98,7 @@ export function Admin({ onBack, onHome }: AdminProps) {
           title: t.success,
           description: 'Template uploaded successfully',
         });
-        setUploadForm({ name: '', type: 'unified', language: 'multilingual', file: null });
+        setUploadForm({ name: '', type: 'questions', language: 'multilingual', file: null });
         fetchTemplates();
       } else {
         throw new Error('Upload failed');
@@ -276,10 +276,7 @@ export function Admin({ onBack, onHome }: AdminProps) {
                               {template.isActive ? t.active : t.inactive}
                             </Badge>
                             <Badge variant="outline">
-                              {template.type === 'unified' ? 
-                                (language === 'de' ? 'Vereinigt' : 'Egyesített') :
-                                template.type === 'questions' ? t.questionsTemplate : t.protocolTemplate
-                              }
+                              {template.type === 'questions' ? t.questionsTemplate : t.protocolTemplate}
                             </Badge>
                             <Badge variant="outline" className="bg-gray-100">
                               {template.language === 'multilingual' ? 'HU/DE' : template.language.toUpperCase()}
@@ -461,9 +458,6 @@ export function Admin({ onBack, onHome }: AdminProps) {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="unified">
-                        {language === 'de' ? 'Vereinigt (Alle Fragetypen)' : 'Egyesített (Minden kérdéstípus)'}
-                      </SelectItem>
                       <SelectItem value="questions">{t.questionsTemplate}</SelectItem>
                       <SelectItem value="protocol">{t.protocolTemplate}</SelectItem>
                     </SelectContent>
