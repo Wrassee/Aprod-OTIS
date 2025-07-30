@@ -190,21 +190,24 @@ export function MeasurementBlock({ questions, onChange, onAddError }: Measuremen
                   console.log('Manual calculation triggered');
                   
                   // Check all calculated values and add errors for out-of-bounds
-                  calculatedQuestions.forEach(question => {
-                    const calculatedValue = calculateValue(question);
-                    if (calculatedValue !== null && !checkValueBounds(question, calculatedValue)) {
-                      // Use Set to prevent duplicate errors
-                      if (!(window as any).addedBoundaryErrors) {
-                        (window as any).addedBoundaryErrors = new Set();
+                  // Use setTimeout to defer state updates and prevent immediate re-render
+                  setTimeout(() => {
+                    calculatedQuestions.forEach(question => {
+                      const calculatedValue = calculateValue(question);
+                      if (calculatedValue !== null && !checkValueBounds(question, calculatedValue)) {
+                        // Use Set to prevent duplicate errors
+                        if (!(window as any).addedBoundaryErrors) {
+                          (window as any).addedBoundaryErrors = new Set();
+                        }
+                        const errorKey = `${question.id}-${calculatedValue}`;
+                        if (!(window as any).addedBoundaryErrors.has(errorKey)) {
+                          console.log(`Adding boundary error for ${question.id}: ${calculatedValue}`);
+                          addCalculatedValueError(question, calculatedValue);
+                          (window as any).addedBoundaryErrors.add(errorKey);
+                        }
                       }
-                      const errorKey = `${question.id}-${calculatedValue}`;
-                      if (!(window as any).addedBoundaryErrors.has(errorKey)) {
-                        console.log(`Adding boundary error for ${question.id}: ${calculatedValue}`);
-                        addCalculatedValueError(question, calculatedValue);
-                        (window as any).addedBoundaryErrors.add(errorKey);
-                      }
-                    }
-                  });
+                    });
+                  }, 100);
                 }}
                 className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
               >
