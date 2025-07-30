@@ -27,41 +27,42 @@ export function Signature({
   const currentDate = formatDate(new Date(), language);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const canComplete = signature.length > 0;
+  const canComplete = signature.length > 0; // Only signature is required for completion, not printed name
 
-  // Setup direct DOM event listener to bypass React - only run once
+  // Simplified input handling - no React state dependencies
   useEffect(() => {
     const input = inputRef.current;
     if (!input) return;
 
-    // Only set initial value on first mount
-    if (!input.hasAttribute('data-initialized')) {
-      input.value = signatureName || '';
-      input.setAttribute('data-initialized', 'true');
-    }
+    // Set initial value once
+    input.value = signatureName || '';
 
     const handleInput = (e: Event) => {
       const target = e.target as HTMLInputElement;
       const newValue = target.value;
       console.log(`Signature name typing: ${newValue}`);
       
-      // Store globally without React updates
+      // Store globally and immediately update parent
       (window as any).signatureNameValue = newValue;
-      
-      // Debounced parent callback
-      clearTimeout((window as any).signatureNameTimeout);
-      (window as any).signatureNameTimeout = setTimeout(() => {
-        onSignatureNameChange(newValue);
-      }, 1000);
+      onSignatureNameChange(newValue);
     };
 
-    // Add native DOM event listener
+    const handleBlur = (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      const finalValue = target.value;
+      console.log(`Signature name final: ${finalValue}`);
+      onSignatureNameChange(finalValue);
+    };
+
+    // Use both input and blur for immediate and final updates
     input.addEventListener('input', handleInput);
+    input.addEventListener('blur', handleBlur);
     
     return () => {
       input.removeEventListener('input', handleInput);
+      input.removeEventListener('blur', handleBlur);
     };
-  }, []); // Empty deps array - only run once
+  }, []); // Only run once on mount
 
   return (
     <div className="min-h-screen bg-light-surface">
@@ -102,7 +103,7 @@ export function Signature({
                 ref={inputRef}
                 type="text"
                 placeholder={t.printedName}
-                key="signature-name-stable"
+                defaultValue={signatureName || ''}
                 className="w-full h-12 px-4 text-lg border-2 border-gray-300 rounded-lg focus:border-otis-blue focus:outline-none bg-white"
                 style={{ 
                   fontSize: '18px',
@@ -123,8 +124,14 @@ export function Signature({
           <div className="flex justify-between">
             <Button
               variant="outline"
-              onClick={onBack}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('🔙 Signature Back button clicked - calling onBack()');
+                onBack();
+              }}
               className="flex items-center"
+              type="button"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               {t.back}
