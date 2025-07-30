@@ -323,7 +323,7 @@ function App() {
           
           switch (currentScreen) {
             case 'start':
-              return <StartScreen onLanguageSelect={handleLanguageSelect} />;
+              return <StartScreen onLanguageSelect={handleLanguageSelect} onStartNew={handleStartNew} />;
             case 'signature':
               return (
                 <Signature
@@ -353,7 +353,7 @@ function App() {
             case 'protocol-preview':
               return <ProtocolPreview onBack={() => setCurrentScreen('completion')} />;
             default:
-              return <StartScreen onLanguageSelect={handleLanguageSelect} />;
+              return <StartScreen onLanguageSelect={handleLanguageSelect} onStartNew={handleStartNew} />;
           }
         }} />
         <Route component={NotFound} />
