@@ -247,9 +247,12 @@ export function MeasurementBlock({ questions, onChange, onAddError }: Measuremen
                       {question.unit && (
                         <span className="text-sm text-gray-500 w-8">{question.unit}</span>
                       )}
-                      {isOutOfBounds && (
+                      {isOutOfBounds && onAddError && (
                         <button
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.preventDefault(); 
+                            e.stopPropagation();
+                            
                             const questionTitle = language === 'de' ? question.titleDe : question.title;
                             const errorTitle = language === 'de' 
                               ? `Berechneter Wert außerhalb der Grenzen: ${questionTitle}`
@@ -259,24 +262,24 @@ export function MeasurementBlock({ questions, onChange, onAddError }: Measuremen
                               ? `Der berechnete Wert ${calculatedValue} ${question.unit} liegt außerhalb der zulässigen Grenzen (${question.minValue}-${question.maxValue} ${question.unit}). Bitte überprüfen Sie die Eingabewerte.`
                               : `A számított érték ${calculatedValue} ${question.unit} kívül esik a megengedett határokon (${question.minValue}-${question.maxValue} ${question.unit}). Kérjük, ellenőrizze a bemeneti értékeket.`;
 
-                            // Store boundary error in localStorage instead of immediate state update
-                            const boundaryErrors = JSON.parse(localStorage.getItem('boundaryErrors') || '[]');
-                            const errorId = `boundary-${question.id}-${Date.now()}`;
-                            const newError = {
-                              id: errorId,
+                            // Preserve current measurement values before adding error
+                            const currentValues = MeasurementCache.getAllValues();
+                            console.log('Preserving measurement values before error:', currentValues);
+                            
+                            onAddError({
                               title: errorTitle,
                               description: errorDescription,
                               severity: 'critical',
                               images: []
-                            };
-                            boundaryErrors.push(newError);
-                            localStorage.setItem('boundaryErrors', JSON.stringify(boundaryErrors));
+                            });
                             
-                            console.log('Boundary error stored in localStorage:', newError);
-                            alert(language === 'de' 
-                              ? 'Fehler gespeichert! Er wird zur Fehlerliste hinzugefügt, wenn Sie das Protokoll abschließen.'
-                              : 'Hiba elmentve! A hibalistához adódik, amikor befejezi a protokollt.'
-                            );
+                            // Restore measurement values after error is added
+                            setTimeout(() => {
+                              Object.entries(currentValues).forEach(([key, value]) => {
+                                MeasurementCache.setValue(key, value);
+                              });
+                              console.log('Restored measurement values after error:', currentValues);
+                            }, 100);
                           }}
                           className="ml-2 p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
                           title={language === 'de' ? 'Fehler zur Liste hinzufügen' : 'Hiba hozzáadása a listához'}

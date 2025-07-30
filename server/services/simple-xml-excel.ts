@@ -215,12 +215,12 @@ class SimpleXmlExcelService {
       // Generate the final Excel buffer with NO compression for maximum stability
       const result = await zip.generateAsync({ 
         type: 'nodebuffer',
-        compression: 'STORE',  // No compression at all
+        compression: 'STORE',  // No compression at all - fixes Excel corruption
         compressionOptions: {
           level: 0  // Force zero compression
         },
         streamFiles: false,
-        platform: 'DOS'  // Better Excel compatibility
+        platform: 'DOS'  // Better Excel compatibility than UNIX
       });
       
       // Verify buffer is valid before returning
