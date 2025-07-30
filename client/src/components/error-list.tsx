@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ProtocolError } from '@shared/schema';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,9 +18,37 @@ export function ErrorList({ errors = [], onAddError, onEditError, onDeleteError 
   const { t } = useLanguageContext();
   const [showModal, setShowModal] = useState(false);
   const [editingError, setEditingError] = useState<ProtocolError | null>(null);
+  const [localStorageErrors, setLocalStorageErrors] = useState<ProtocolError[]>([]);
   
-  // Ensure errors is always an array
-  const safeErrors = Array.isArray(errors) ? errors : [];
+  // Listen for localStorage errors added from measurement boundary violations
+  useEffect(() => {
+    const updateLocalStorageErrors = () => {
+      try {
+        const stored = localStorage.getItem('protocol-errors');
+        if (stored) {
+          const parsedErrors = JSON.parse(stored);
+          setLocalStorageErrors(Array.isArray(parsedErrors) ? parsedErrors : []);
+        }
+      } catch (error) {
+        console.error('Error reading localStorage errors:', error);
+      }
+    };
+
+    // Initial load
+    updateLocalStorageErrors();
+
+    // Listen for custom events from measurement block
+    const handleProtocolErrorAdded = () => {
+      updateLocalStorageErrors();
+    };
+
+    window.addEventListener('protocol-error-added', handleProtocolErrorAdded);
+    return () => window.removeEventListener('protocol-error-added', handleProtocolErrorAdded);
+  }, []);
+  
+  // Combine React state errors with localStorage errors
+  const allErrors = [...(Array.isArray(errors) ? errors : []), ...localStorageErrors];
+  const safeErrors = Array.isArray(allErrors) ? allErrors : [];
 
   const getSeverityColor = (severity: ProtocolError['severity']) => {
     switch (severity) {

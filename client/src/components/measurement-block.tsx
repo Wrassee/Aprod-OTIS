@@ -249,7 +249,7 @@ export function MeasurementBlock({ questions, onChange, onAddError }: Measuremen
                       )}
                       {isOutOfBounds && onAddError && (
                         <button
-                          onClick={(e) => {
+                          onClick={async (e) => {
                             e.preventDefault(); 
                             e.stopPropagation();
                             
@@ -262,24 +262,36 @@ export function MeasurementBlock({ questions, onChange, onAddError }: Measuremen
                               ? `Der berechnete Wert ${calculatedValue} ${question.unit} liegt außerhalb der zulässigen Grenzen (${question.minValue}-${question.maxValue} ${question.unit}). Bitte überprüfen Sie die Eingabewerte.`
                               : `A számított érték ${calculatedValue} ${question.unit} kívül esik a megengedett határokon (${question.minValue}-${question.maxValue} ${question.unit}). Kérjük, ellenőrizze a bemeneti értékeket.`;
 
-                            // Preserve current measurement values before adding error
-                            const currentValues = MeasurementCache.getAllValues();
-                            console.log('Preserving measurement values before error:', currentValues);
-                            
-                            onAddError({
+                            // BYPASS REACT - Add error directly to localStorage errors list instead of calling onAddError
+                            const currentErrors = JSON.parse(localStorage.getItem('protocol-errors') || '[]');
+                            const newError = {
+                              id: `boundary-${question.id}-${Date.now()}`,
                               title: errorTitle,
                               description: errorDescription,
                               severity: 'critical',
                               images: []
-                            });
+                            };
+                            currentErrors.push(newError);
+                            localStorage.setItem('protocol-errors', JSON.stringify(currentErrors));
                             
-                            // Restore measurement values after error is added
-                            setTimeout(() => {
-                              Object.entries(currentValues).forEach(([key, value]) => {
-                                MeasurementCache.setValue(key, value);
-                              });
-                              console.log('Restored measurement values after error:', currentValues);
-                            }, 100);
+                            console.log('✅ Error saved to localStorage without React render:', newError);
+                            
+                            // Force error list refresh via custom event
+                            window.dispatchEvent(new CustomEvent('protocol-error-added', { 
+                              detail: { error: newError } 
+                            }));
+                            
+                            // Show confirmation without triggering React re-render
+                            const confirmMsg = language === 'de' 
+                              ? 'Fehler zur Fehlerliste hinzugefügt!'
+                              : 'Hiba hozzáadva a hibalistához!';
+                            
+                            // Create a temporary toast instead of alert to avoid blocking
+                            const toast = document.createElement('div');
+                            toast.textContent = confirmMsg;
+                            toast.style.cssText = 'position:fixed;top:20px;right:20px;background:#10b981;color:white;padding:12px 24px;border-radius:8px;z-index:9999;font-weight:500;';
+                            document.body.appendChild(toast);
+                            setTimeout(() => document.body.removeChild(toast), 2000);
                           }}
                           className="ml-2 p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
                           title={language === 'de' ? 'Fehler zur Liste hinzufügen' : 'Hiba hozzáadása a listához'}
