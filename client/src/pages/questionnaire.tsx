@@ -248,6 +248,12 @@ const Questionnaire = memo(function Questionnaire({
     console.log('checkCanProceed: localStorage answers:', savedFormData.answers);
     
     const result = requiredQuestions.every((q: Question) => {
+      // Skip measurement/calculated questions if measurement block is disabled
+      if (q.type === 'measurement' || q.type === 'calculated') {
+        console.log(`Question ${q.id} (${q.title}): SKIPPED (measurement disabled)`);
+        return true; // Always allow proceeding past measurement questions when disabled
+      }
+      
       const answer = combinedAnswers[q.id];
       const hasAnswer = answer !== undefined && answer !== null && answer !== '';
       console.log(`Question ${q.id} (${q.title}): ${hasAnswer ? 'OK' : 'MISSING'} (value: "${answer}")`);
@@ -371,10 +377,10 @@ const Questionnaire = memo(function Questionnaire({
           ) : (
             <div className="space-y-6">
               {/* Measurement and Calculated Questions Block - TEMPORARILY DISABLED */}
-              {false && (currentQuestions as Question[]).some(q => q.type === 'measurement' || q.type === 'calculated') && (
+              {(currentQuestions as Question[]).some(q => q.type === 'measurement' || q.type === 'calculated') && (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
                   <h3 className="text-lg font-semibold text-yellow-800 mb-2">Mérési adatok blokk</h3>
-                  <p className="text-yellow-700">A mérési rendszer ideiglenesen ki van kapcsolva a stabilitás miatt.</p>
+                  <p className="text-yellow-700">A mérési rendszer ideiglenesen ki van kapcsolva a stabilitás miatt. A továbblépés engedélyezett.</p>
                 </div>
               )}
 
