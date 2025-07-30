@@ -21,11 +21,19 @@ class SimpleXmlExcelService {
       // Read template file
       const templateBuffer = fs.readFileSync(protocolTemplate.filePath);
       
-      // Get question configs for cell mapping - try multilingual first
+      // Get question configs for cell mapping - try multilingual first, then unified, then language-specific
       let questionsTemplate = await storage.getActiveTemplate('questions', 'multilingual');
+      if (!questionsTemplate) {
+        questionsTemplate = await storage.getActiveTemplate('unified', 'multilingual');
+      }
       if (!questionsTemplate) {
         questionsTemplate = await storage.getActiveTemplate('questions', language);
       }
+      if (!questionsTemplate) {
+        questionsTemplate = await storage.getActiveTemplate('unified', language);
+      }
+      
+      console.log('Questions template search result:', questionsTemplate ? `Found: ${questionsTemplate.name} (${questionsTemplate.language})` : 'NOT FOUND');
       
       let questionConfigs: any[] = [];
       
