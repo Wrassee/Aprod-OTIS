@@ -4,12 +4,30 @@
 
 This is a full-stack TypeScript application that digitizes the OTIS elevator acceptance protocol process. The system guides users through a step-by-step questionnaire, allows error documentation with images, generates PDFs, and enables sharing via email or cloud storage. It supports both Hungarian and German languages.
 
-**Current Version**: OTIS APROD 0.3.0 - Production Release with Measurement Data Block (January 27, 2025)
-**Status**: FULLY OPERATIONAL ✅ - MÉRÉSI ADATOK BLOKK KÉSZ!
+**Current Version**: OTIS APROD 0.3.0 - Excel Corruption Issues (January 30, 2025)
+**Status**: EXCEL CORRUPTION PROBLÉMÁK ❌ - Measurement funkció dokumentálva rollback előtt
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language (Hungarian preferred).
+
+## MEASUREMENT FUNKCIÓ KOMPONENSEK LISTÁJA (ROLLBACK ELŐTT)
+
+### Fájlok amelyek measurement funkciót tartalmaznak:
+1. **client/src/components/measurement-block.tsx** - Fő measurement komponens
+2. **client/src/components/measurement-question.tsx** - Measurement input kezelő  
+3. **client/src/components/calculated-result.tsx** - Számított eredmények
+4. **client/src/services/measurement-service.ts** - Calculation engine
+5. **shared/schema.ts** - Database schema measurement mezőkkel
+6. **server/services/measurement-cache.ts** - Cache management
+7. Template fájlok measurement/calculated kérdésekkel
+
+### Kritikus funkciók:
+- Real-time calculation: m4 = m1 - m3, m5 = m2 - m3
+- Input validation with min/max ranges
+- Automatic error detection for out-of-range values
+- Multi-language support (Hungarian/German)
+- Cache persistence across page refreshes
 
 ## Recent Changes
 
@@ -27,14 +45,83 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Logo Display**: ✅ COMPLETED - Moved logo to client/public/ for proper static serving
 - **Yes/No/NA Logic**: ✅ COMPLETED - X-based logic implemented for multi-column questions
 
-### Measurement Data Block Implementation (January 27, 2025) - Version 0.3.0
-- **New Question Types**: ✅ COMPLETED - Added 'measurement' and 'calculated' question types to schema and components
-- **Measurement Components**: ✅ COMPLETED - Created MeasurementQuestion, CalculatedResult, and MeasurementBlock components
-- **Calculation Engine**: ✅ COMPLETED - Built MeasurementService for safe formula evaluation and validation
-- **Excel Integration**: ✅ COMPLETED - Extended simple-xml-excel.ts to handle measurement/calculated values with units
-- **Database Schema**: ✅ COMPLETED - Added unit, minValue, maxValue, calculationFormula, calculationInputs fields
-- **Auto Error Detection**: ✅ COMPLETED - Automatically adds out-of-range calculated values to protocol error list
-- **Multi-language Support**: ✅ COMPLETED - Full Hungarian/German support for measurement interface
+### MEASUREMENT FUNKCIÓ TELJES DOKUMENTÁCIÓJA (Január 30, 2025)
+**KRITIKUS: Ez a teljes measurement system dokumentációja visszaállításhoz!**
+
+#### Database Schema Extensions (shared/schema.ts):
+```typescript
+// Question configs bővítése:
+unit: text('unit'), // mm, cm, m, kg, stb.
+minValue: real('min_value'), // minimum érték validációhoz
+maxValue: real('max_value'), // maximum érték validációhoz  
+calculationFormula: text('calculation_formula'), // pl: "m1 - m2"
+calculationInputs: text('calculation_inputs').array(), // ["m1", "m2"]
+```
+
+#### Kérdés Típusok:
+- **measurement**: Numerikus input mérési értékekhez (pl. távolság mm-ben)
+- **calculated**: Automatikusan számolt eredmények (pl. m4 = m1 - m3)
+
+#### Komponensek:
+1. **MeasurementQuestion** - Measurement input mezők kezelése
+2. **CalculatedResult** - Számított eredmények megjelenítése
+3. **MeasurementBlock** - Teljes mérési blokk wrapper
+4. **MeasurementService** - Képletek biztonságos kiértékelése
+
+#### Calculation Engine Logic:
+```typescript
+// MeasurementService.ts-ben:
+// 1. Képlet parsing (pl. "m1 - m3" -> ["m1", "-", "m3"])
+// 2. Változók helyettesítése értékekkel
+// 3. Biztonságos eval() Function() segítségével
+// 4. Hatókör/range validáció (min/max értékek)
+// 5. Automatikus error detection tartományon kívüli értékeknél
+```
+
+#### Excel Integration:
+- Measurement értékek: csak a numerikus érték kerül az Excel-be
+- Calculated értékek: UI-ban láthatók, de Excel-ben csak measurement értékek
+- Formula logic: az Excel saját képletei számolnak
+
+#### Cache System:
+- **MeasurementCache**: localStorage + global cache dual storage
+- Automatic value restoration on component mount
+- Persistent values across React re-renders
+
+#### UI Features:
+- Real-time calculation updates
+- Input validation with min/max ranges  
+- Multi-language labels and error messages
+- Automatic error list population for out-of-range values
+
+#### Template Support:
+- Excel templates contain measurement/calculated question definitions
+- Cell references for measurement inputs (pl. m1 -> H25, m2 -> H26)
+- Calculated questions use calculationFormula field
+
+#### Teljes fájlok listája:
+1. **client/src/services/measurement-service.ts** - Calculation engine
+2. **client/src/components/measurement-question.tsx** - Measurement input komponens
+3. **client/src/components/calculated-result.tsx** - Számított eredmény komponens  
+4. **client/src/components/measurement-block.tsx** - Wrapper komponens
+5. **client/src/utils/measurement-cache.ts** - Cache kezelés
+6. **server/services/measurement-calculator.ts** - Server oldali számítások
+7. **shared/schema.ts** - Database schema measurement mezőkkel
+
+#### Példa template kérdések:
+```
+m1 (measurement): "Távolság 1" - cellReference: H25, unit: mm, minValue: 0, maxValue: 3000
+m2 (measurement): "Távolság 2" - cellReference: H26, unit: mm, minValue: 0, maxValue: 3000  
+m3 (measurement): "Távolság 3" - cellReference: H27, unit: mm, minValue: 0, maxValue: 3000
+m4 (calculated): "Hatékony távolság 1" - calculationFormula: "m1 - m3", calculationInputs: ["m1", "m3"]
+m5 (calculated): "Hatékony távolság 2" - calculationFormula: "m2 - m3", calculationInputs: ["m2", "m3"]
+```
+
+#### Cache működés:
+- localStorage + global window cache dual storage
+- Automatikus visszaállítás component mount-kor  
+- Persistens értékek React re-render során
+- MeasurementCache class localStorage sync-kel
 
 ### Excel & UI Stability Fix (January 28, 2025) - Version 0.3.3 FINAL
 - **Excel Corruption Solution**: ✅ FIXED - Calculated values removed from Excel output, only measurement values written
