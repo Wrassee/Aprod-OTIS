@@ -58,6 +58,10 @@ function App() {
     // Clear navigation state for new session - reset to page 0
     localStorage.setItem('questionnaire-current-page', '0');
     
+    // Clear error list when starting new protocol
+    localStorage.removeItem('protocol-errors');
+    window.dispatchEvent(new CustomEvent('protocol-errors-cleared'));
+    
     // Force LanguageProvider to update by triggering a manual check
     window.dispatchEvent(new Event('storage'));
   };
@@ -257,7 +261,12 @@ function App() {
       signatureName: '',
     });
     setCurrentScreen('start');
+    // Clear all localStorage data for new protocol
     localStorage.removeItem('otis-protocol-form-data');
+    localStorage.removeItem('protocol-errors');
+    
+    // Trigger event to notify error list component of the clear
+    window.dispatchEvent(new CustomEvent('protocol-errors-cleared'));
   };
 
   const handleGoHome = () => {

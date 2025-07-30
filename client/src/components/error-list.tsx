@@ -28,9 +28,12 @@ export function ErrorList({ errors = [], onAddError, onEditError, onDeleteError 
         if (stored) {
           const parsedErrors = JSON.parse(stored);
           setLocalStorageErrors(Array.isArray(parsedErrors) ? parsedErrors : []);
+        } else {
+          setLocalStorageErrors([]);
         }
       } catch (error) {
         console.error('Error reading localStorage errors:', error);
+        setLocalStorageErrors([]);
       }
     };
 
@@ -42,8 +45,19 @@ export function ErrorList({ errors = [], onAddError, onEditError, onDeleteError 
       updateLocalStorageErrors();
     };
 
+    // Listen for protocol errors cleared event (new protocol started)
+    const handleProtocolErrorsCleared = () => {
+      console.log('Protocol errors cleared - updating error list');
+      setLocalStorageErrors([]);
+    };
+
     window.addEventListener('protocol-error-added', handleProtocolErrorAdded);
-    return () => window.removeEventListener('protocol-error-added', handleProtocolErrorAdded);
+    window.addEventListener('protocol-errors-cleared', handleProtocolErrorsCleared);
+    
+    return () => {
+      window.removeEventListener('protocol-error-added', handleProtocolErrorAdded);
+      window.removeEventListener('protocol-errors-cleared', handleProtocolErrorsCleared);
+    };
   }, []);
   
   // Combine React state errors with localStorage errors
