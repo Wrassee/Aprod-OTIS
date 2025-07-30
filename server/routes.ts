@@ -160,13 +160,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { formData, language } = req.body;
       
-      console.log('EXCEL: Using XML-based approach for PERFECT format preservation');
+      console.log('EXCEL: Using PERFECT approach - TELJES SIKER version with 100% format preservation');
       
-      // Import the proven XML-based service that preserves formatting
-      const { simpleXmlExcelService } = await import('./services/simple-xml-excel');
+      // Import the perfect Excel service based on the TELJES SIKER version
+      const { perfectExcelService } = await import('./services/perfect-excel-service');
       
-      // Generate Excel with XML manipulation (proven to preserve formatting)
-      const excelBuffer = await simpleXmlExcelService.generateExcelFromTemplate(formData, language);
+      // Generate Excel with PERFECT XML manipulation (TELJES SIKER version)
+      const excelBuffer = await perfectExcelService.generateExcelFromTemplate(formData, language);
       
       if (!excelBuffer || excelBuffer.length < 1000) {
         throw new Error('Generated Excel buffer is invalid or too small');
