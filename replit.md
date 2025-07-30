@@ -180,10 +180,10 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Direct PDF Download**: ✅ COMPLETED - Single click PDF download with preserved OTIS protocol formatting
 - **User Requirement**: ✅ SATISFIED - PDF now looks exactly like original Excel file with complete formatting preservation
 
-## VERSION 0.3.0 FINAL RELEASE - MÉRÉSI ADATOK BLOKK! ✅
+## VERSION 0.4.1 FINAL RELEASE - EXCEL GENERÁLÁS TÖKÉLETES! ✅
 
-### Release Date: January 27, 2025 
-### Status: OTIS APROD 0.3.0 - MÉRÉSI ADATOK BLOKK KÉSZ! (FULLY OPERATIONAL)
+### Release Date: January 28, 2025 
+### Status: OTIS APROD 0.4.1 - EXCEL GENERÁLÁS TÖKÉLETESEN MŰKÖDIK! (FULLY OPERATIONAL)
 
 ### Version 0.2.0 New Features (January 27, 2025)
 - **Custom File Naming Enhancement**: ✅ COMPLETED - Files now download with "AP_" prefix + Otis Lift-azonosító format
