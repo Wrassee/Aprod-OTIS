@@ -92,12 +92,43 @@ class SimpleXmlExcelService {
       basicMappings.forEach(mapping => {
         const { cell, value } = mapping;
         
-        // Very simple pattern - only existing cells with <v> content
-        const simplePattern = new RegExp(`(<c r="${cell}"[^>]*>)<v>[^<]*</v>(</c>)`);
-        if (simplePattern.test(worksheetXml)) {
-          worksheetXml = worksheetXml.replace(simplePattern, `$1<v>${this.escapeXml(value)}</v>$2`);
-          modifiedCount++;
-          console.log(`SIMPLE: Updated ${cell} = "${value}"`);
+        // Check if cell exists in worksheet
+        const cellExists = worksheetXml.includes(`r="${cell}"`);
+        console.log(`SIMPLE: Checking cell ${cell}, exists: ${cellExists}`);
+        
+        if (cellExists) {
+          // Try multiple patterns to find and replace cell content
+          
+          // Pattern 1: Cell with existing <v> content
+          let pattern1 = new RegExp(`(<c r="${cell}"[^>]*>)<v>[^<]*</v>(</c>)`);
+          if (pattern1.test(worksheetXml)) {
+            worksheetXml = worksheetXml.replace(pattern1, `$1<v>${this.escapeXml(value)}</v>$2`);
+            modifiedCount++;
+            console.log(`SIMPLE: Updated cell with <v> content: ${cell} = "${value}"`);
+            return;
+          }
+          
+          // Pattern 2: Self-closing empty cell
+          let pattern2 = new RegExp(`<c r="${cell}"([^>]*)/>`);
+          if (pattern2.test(worksheetXml)) {
+            worksheetXml = worksheetXml.replace(pattern2, `<c r="${cell}"$1><v>${this.escapeXml(value)}</v></c>`);
+            modifiedCount++;
+            console.log(`SIMPLE: Updated self-closing cell: ${cell} = "${value}"`);
+            return;
+          }
+          
+          // Pattern 3: Cell with any content
+          let pattern3 = new RegExp(`(<c r="${cell}"[^>]*>).*?(</c>)`);
+          if (pattern3.test(worksheetXml)) {
+            worksheetXml = worksheetXml.replace(pattern3, `$1<v>${this.escapeXml(value)}</v>$2`);
+            modifiedCount++;
+            console.log(`SIMPLE: Updated cell with any content: ${cell} = "${value}"`);
+            return;
+          }
+          
+          console.log(`SIMPLE: Could not update cell ${cell}, no matching pattern found`);
+        } else {
+          console.log(`SIMPLE: Cell ${cell} not found in worksheet`);
         }
       });
 
