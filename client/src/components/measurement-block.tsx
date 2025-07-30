@@ -117,117 +117,141 @@ export const MeasurementBlock = memo(function MeasurementBlock({
   };
 
   return (
-    <Card className="border-2 border-blue-200 dark:border-blue-800">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center space-x-2 text-lg">
-            <Ruler className="h-5 w-5 text-blue-600" />
-            <span>
-              {language === 'hu' ? 'Mérési adatok és számítások' : 'Messdaten und Berechnungen'}
-            </span>
-          </CardTitle>
+    <div className="space-y-6">
+      {/* Header with blue background */}
+      <div className="flex items-center space-x-2 bg-blue-500 text-white px-4 py-3 rounded-lg">
+        <span className="text-lg font-semibold">
+          {language === 'hu' ? 'Mérési adatok' : 'Messdaten'}
+        </span>
+      </div>
+
+      {/* Measurement Questions - Simple numbered list */}
+      <div className="space-y-4">
+        {measurementQuestions.map((question, index) => {
+          const value = measurementValues[question.id];
+          const unit = question.unit || 'mm';
+          const title = language === 'de' && question.titleDe ? question.titleDe : question.title;
           
-          <div className="flex items-center space-x-2">
-            {getTotalErrors() > 0 && (
-              <Badge variant="destructive" className="flex items-center space-x-1">
-                <AlertTriangle className="h-3 w-3" />
-                <span>{getTotalErrors()}</span>
-              </Badge>
-            )}
-            <Badge variant="outline">
-              {language === 'hu' 
-                ? `${measurementQuestions.length + calculatedQuestions.length} elem`
-                : `${measurementQuestions.length + calculatedQuestions.length} Elemente`}
-            </Badge>
-          </div>
-        </div>
-      </CardHeader>
-
-      <CardContent className="space-y-6">
-        {/* Measurement Questions Section */}
-        {measurementQuestions.length > 0 && (
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <Ruler className="h-4 w-4 text-blue-500" />
-              <h3 className="text-md font-semibold">
-                {language === 'hu' ? 'Mérési adatok' : 'Messdaten'}
-              </h3>
-              <Badge variant="secondary" className="text-xs">
-                {measurementQuestions.length}
-              </Badge>
-            </div>
-            
-            <div className="grid gap-4">
-              {measurementQuestions.map(question => (
-                <MeasurementQuestion
-                  key={question.id}
-                  question={question}
-                  value={measurementValues[question.id]}
-                  onChange={(value) => handleMeasurementChange(question.id, value)}
-                  error={validationErrors[question.id]}
-                  isValid={!validationErrors[question.id]}
+          return (
+            <div key={question.id} className="flex items-center space-x-4 py-3 border-b border-gray-200">
+              {/* Question number */}
+              <div className="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">
+                {index + 1}
+              </div>
+              
+              {/* Question text */}
+              <div className="flex-1">
+                <span className="text-gray-800 font-medium">{title}</span>
+              </div>
+              
+              {/* Input field */}
+              <div className="w-32">
+                <input
+                  type="number"
+                  step="0.01"
+                  value={value !== undefined ? value.toString() : ''}
+                  onChange={(e) => {
+                    const inputValue = e.target.value;
+                    if (inputValue === '') {
+                      handleMeasurementChange(question.id, undefined);
+                    } else {
+                      const numValue = parseFloat(inputValue);
+                      if (!isNaN(numValue)) {
+                        handleMeasurementChange(question.id, numValue);
+                      }
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-center font-mono"
+                  placeholder="2837"
                 />
-              ))}
+              </div>
+              
+              {/* Unit */}
+              <div className="w-8 text-gray-500 text-sm">
+                {unit}
+              </div>
             </div>
+          );
+        })}
+      </div>
+
+      {/* Calculated Results Section */}
+      {calculatedQuestions.length > 0 && (
+        <div className="space-y-4 mt-6">
+          <div className="flex items-center space-x-2 bg-green-500 text-white px-4 py-3 rounded-lg">
+            <Calculator className="h-5 w-5" />
+            <span className="text-lg font-semibold">
+              {language === 'hu' ? 'Számított értékek' : 'Berechnete Werte'}
+            </span>
           </div>
-        )}
+          
+          {calculatedQuestions.map((question, index) => {
+            // Calculate value directly
+            const calculatedValue = useMemo(() => {
+              if (!question.calculationInputs) return undefined;
+              
+              const inputs = question.calculationInputs.split(',').map(id => id.trim());
+              let sum = 0;
+              let hasAllValues = true;
+              
+              for (const inputId of inputs) {
+                const value = measurementValues[inputId];
+                if (value === undefined || value === null) {
+                  hasAllValues = false;
+                  break;
+                }
+                sum += value;
+              }
+              
+              return hasAllValues ? sum : undefined;
+            }, [question.calculationInputs, measurementValues]);
 
-        {/* Separator between sections */}
-        {measurementQuestions.length > 0 && calculatedQuestions.length > 0 && (
-          <Separator className="my-6" />
-        )}
+            // Update calculated results when value changes
+            useEffect(() => {
+              if (calculatedValue !== calculatedResults[question.id]) {
+                handleCalculatedChange(question.id, calculatedValue);
+              }
+            }, [calculatedValue, question.id, calculatedResults, handleCalculatedChange]);
 
-        {/* Calculated Results Section */}
-        {calculatedQuestions.length > 0 && (
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <Calculator className="h-4 w-4 text-green-500" />
-              <h3 className="text-md font-semibold">
-                {language === 'hu' ? 'Számított értékek' : 'Berechnete Werte'}
-              </h3>
-              <Badge variant="secondary" className="text-xs">
-                {calculatedQuestions.length}
-              </Badge>
-            </div>
+            const value = calculatedValue;
+            const unit = question.unit || 'mm';
+            const title = language === 'de' && question.titleDe ? question.titleDe : question.title;
+            const validation = validateMeasurement(value || 0, question.minValue, question.maxValue);
+            const isOutOfRange = value !== undefined && !validation.isValid;
             
-            <div className="grid gap-4">
-              {calculatedQuestions.map(question => (
-                <CalculatedResult
-                  key={question.id}
-                  question={question}
-                  measurementValues={measurementValues}
-                  onChange={(value) => handleCalculatedChange(question.id, value)}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Summary Info */}
-        <div className="mt-6 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
-          <div className="text-sm text-blue-800 dark:text-blue-200">
-            {language === 'hu' ? (
-              <>
-                <strong>Összesítés:</strong> {measurementQuestions.length} mérés, {calculatedQuestions.length} számítás.
-                {getTotalErrors() > 0 && (
-                  <span className="text-red-600 dark:text-red-400 ml-2">
-                    {getTotalErrors()} hiba észlelve.
-                  </span>
+            return (
+              <div key={question.id} className="flex items-center space-x-4 py-3 border-b border-gray-200">
+                {/* Result number */}
+                <div className="flex-shrink-0 w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">
+                  {index + 1}
+                </div>
+                
+                {/* Question/result text */}
+                <div className="flex-1">
+                  <span className="text-gray-800 font-medium">{title}</span>
+                </div>
+                
+                {/* Calculated value display */}
+                <div className={`w-32 px-3 py-2 rounded-md text-center font-mono ${
+                  isOutOfRange ? 'bg-red-100 text-red-700 border-red-300' : 'bg-gray-100 text-gray-700'
+                }`}>
+                  {value !== undefined ? value.toFixed(0) : '---'}
+                </div>
+                
+                {/* Unit */}
+                <div className="w-8 text-gray-500 text-sm">
+                  {unit}
+                </div>
+                
+                {/* Warning icon for out of range */}
+                {isOutOfRange && (
+                  <AlertTriangle className="h-5 w-5 text-red-500" />
                 )}
-              </>
-            ) : (
-              <>
-                <strong>Zusammenfassung:</strong> {measurementQuestions.length} Messungen, {calculatedQuestions.length} Berechnungen.
-                {getTotalErrors() > 0 && (
-                  <span className="text-red-600 dark:text-red-400 ml-2">
-                    {getTotalErrors()} Fehler erkannt.
-                  </span>
-                )}
-              </>
-            )}
-          </div>
+              </div>
+            );
+          })}
         </div>
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 });

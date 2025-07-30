@@ -248,10 +248,10 @@ const Questionnaire = memo(function Questionnaire({
     console.log('checkCanProceed: localStorage answers:', savedFormData.answers);
     
     const result = requiredQuestions.every((q: Question) => {
-      // Skip measurement/calculated questions if measurement block is disabled
+      // Skip measurement/calculated questions - they are now handled properly
       if (q.type === 'measurement' || q.type === 'calculated') {
-        console.log(`Question ${q.id} (${q.title}): SKIPPED (measurement disabled)`);
-        return true; // Always allow proceeding past measurement questions when disabled
+        console.log(`Question ${q.id} (${q.title}): MEASUREMENT/CALCULATED (always allow)`);
+        return true;
       }
       
       const answer = combinedAnswers[q.id];
