@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import { storage } from '../storage';
 import type { FormData } from '../../client/src/lib/types';
 
-class PerfectExcelService {
+class SimpleXmlExcelService {
   async generateExcelFromTemplate(formData: FormData, language: string): Promise<Buffer> {
     try {
       // Get the active protocol template - try multilingual first, then language-specific
@@ -384,104 +384,17 @@ class PerfectExcelService {
     return cellStyleMap[cell] || ' s="576"'; // Default to F9 style
   }
 
-  private async performXmlStringReplacements(templateBuffer: Buffer, mappings: Array<{cell: string, value: string, label: string}>): Promise<Buffer> {
-    try {
-      console.log('PERFECT: Starting XML string replacement for perfect format preservation');
-      
-      // Load Excel as ZIP
-      const zip = await JSZip.loadAsync(templateBuffer);
-      const worksheetFiles = Object.keys(zip.files).filter(name => 
-        name.startsWith('xl/worksheets/') && name.endsWith('.xml')
-      );
-      
-      if (worksheetFiles.length === 0) {
-        console.log('PERFECT: No worksheet found, returning unchanged template');
-        return templateBuffer;
-      }
-
-      // Process first worksheet only
-      const sheetFile = worksheetFiles[0];
-      let worksheetXml = await zip.file(sheetFile)!.async('text');
-      
-      let modifiedCount = 0;
-      
-      // Perform string replacements for each mapping
-      mappings.forEach(mapping => {
-        const { cell, value } = mapping;
-        
-        // Check if cell exists in worksheet
-        const cellExists = worksheetXml.includes(`r="${cell}"`);
-        console.log(`PERFECT: Checking cell ${cell}, exists: ${cellExists}`);
-        
-        if (cellExists) {
-          // Multiple replacement patterns for maximum compatibility
-          
-          // Pattern 1: Cell with existing <v> content
-          let pattern1 = new RegExp(`(<c r="${cell}"[^>]*>)<v>[^<]*</v>(</c>)`, 'g');
-          if (pattern1.test(worksheetXml)) {
-            worksheetXml = worksheetXml.replace(pattern1, `$1<v>${this.escapeXml(value)}</v>$2`);
-            modifiedCount++;
-            console.log(`PERFECT: Updated cell with <v> content: ${cell} = "${value}"`);
-            return;
-          }
-          
-          // Pattern 2: Self-closing empty cell
-          let pattern2 = new RegExp(`<c r="${cell}"([^>]*)/>`);
-          if (pattern2.test(worksheetXml)) {
-            worksheetXml = worksheetXml.replace(pattern2, `<c r="${cell}"$1><v>${this.escapeXml(value)}</v></c>`);
-            modifiedCount++;
-            console.log(`PERFECT: Updated self-closing cell: ${cell} = "${value}"`);
-            return;
-          }
-          
-          // Pattern 3: Cell with any content between tags
-          let pattern3 = new RegExp(`(<c r="${cell}"[^>]*>).*?(</c>)`, 's');
-          if (pattern3.test(worksheetXml)) {
-            worksheetXml = worksheetXml.replace(pattern3, `$1<v>${this.escapeXml(value)}</v>$2`);
-            modifiedCount++;
-            console.log(`PERFECT: Updated cell with any content: ${cell} = "${value}"`);
-            return;
-          }
-          
-          console.log(`PERFECT: Could not update cell ${cell}, no matching pattern found`);
-        } else {
-          console.log(`PERFECT: Cell ${cell} not found in worksheet`);
-        }
-      });
-
-      // Save changes if any were made
-      if (modifiedCount > 0) {
-        zip.file(sheetFile, worksheetXml);
-        
-        const result = await zip.generateAsync({
-          type: 'nodebuffer',
-          compression: 'DEFLATE',
-          compressionOptions: { level: 6 }
-        });
-        
-        console.log(`PERFECT: Modified ${modifiedCount} cells, generated ${result.length} bytes with PERFECT formatting preservation`);
-        return result;
-      } else {
-        console.log('PERFECT: No changes made, returning unchanged template');
-        return templateBuffer;
-      }
-      
-    } catch (error) {
-      console.error('PERFECT: Error in XML string replacement:', error);
-      // Always return original template on error to avoid corruption
-      return templateBuffer;
-    }
-  }
-
   private escapeXml(text: string): string {
-    // Comprehensive XML escaping for Hungarian characters and special cases
-    return String(text)
+    // Proper XML escaping with Unicode preservation for Hungarian characters
+    return text
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&apos;');
+    // Note: Hungarian characters like ű, ő, á, é, í, ó, ü, ý are preserved as-is
+    // XML natively supports UTF-8 Unicode characters
   }
 }
 
-export const perfectExcelService = new PerfectExcelService();
+export const simpleXmlExcelService = new SimpleXmlExcelService();
