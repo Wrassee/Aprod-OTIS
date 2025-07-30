@@ -90,7 +90,7 @@ export const MeasurementBlock = memo(function MeasurementBlock({
   }, [measurementValues, calculatedResults, measurementQuestions, calculatedQuestions, language, onErrorsChange]);
 
   const handleMeasurementChange = useCallback((questionId: string, value: number | undefined) => {
-    console.log('MeasurementBlock handleMeasurementChange:', questionId, value);
+    // console.log('MeasurementBlock handleMeasurementChange:', questionId, value);
     onMeasurementChange(questionId, value);
   }, [onMeasurementChange]);
 
@@ -149,14 +149,14 @@ export const MeasurementBlock = memo(function MeasurementBlock({
             
             <div className="grid gap-4">
               {measurementQuestions.map(question => {
-                console.log('Rendering MeasurementQuestion:', question.id, 'value:', measurementValues[question.id]);
+                // console.log('Rendering MeasurementQuestion:', question.id, 'value:', measurementValues[question.id]);
                 return (
                   <MeasurementQuestion
                     key={question.id}
                     question={question}
                     value={measurementValues[question.id]}
                     onChange={(value) => {
-                      console.log('MeasurementQuestion onChange:', question.id, value);
+                      // console.log('MeasurementQuestion onChange:', question.id, value);
                       handleMeasurementChange(question.id, value);
                     }}
                     error={validationErrors[question.id]}

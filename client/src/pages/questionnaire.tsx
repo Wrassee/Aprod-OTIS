@@ -56,7 +56,7 @@ const Questionnaire = memo(function Questionnaire({
   // Debug: Check if this is a real mount or just re-render
   const mountCountRef = useRef(0);
   mountCountRef.current += 1;
-  console.log('🔄 Questionnaire component rendered/mounted - RENDER COUNT:', mountCountRef.current);
+  // console.log('🔄 Questionnaire component rendered/mounted - RENDER COUNT:', mountCountRef.current);
   
   // Use a stable ref for currentPage to prevent re-mounting
   const currentPageRef = useRef(0);
