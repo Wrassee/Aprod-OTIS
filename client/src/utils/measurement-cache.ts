@@ -88,6 +88,23 @@ export class MeasurementCache {
     }
   }
   
+  // Get all current values from cache
+  static getAllValues(): Record<string, any> {
+    try {
+      // Combine values from both global cache and localStorage
+      const globalValues = (window as any).measurementValues || {};
+      const stableValues = (window as any).stableInputValues || {};
+      const storedValues = this.getAllFromStorage();
+      
+      const combined = { ...storedValues, ...stableValues, ...globalValues };
+      console.log('MeasurementCache.getAllValues called, returning:', combined);
+      return combined;
+    } catch (error) {
+      console.error('MeasurementCache getAllValues error:', error);
+      return {};
+    }
+  }
+
   private static getAllFromStorage(): Record<string, string> {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
