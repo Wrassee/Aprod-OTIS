@@ -54,11 +54,6 @@ export function StartScreen({ onLanguageSelect }: StartScreenProps) {
           <span className="text-lg font-medium text-gray-700">Deutsch</span>
         </Button>
       </div>
-      
-      {/* Version Display */}
-      <div className="absolute bottom-4 left-4 text-xs text-gray-400">
-        OTIS APROD v0.4.2
-      </div>
     </div>
   );
 }
