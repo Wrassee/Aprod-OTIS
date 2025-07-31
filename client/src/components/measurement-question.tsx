@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useLanguageContext } from '@/components/language-provider';
 import { Label } from '@/components/ui/label';
 import { Question } from '@shared/schema';
-import { StableInput } from './stable-input';
 
 interface MeasurementQuestionProps {
   question: Question;
@@ -12,15 +11,11 @@ interface MeasurementQuestionProps {
 
 // Global helper functions for measurement values
 export function getAllMeasurementValues(): Record<string, number> {
-  // Check both caches for measurement values
   const measurementCached = (window as any).measurementValues || {};
-  const stableInputCached = (window as any).stableInputValues || {};
-  const combined = { ...measurementCached, ...stableInputCached };
-  
   const result: Record<string, number> = {};
   
-  Object.keys(combined).forEach(key => {
-    const value = parseFloat(combined[key]);
+  Object.keys(measurementCached).forEach(key => {
+    const value = parseFloat(measurementCached[key]);
     if (!isNaN(value)) {
       result[key] = value;
     }
@@ -35,31 +30,20 @@ export function clearAllMeasurementValues() {
 
 export function MeasurementQuestion({ question, value, onChange }: MeasurementQuestionProps) {
   const { language } = useLanguageContext();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleValueChange = (newValue: string) => {
-    // Store values PERSISTENTLY in dual cache system
     if (!(window as any).measurementValues) {
       (window as any).measurementValues = {};
     }
     (window as any).measurementValues[question.id] = newValue;
     
-    // ALSO store in stableInputValues for StableInput compatibility
-    if (!(window as any).stableInputValues) {
-      (window as any).stableInputValues = {};
-    }
-    (window as any).stableInputValues[question.id] = newValue;
-    
-    // Mark this value as protected from clearing
-    if (!(window as any).protectedMeasurements) {
-      (window as any).protectedMeasurements = new Set();
-    }
-    (window as any).protectedMeasurements.add(question.id);
-    
-    // Trigger measurement change event for calculations
     window.dispatchEvent(new CustomEvent('measurement-change'));
     
-    // DON'T call onChange immediately to avoid React state conflicts
-    // Values will be picked up from cache during form submission
+    const numValue = parseFloat(newValue);
+    if (!isNaN(numValue)) {
+      onChange(numValue);
+    }
   };
 
   const getTitle = () => {
@@ -68,22 +52,22 @@ export function MeasurementQuestion({ question, value, onChange }: MeasurementQu
     return question.title;
   };
 
-  // Check range from cached value to avoid re-renders
-  const getCachedValue = () => {
-    const cached = (window as any).measurementValues?.[question.id];
-    return cached ? parseFloat(cached) : value;
-  };
-  
-  const currentValue = getCachedValue();
-  const isOutOfRange = currentValue !== undefined && !isNaN(currentValue) && (
-    (question.minValue !== undefined && currentValue < question.minValue) ||
-    (question.maxValue !== undefined && currentValue > question.maxValue)
+  const currentValue = (window as any).measurementValues?.[question.id] || value?.toString() || '';
+  const isOutOfRange = value !== undefined && !isNaN(value) && (
+    (question.minValue !== undefined && value < question.minValue) ||
+    (question.maxValue !== undefined && value > question.maxValue)
   );
+
+  useEffect(() => {
+    if (inputRef.current && currentValue) {
+      inputRef.current.value = currentValue;
+    }
+  }, [currentValue]);
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-4">
-        <Label htmlFor={question.id} className="text-xl font-bold text-gray-900 flex-1 leading-relaxed">
+      <div className="flex items-center gap-3">
+        <Label className="text-xl font-bold text-gray-900 flex-1 leading-relaxed">
           {getTitle()}
           {question.unit && (
             <span className="ml-2 text-gray-700 font-medium">({question.unit})</span>
@@ -93,46 +77,35 @@ export function MeasurementQuestion({ question, value, onChange }: MeasurementQu
           )}
         </Label>
         
-        <div className="flex-shrink-0" style={{width: "60px"}}>
-          <input
-            id={question.id}
-            type="text"
-            defaultValue={value?.toString() || ''}
-            onInput={(e) => {
-              const input = e.target as HTMLInputElement;
-              let val = input.value;
-              
-              // Only allow numbers and decimal point
-              val = val.replace(/[^0-9.]/g, '');
-              
-              // Limit to 5 characters maximum - STRICT ENFORCEMENT
-              if (val.length > 5) {
-                val = val.slice(0, 5);
-                input.value = val;
-                return;
-              }
-              
-              // Clear old cache to prevent interference
-              if ((window as any).stableInputValues) {
-                delete (window as any).stableInputValues[question.id];
-              }
-              
-              // Store in measurement cache
-              if (!(window as any).measurementValues) {
-                (window as any).measurementValues = {};
-              }
-              (window as any).measurementValues[question.id] = val;
-              
-              console.log(`Measurement input ${question.id}: ${val} (length: ${val.length})`);
-              
-              handleValueChange(val);
-            }}
-            placeholder="0"
-            className={`w-full text-center text-sm px-1 border-2 rounded-lg py-1 ${isOutOfRange ? 'border-red-500' : 'border-gray-200'}`}
-            maxLength={5}
-            style={{width: "60px", fontSize: "12px"}}
-          />
-        </div>
+        <input
+          ref={inputRef}
+          type="text"
+          defaultValue={currentValue}
+          onInput={(e) => {
+            const input = e.target as HTMLInputElement;
+            let val = input.value;
+            
+            // Only allow numbers and decimal point
+            val = val.replace(/[^0-9.]/g, '');
+            
+            // STRICT 5 character limit
+            if (val.length > 5) {
+              val = val.slice(0, 5);
+              input.value = val;
+            }
+            
+            console.log(`Measurement input ${question.id}: "${val}" (length: ${val.length})`);
+            handleValueChange(val);
+          }}
+          placeholder="0"
+          className={`text-center border-2 rounded-lg py-1 px-1 ${isOutOfRange ? 'border-red-500' : 'border-gray-200'}`}
+          maxLength={5}
+          style={{
+            width: "50px",
+            fontSize: "12px",
+            fontFamily: "monospace"
+          }}
+        />
       </div>
       
       {question.minValue !== undefined && question.maxValue !== undefined && (
