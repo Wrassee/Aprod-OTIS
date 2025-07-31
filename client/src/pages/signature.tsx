@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { SimpleSignatureCanvas } from '@/components/simple-signature-canvas';
-import { MegaStableInput } from '@/components/mega-stable-input';
+import { SimpleTextInput } from '@/components/simple-text-input';
 import { useLanguageContext } from '@/components/language-provider';
 import { formatDate } from '@/lib/utils';
 import { ArrowLeft, Check, Calendar } from 'lucide-react';
@@ -29,24 +29,12 @@ export function Signature({
 
   const canComplete = true; // Allow completion with or without signature, printed name allowed independently
 
-  // Simple controlled input - no interference from canvas
+  // Simple controlled input - completely isolated from canvas
   const [localName, setLocalName] = useState(signatureName || '');
 
   useEffect(() => {
     setLocalName(signatureName || '');
   }, [signatureName]);
-
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    console.log(`Signature name changed: ${newValue}`);
-    setLocalName(newValue);
-    
-    // Store globally for completion sync
-    (window as any).signatureNameValue = newValue;
-    
-    // Update parent state immediately
-    onSignatureNameChange(newValue);
-  };
 
   return (
     <div className="min-h-screen bg-light-surface">
@@ -83,13 +71,16 @@ export function Signature({
               {t.printedName}:
             </label>
             <div className="relative">
-              <input
-                type="text"
+              <SimpleTextInput
                 value={localName}
-                onChange={handleNameChange}
+                onChange={(newValue) => {
+                  console.log(`Signature name changed: ${newValue}`);
+                  setLocalName(newValue);
+                  (window as any).signatureNameValue = newValue;
+                  onSignatureNameChange(newValue);
+                }}
                 placeholder={t.printedName}
                 className="w-full h-12 px-4 text-lg border-2 border-gray-300 rounded-lg focus:border-otis-blue focus:outline-none bg-white"
-                autoComplete="off"
                 style={{ 
                   fontSize: '18px',
                   minHeight: '48px'
