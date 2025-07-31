@@ -85,10 +85,7 @@ export function MeasurementQuestion({ question, value, onChange }: MeasurementQu
             const input = e.target as HTMLInputElement;
             let val = input.value;
             
-            // Only allow numbers and decimal point
-            val = val.replace(/[^0-9.]/g, '');
-            
-            // STRICT 5 character limit
+            // STRICT 5 character limit FIRST
             if (val.length > 5) {
               val = val.slice(0, 5);
               input.value = val;
