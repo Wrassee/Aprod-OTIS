@@ -13,7 +13,7 @@ import { ArrowLeft, ArrowRight, Save, Settings, Home, Check, X, RotateCcw } from
 import { getAllCachedValues } from '@/components/cache-radio';
 import { getAllTrueFalseValues } from '@/components/true-false-radio';
 import { getAllStableInputValues } from '@/components/stable-input';
-import { getAllMeasurementValues } from '@/components/measurement-question';
+import { ForceWidthMeasurement, getAllMeasurementValues } from '@/components/force-width-measurement';
 import { CalculatedResult } from '@/components/calculated-result';
 import { MeasurementBlock, getAllCalculatedValues } from '@/components/measurement-block';
 
