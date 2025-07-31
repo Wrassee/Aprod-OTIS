@@ -75,7 +75,10 @@ export function SimpleSignatureCanvas({ onSignatureChange, initialSignature }: S
   };
 
   const startDrawing = (e: any) => {
-    e.preventDefault();
+    // Only prevent default for canvas interactions
+    if (e.target === canvasRef.current) {
+      e.preventDefault();
+    }
     const canvas = canvasRef.current;
     if (!canvas) return;
     
@@ -91,7 +94,10 @@ export function SimpleSignatureCanvas({ onSignatureChange, initialSignature }: S
   };
 
   const draw = (e: any) => {
-    e.preventDefault();
+    // Only prevent default for canvas interactions
+    if (e.target === canvasRef.current) {
+      e.preventDefault();
+    }
     if (!isDrawing || !lastPoint) return;
 
     const canvas = canvasRef.current;
@@ -109,7 +115,10 @@ export function SimpleSignatureCanvas({ onSignatureChange, initialSignature }: S
   };
 
   const stopDrawing = (e?: any) => {
-    if (e) e.preventDefault();
+    // Only prevent default for canvas interactions
+    if (e && e.target === canvasRef.current) {
+      e.preventDefault();
+    }
     if (!isDrawing) return;
     
     setIsDrawing(false);
