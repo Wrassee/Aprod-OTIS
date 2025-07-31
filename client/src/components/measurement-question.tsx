@@ -76,9 +76,9 @@ export function MeasurementQuestion({ question, value, onValueChange }: Measurem
                   // Only allow numbers and decimal point
                   val = val.replace(/[^0-9.]/g, '');
                   
-                  // Limit to 7 characters maximum - EXTENDED LIMIT
-                  if (val.length > 7) {
-                    val = val.slice(0, 7);
+                  // Limit to 9 characters maximum - EXTENDED LIMIT
+                  if (val.length > 9) {
+                    val = val.slice(0, 9);
                     input.value = val;
                   }
                   
@@ -90,7 +90,7 @@ export function MeasurementQuestion({ question, value, onValueChange }: Measurem
                   handleValueChange(val);
                 }}
                 placeholder="0"
-                maxLength={7}
+                maxLength={9}
                 style={{
                   width: "400px", 
                   fontSize: "24px", 
