@@ -93,8 +93,7 @@ export function MeasurementQuestion({ question, value, onChange }: MeasurementQu
           )}
         </Label>
         
-        <div className="flex-shrink-0" style={{width: "200px"}}>
-          <input
+        <input
             id={question.id}
             type="text"
             defaultValue={value?.toString() || ''}
@@ -130,21 +129,22 @@ export function MeasurementQuestion({ question, value, onChange }: MeasurementQu
             className=""
             maxLength={5}
             style={{
-              width: "200px !important", 
-              fontSize: "18px", 
-              minWidth: "200px",
-              maxWidth: "200px",
-              padding: "12px",
-              height: "48px",
-              fontWeight: "500",
+              width: "300px", 
+              fontSize: "20px", 
+              padding: "16px",
+              height: "60px",
+              fontWeight: "600",
               textAlign: "center",
-              border: isOutOfRange ? "2px solid #ef4444" : "2px solid #d1d5db",
-              borderRadius: "8px",
+              border: isOutOfRange ? "3px solid #ef4444" : "3px solid #3b82f6",
+              borderRadius: "12px",
               outline: "none",
-              backgroundColor: "#ffffff"
+              backgroundColor: "#ffffff",
+              display: "block",
+              marginLeft: "auto",
+              marginRight: "auto",
+              boxSizing: "border-box"
             }}
           />
-        </div>
       </div>
       
       {question.minValue !== undefined && question.maxValue !== undefined && (
