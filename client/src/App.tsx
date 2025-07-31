@@ -7,7 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/components/language-provider";
 import { StartScreen } from "@/pages/start-screen";
 import Questionnaire from "@/pages/questionnaire";
-import SignaturePage from "@/pages/pure-signature";
+import SignaturePage from "@/pages/signature";
 import { Completion } from "@/pages/completion";
 import { Admin } from "@/pages/admin";
 import { ProtocolPreview } from "@/pages/protocol-preview";

@@ -13,7 +13,8 @@ import { ArrowLeft, ArrowRight, Save, Settings, Home, Check, X, RotateCcw } from
 import { getAllCachedValues } from '@/components/cache-radio';
 import { getAllTrueFalseValues } from '@/components/true-false-radio';
 import { getAllStableInputValues } from '@/components/stable-input';
-import { PureMeasurement, getAllMeasurementValues } from '@/components/pure-measurement';
+import { MeasurementQuestion } from '@/components/measurement-question';
+import { getAllMeasurementValues } from '@/components/measurement-question';
 import { CalculatedResult } from '@/components/calculated-result';
 import { MeasurementBlock, getAllCalculatedValues } from '@/components/measurement-block';
 
@@ -428,30 +429,20 @@ const Questionnaire = memo(function Questionnaire({
               groupName={currentGroup?.name || 'Kérdések'}
             />
           ) : (
-            /* Check if current group has measurement questions - use PureMeasurement */
-            (currentQuestions as Question[]).some((q: Question) => q.type === 'measurement') ? (
-              <div className="space-y-8">
-                {(currentQuestions as Question[]).filter((q: Question) => q.type === 'measurement').map((question: Question) => (
-                  <PureMeasurement
-                    key={question.id}
-                    question={question}
-                    value={answers[question.id] as number}
-                    onValueChange={(value) => {
-                      onAnswerChange(question.id, value);
-                      // Update measurementValues cache
-                      setMeasurementValues(prev => ({ ...prev, [question.id]: parseFloat(value) || 0 }));
-                    }}
-                  />
-                ))}
-                {/* Calculated questions still use CalculatedResult */}
-                {(currentQuestions as Question[]).filter((q: Question) => q.type === 'calculated').map((question: Question) => (
-                  <CalculatedResult
-                    key={question.id}
-                    question={question}
-                    inputValues={measurementValues}
-                  />
-                ))}
-              </div>
+            /* Check if current group has measurement or calculated questions */
+            (currentQuestions as Question[]).some((q: Question) => q.type === 'measurement' || q.type === 'calculated') ? (
+              <MeasurementBlock
+                questions={(currentQuestions as Question[]).filter((q: Question) => q.type === 'measurement' || q.type === 'calculated')}
+                values={answers}
+                onChange={(questionId, value) => {
+                  onAnswerChange(questionId, value);
+                  // If this is a measurement question, also update measurementValues
+                  if (typeof value === 'number') {
+                    setMeasurementValues(prev => ({ ...prev, [questionId]: value }));
+                  }
+                }}
+                onAddError={handleAddError}
+              />
             ) : (
               /* Regular Question Grid (2x2 Layout) for other question types */
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

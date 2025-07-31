@@ -15,7 +15,7 @@ interface SignatureProps {
   onComplete: () => void;
 }
 
-export function Signature({
+export default function Signature({
   signature,
   onSignatureChange,
   signatureName,
