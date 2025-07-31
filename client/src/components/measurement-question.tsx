@@ -94,16 +94,28 @@ export function MeasurementQuestion({ question, value, onChange }: MeasurementQu
         </Label>
         
         <div className="flex-shrink-0 w-16">
-          <StableInput
-            questionId={question.id}
+          <input
+            id={question.id}
             type="number"
-            initialValue={value?.toString() || ''}
-            onValueChange={handleValueChange}
+            defaultValue={value?.toString() || ''}
+            onInput={(e) => {
+              const input = e.target as HTMLInputElement;
+              let val = input.value;
+              
+              // Limit to 5 characters maximum
+              if (val.length > 5) {
+                val = val.slice(0, 5);
+                input.value = val;
+              }
+              
+              handleValueChange(val);
+            }}
             placeholder="0"
-            className={`w-full text-center text-sm px-1 ${isOutOfRange ? 'border-red-500' : ''}`}
+            className={`w-full text-center text-sm px-1 border-2 rounded-lg py-2 ${isOutOfRange ? 'border-red-500' : 'border-gray-200'}`}
             min={question.minValue}
             max={question.maxValue}
             step="0.1"
+            maxLength={5}
           />
         </div>
       </div>
