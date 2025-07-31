@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calculator, Ruler, AlertTriangle } from 'lucide-react';
-// import { StableInput } from './stable-input'; // DISABLED - using custom input with character limit
+import { StableInput } from './stable-input';
 import { MeasurementCache } from '@/utils/measurement-cache';
 import { useLanguage } from '@/hooks/use-language';
 
@@ -167,56 +167,14 @@ export function MeasurementBlock({ questions, onChange, onAddError }: Measuremen
                     )}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <input
-                      ref={(ref) => {
-                        if (ref && !(window as any).measurementInputRefs) {
-                          (window as any).measurementInputRefs = {};
-                        }
-                        if (ref) {
-                          (window as any).measurementInputRefs[question.id] = ref;
-                        }
-                      }}
-                      type="text"
+                    <StableInput
+                      questionId={question.id}
+                      type="number"
                       placeholder="0"
-                      className="text-center font-mono border border-gray-300 rounded-md px-1 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      style={{
-                        width: "50px",
-                        fontSize: "12px"
-                      }}
-                      maxLength={5}
-                      onKeyDown={(e) => {
-                        // Prevent form submission on Enter
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          e.stopPropagation();
-                        }
-                      }}
-                      onBlur={(e) => {
-                        const input = e.target as HTMLInputElement;
-                        let val = input.value;
-                        
-                        // STRICT 5 character limit
-                        if (val.length > 5) {
-                          val = val.slice(0, 5);
-                          input.value = val;
-                        }
-                        
-                        // Store in cache ONLY on blur to prevent re-renders
-                        if (!(window as any).measurementValues) {
-                          (window as any).measurementValues = {};
-                        }
-                        (window as any).measurementValues[question.id] = val;
-                        
-                        console.log(`MeasurementBlock BLUR ${question.id}: "${val}" (length: ${val.length})`);
-                        
-                        // Update parent without causing re-render
-                        const numValue = parseFloat(val);
-                        if (!isNaN(numValue)) {
-                          onChange(question.id, numValue);
-                        }
-                        
-                        window.dispatchEvent(new CustomEvent('measurement-change'));
-                      }}
+                      className="text-center font-mono border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      style={{width: "50px", fontSize: "12px"}}
+                      min={question.minValue}
+                      max={question.maxValue}
                     />
                     {question.unit && (
                       <span className="text-sm text-gray-500 w-8">{question.unit}</span>

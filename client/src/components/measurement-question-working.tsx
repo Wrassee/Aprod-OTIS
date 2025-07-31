@@ -93,7 +93,7 @@ export function MeasurementQuestion({ question, value, onChange }: MeasurementQu
           )}
         </Label>
         
-        <div className="flex-shrink-0" style={{width: "50px"}}>
+        <div className="flex-shrink-0" style={{width: "60px"}}>
           <input
             id={question.id}
             type="text"
@@ -130,7 +130,7 @@ export function MeasurementQuestion({ question, value, onChange }: MeasurementQu
             placeholder="0"
             className={`w-full text-center text-sm px-1 border-2 rounded-lg py-1 ${isOutOfRange ? 'border-red-500' : 'border-gray-200'}`}
             maxLength={5}
-            style={{width: "50px", fontSize: "12px"}}
+            style={{width: "60px", fontSize: "12px"}}
           />
         </div>
       </div>
