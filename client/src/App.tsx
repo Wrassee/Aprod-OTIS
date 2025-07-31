@@ -7,7 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/components/language-provider";
 import { StartScreen } from "@/pages/start-screen";
 import Questionnaire from "@/pages/questionnaire";
-import SignaturePage from "@/pages/signature";
+import { Signature } from "@/pages/signature";
 import { Completion } from "@/pages/completion";
 import { Admin } from "@/pages/admin";
 import { ProtocolPreview } from "@/pages/protocol-preview";
@@ -327,11 +327,11 @@ function App() {
               return <StartScreen onLanguageSelect={handleLanguageSelect} />;
             case 'signature':
               return (
-                <SignaturePage
+                <Signature
                   signature={formData.signature || ''}
-                  onSignatureChange={(signature: string) => setFormData(prev => ({ ...prev, signature }))}
+                  onSignatureChange={(signature) => setFormData(prev => ({ ...prev, signature }))}
                   signatureName={formData.signatureName || ''}
-                  onSignatureNameChange={(signatureName: string) => setFormData(prev => ({ ...prev, signatureName }))}
+                  onSignatureNameChange={(signatureName) => setFormData(prev => ({ ...prev, signatureName }))}
                   onBack={handleSignatureBack}
                   onComplete={handleSignatureComplete}
                 />

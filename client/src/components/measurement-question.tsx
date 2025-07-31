@@ -1,33 +1,71 @@
-import { Label } from '@/components/ui/label';
+import React from 'react';
 import { useLanguageContext } from '@/components/language-provider';
-import { QuestionConfig } from '@shared/schema';
+import { Label } from '@/components/ui/label';
+import { Question } from '@shared/schema';
+import { StableInput } from './stable-input';
 
 interface MeasurementQuestionProps {
-  question: QuestionConfig;
-  value?: number | string;
-  onValueChange: (value: string) => void;
+  question: Question;
+  value: number | undefined;
+  onChange: (value: number) => void;
 }
 
-export function MeasurementQuestion({ question, value, onValueChange }: MeasurementQuestionProps) {
+// Global helper functions for measurement values
+export function getAllMeasurementValues(): Record<string, number> {
+  // Check both caches for measurement values
+  const measurementCached = (window as any).measurementValues || {};
+  const stableInputCached = (window as any).stableInputValues || {};
+  const combined = { ...measurementCached, ...stableInputCached };
+  
+  const result: Record<string, number> = {};
+  
+  Object.keys(combined).forEach(key => {
+    const value = parseFloat(combined[key]);
+    if (!isNaN(value)) {
+      result[key] = value;
+    }
+  });
+  
+  return result;
+}
+
+export function clearAllMeasurementValues() {
+  (window as any).measurementValues = {};
+}
+
+export function MeasurementQuestion({ question, value, onChange }: MeasurementQuestionProps) {
   const { language } = useLanguageContext();
 
-  const getTitle = () => {
-    if (language === 'de' && question.germanTitle) {
-      return question.germanTitle;
-    }
-    return question.title;
-  };
-
-  const handleValueChange = (val: string) => {
-    console.log(`Measurement input ${question.id}: ${val} (length: ${val.length})`);
-    
-    // Store in measurement cache
+  const handleValueChange = (newValue: string) => {
+    // Store values PERSISTENTLY in dual cache system
     if (!(window as any).measurementValues) {
       (window as any).measurementValues = {};
     }
-    (window as any).measurementValues[question.id] = val;
+    (window as any).measurementValues[question.id] = newValue;
     
-    onValueChange(val);
+    // ALSO store in stableInputValues for StableInput compatibility
+    if (!(window as any).stableInputValues) {
+      (window as any).stableInputValues = {};
+    }
+    (window as any).stableInputValues[question.id] = newValue;
+    
+    // Mark this value as protected from clearing
+    if (!(window as any).protectedMeasurements) {
+      (window as any).protectedMeasurements = new Set();
+    }
+    (window as any).protectedMeasurements.add(question.id);
+    
+    // Trigger measurement change event for calculations
+    window.dispatchEvent(new CustomEvent('measurement-change'));
+    
+    // DON'T call onChange immediately to avoid React state conflicts
+    // Values will be picked up from cache during form submission
+  };
+
+  const getTitle = () => {
+    if (language === 'de' && question.titleDe) return question.titleDe;
+    if (language === 'hu' && question.titleHu) return question.titleHu;
+    return question.title;
   };
 
   // Check range from cached value to avoid re-renders
@@ -43,94 +81,67 @@ export function MeasurementQuestion({ question, value, onValueChange }: Measurem
   );
 
   return (
-    <div style={{ marginBottom: "32px" }}>
-      <table style={{ width: "100%", marginBottom: "16px" }}>
-        <tbody>
-          <tr>
-            <td style={{ verticalAlign: "middle", paddingRight: "20px" }}>
-              <Label htmlFor={question.id} style={{ 
-                fontSize: "20px", 
-                fontWeight: "bold", 
-                color: "#111827", 
-                display: "block",
-                lineHeight: "1.5"
-              }}>
-                {getTitle()}
-                {question.unit && (
-                  <span style={{ marginLeft: "8px", color: "#374151", fontWeight: "500" }}>({question.unit})</span>
-                )}
-                {question.required && (
-                  <span style={{ color: "#ef4444", marginLeft: "4px" }}>*</span>
-                )}
-              </Label>
-            </td>
-            <td style={{ width: "400px" }}>
-              <input
-                id={question.id}
-                type="text"
-                defaultValue={value?.toString() || ''}
-                onInput={(e) => {
-                  const input = e.target as HTMLInputElement;
-                  let val = input.value;
-                  
-                  // Only allow numbers and decimal point
-                  val = val.replace(/[^0-9.]/g, '');
-                  
-                  // Limit to 9 characters maximum - EXTENDED LIMIT
-                  if (val.length > 9) {
-                    val = val.slice(0, 9);
-                    input.value = val;
-                  }
-                  
-                  // Clear old cache to prevent interference
-                  if ((window as any).stableInputValues) {
-                    delete (window as any).stableInputValues[question.id];
-                  }
-                  
-                  handleValueChange(val);
-                }}
-                placeholder="0"
-                maxLength={9}
-                style={{
-                  width: "400px", 
-                  fontSize: "24px", 
-                  padding: "20px",
-                  height: "80px",
-                  fontWeight: "700",
-                  textAlign: "center",
-                  border: isOutOfRange ? "4px solid #ef4444" : "4px solid #059669",
-                  borderRadius: "16px",
-                  outline: "none",
-                  backgroundColor: "#f9fafb",
-                  boxSizing: "border-box",
-                  fontFamily: "system-ui, -apple-system, sans-serif",
-                  color: "#111827"
-                }}
-              />
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div className="space-y-4">
+      <div className="flex items-center gap-4">
+        <Label htmlFor={question.id} className="text-xl font-bold text-gray-900 flex-1 leading-relaxed">
+          {getTitle()}
+          {question.unit && (
+            <span className="ml-2 text-gray-700 font-medium">({question.unit})</span>
+          )}
+          {question.required && (
+            <span className="text-red-500 ml-1">*</span>
+          )}
+        </Label>
+        
+        <div className="flex-shrink-0" style={{width: "70px"}}>
+          <input
+            id={question.id}
+            type="text"
+            defaultValue={value?.toString() || ''}
+            onInput={(e) => {
+              const input = e.target as HTMLInputElement;
+              let val = input.value;
+              
+              // Only allow numbers and decimal point
+              val = val.replace(/[^0-9.]/g, '');
+              
+              // Limit to 5 characters maximum - STRICT ENFORCEMENT
+              if (val.length > 5) {
+                val = val.slice(0, 5);
+                input.value = val;
+              }
+              
+              // Clear old cache to prevent interference
+              if ((window as any).stableInputValues) {
+                delete (window as any).stableInputValues[question.id];
+              }
+              
+              // Store in measurement cache
+              if (!(window as any).measurementValues) {
+                (window as any).measurementValues = {};
+              }
+              (window as any).measurementValues[question.id] = val;
+              
+              console.log(`Measurement input ${question.id}: ${val} (length: ${val.length})`);
+              
+              handleValueChange(val);
+            }}
+            placeholder="0"
+            className={`text-center text-sm px-1 border-2 rounded-lg py-1 ${isOutOfRange ? 'border-red-500' : 'border-gray-200'}`}
+            maxLength={5}
+            style={{width: "70px", fontSize: "12px", minWidth: "70px", maxWidth: "70px"}}
+          />
+        </div>
+      </div>
       
       {question.minValue !== undefined && question.maxValue !== undefined && (
-        <p style={{ 
-          fontSize: "12px", 
-          color: "#6b7280", 
-          marginTop: "8px", 
-          textAlign: "center" 
-        }}>
+        <p className="text-xs text-gray-500 ml-1">
           {language === 'de' ? 'Bereich' : 'Tartomány'}: {question.minValue} - {question.maxValue} {question.unit || ''}
         </p>
       )}
       
       {isOutOfRange && (
-        <p style={{ 
-          fontSize: "12px", 
-          color: "#ef4444", 
-          marginTop: "4px", 
-          textAlign: "center",
-          fontWeight: "500"
-        }}>
+        <p className="text-xs text-red-500 ml-1">
           {language === 'de' 
             ? 'Wert außerhalb des zulässigen Bereichs' 
             : 'Az érték a megengedett tartományon kívül esik'
@@ -139,9 +150,4 @@ export function MeasurementQuestion({ question, value, onValueChange }: Measurem
       )}
     </div>
   );
-}
-
-// Export functions for cache management
-export function getAllMeasurementValues(): Record<string, string> {
-  return (window as any).measurementValues || {};
 }
