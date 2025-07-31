@@ -81,37 +81,41 @@ export function MeasurementQuestion({ question, value, onChange }: MeasurementQu
   );
 
   return (
-    <div className="space-y-2">
-      <Label htmlFor={question.id} className="flex items-center gap-2">
-        {getTitle()}
-        {question.unit && (
-          <span className="text-sm text-gray-500">({question.unit})</span>
-        )}
-        {question.required && (
-          <span className="text-red-500">*</span>
-        )}
-      </Label>
-      
-      <StableInput
-        questionId={question.id}
-        type="number"
-        initialValue={value?.toString() || ''}
-        onValueChange={handleValueChange}
-        placeholder={question.placeholder || (language === 'de' ? 'Wert eingeben' : 'Érték megadása')}
-        className={`w-full ${isOutOfRange ? 'border-red-500' : ''}`}
-        min={question.minValue}
-        max={question.maxValue}
-        step="0.1"
-      />
+    <div className="space-y-4">
+      <div className="flex items-center gap-4">
+        <Label htmlFor={question.id} className="text-base font-semibold text-gray-900 flex-1 leading-relaxed">
+          {getTitle()}
+          {question.unit && (
+            <span className="ml-2 text-gray-600 font-normal">({question.unit})</span>
+          )}
+          {question.required && (
+            <span className="text-red-500 ml-1">*</span>
+          )}
+        </Label>
+        
+        <div className="flex-shrink-0 w-24">
+          <StableInput
+            questionId={question.id}
+            type="number"
+            initialValue={value?.toString() || ''}
+            onValueChange={handleValueChange}
+            placeholder="0"
+            className={`w-full text-center ${isOutOfRange ? 'border-red-500' : ''}`}
+            min={question.minValue}
+            max={question.maxValue}
+            step="0.1"
+          />
+        </div>
+      </div>
       
       {question.minValue !== undefined && question.maxValue !== undefined && (
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-gray-500 ml-1">
           {language === 'de' ? 'Bereich' : 'Tartomány'}: {question.minValue} - {question.maxValue} {question.unit || ''}
         </p>
       )}
       
       {isOutOfRange && (
-        <p className="text-xs text-red-500">
+        <p className="text-xs text-red-500 ml-1">
           {language === 'de' 
             ? 'Wert außerhalb des zulässigen Bereichs' 
             : 'Az érték a megengedett tartományon kívül esik'

@@ -27,7 +27,7 @@ export function Signature({
   const currentDate = formatDate(new Date(), language);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const canComplete = signature.length > 0; // Only signature is required for completion, not printed name
+  const canComplete = true; // Allow completion with or without signature, printed name allowed independently
 
   // Stable input handling - prevent cursor jumping
   useEffect(() => {

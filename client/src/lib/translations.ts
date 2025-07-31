@@ -31,6 +31,7 @@ export interface Translation {
   noErrors: string;
   editError: string;
   deleteError: string;
+  errorRegistrationRequired: string;
   
   // Error Modal
   addErrorTitle: string;
@@ -130,6 +131,7 @@ export const translations: Record<string, Translation> = {
     noErrors: "Nincs jelentett hiba",
     editError: "Szerkesztés",
     deleteError: "Törlés",
+    errorRegistrationRequired: "Hiba rögzítése szükséges",
     
     // Error Modal
     addErrorTitle: "Új hiba hozzáadása",
@@ -227,6 +229,7 @@ export const translations: Record<string, Translation> = {
     noErrors: "Keine Fehler gemeldet",
     editError: "Bearbeiten",
     deleteError: "Löschen",
+    errorRegistrationRequired: "Fehlerregistrierung erforderlich",
     
     // Error Modal
     addErrorTitle: "Neuen Fehler hinzufügen",

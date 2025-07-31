@@ -135,10 +135,22 @@ export function ErrorList({ errors = [], onAddError, onEditError, onDeleteError 
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center mb-2">
-                        <Badge className={`${getSeverityColor(error.severity)} text-white px-2 py-1 text-sm font-medium mr-3`}>
-                          {getSeverityText(error.severity)}
-                        </Badge>
+                        <div className="relative mr-3">
+                          <Badge className={`${getSeverityColor(error.severity)} text-white px-2 py-1 text-sm font-medium relative`}>
+                            {getSeverityText(error.severity)}
+                          </Badge>
+                          {error.severity === 'critical' && (
+                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white flex items-center justify-center text-xs font-bold transform rotate-180" style={{clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)'}}>
+                              ⚠
+                            </div>
+                          )}
+                        </div>
                         <h4 className="font-medium text-gray-800">{error.title}</h4>
+                        {error.severity === 'critical' && (
+                          <span className="ml-2 text-xs text-red-600 font-medium">
+                            → {t.errorRegistrationRequired}
+                          </span>
+                        )}
                       </div>
                       <p className="text-gray-600 text-sm mb-3">{error.description}</p>
                       
