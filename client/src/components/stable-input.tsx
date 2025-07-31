@@ -27,7 +27,14 @@ export function StableInput({ questionId, type = 'text', placeholder, initialVal
   }, [initialValue]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+    let value = e.target.value;
+    
+    // STRICT 5 character limit for measurement inputs
+    if (questionId && questionId.startsWith('m') && value.length > 5) {
+      value = value.slice(0, 5);
+      e.target.value = value;
+    }
+    
     console.log(`Stable input typing: ${questionId} = ${value}`);
     
     // Store in global cache immediately (no React state update!)

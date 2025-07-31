@@ -109,7 +109,6 @@ export function MeasurementQuestion({ question, value, onChange }: MeasurementQu
               if (val.length > 5) {
                 val = val.slice(0, 5);
                 input.value = val;
-                return;
               }
               
               // Clear old cache to prevent interference
