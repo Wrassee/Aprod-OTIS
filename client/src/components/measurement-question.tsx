@@ -83,24 +83,24 @@ export function MeasurementQuestion({ question, value, onChange }: MeasurementQu
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4">
-        <Label htmlFor={question.id} className="text-base font-semibold text-gray-900 flex-1 leading-relaxed">
+        <Label htmlFor={question.id} className="text-xl font-bold text-gray-900 flex-1 leading-relaxed">
           {getTitle()}
           {question.unit && (
-            <span className="ml-2 text-gray-600 font-normal">({question.unit})</span>
+            <span className="ml-2 text-gray-700 font-medium">({question.unit})</span>
           )}
           {question.required && (
             <span className="text-red-500 ml-1">*</span>
           )}
         </Label>
         
-        <div className="flex-shrink-0 w-24">
+        <div className="flex-shrink-0 w-16">
           <StableInput
             questionId={question.id}
             type="number"
             initialValue={value?.toString() || ''}
             onValueChange={handleValueChange}
             placeholder="0"
-            className={`w-full text-center ${isOutOfRange ? 'border-red-500' : ''}`}
+            className={`w-full text-center text-sm px-1 ${isOutOfRange ? 'border-red-500' : ''}`}
             min={question.minValue}
             max={question.maxValue}
             step="0.1"
