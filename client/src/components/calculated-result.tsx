@@ -5,7 +5,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Calculator, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Question } from '@shared/schema';
-import { getAllMeasurementValues } from './measurement-question';
+import { getAllMeasurementValues } from './wide-measurement-input';
 
 interface CalculatedResultProps {
   question: Question; // This should be a 'calculated' type question
