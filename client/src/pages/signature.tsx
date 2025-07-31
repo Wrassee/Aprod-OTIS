@@ -57,15 +57,7 @@ export function Signature({
             {t.signatureInstruction}
           </h2>
           
-          {/* Signature Canvas */}
-          <div className="mb-6">
-            <SimpleSignatureCanvas 
-              onSignatureChange={onSignatureChange} 
-              initialSignature={signature}
-            />
-          </div>
-          
-          {/* Optional Name Input */}
+          {/* Optional Name Input - MOVED ABOVE CANVAS */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               {t.printedName}:
@@ -82,16 +74,33 @@ export function Signature({
                   onSignatureNameChange(newValue);
                 }}
                 placeholder={t.printedName}
-                className="w-full h-12 px-4 text-lg border-2 border-gray-300 rounded-lg focus:border-otis-blue focus:outline-none bg-white"
-                style={{ 
-                  fontSize: '18px',
-                  minHeight: '48px',
-                  position: 'relative',
-                  zIndex: 100
+                style={{
+                  width: "100%",
+                  height: "48px",
+                  padding: "0 16px",
+                  fontSize: "18px",
+                  border: "2px solid #d1d5db",
+                  borderRadius: "8px",
+                  outline: "none",
+                  backgroundColor: "#ffffff"
                 }}
                 autoComplete="off"
+                onFocus={(e) => {
+                  e.target.style.border = "2px solid #3b82f6";
+                }}
+                onBlur={(e) => {
+                  e.target.style.border = "2px solid #d1d5db";
+                }}
               />
             </div>
+          </div>
+
+          {/* Signature Canvas */}
+          <div className="mb-6">
+            <SimpleSignatureCanvas 
+              onSignatureChange={onSignatureChange} 
+              initialSignature={signature}
+            />
           </div>
           
           {/* Date Stamp */}
