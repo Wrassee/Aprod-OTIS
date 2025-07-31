@@ -93,29 +93,44 @@ export function MeasurementQuestion({ question, value, onChange }: MeasurementQu
           )}
         </Label>
         
-        <div className="flex-shrink-0 w-16">
+        <div className="flex-shrink-0" style={{width: "60px"}}>
           <input
             id={question.id}
-            type="number"
+            type="text"
             defaultValue={value?.toString() || ''}
             onInput={(e) => {
               const input = e.target as HTMLInputElement;
               let val = input.value;
               
-              // Limit to 5 characters maximum
+              // Only allow numbers and decimal point
+              val = val.replace(/[^0-9.]/g, '');
+              
+              // Limit to 5 characters maximum - STRICT ENFORCEMENT
               if (val.length > 5) {
                 val = val.slice(0, 5);
                 input.value = val;
+                return;
               }
+              
+              // Clear old cache to prevent interference
+              if ((window as any).stableInputValues) {
+                delete (window as any).stableInputValues[question.id];
+              }
+              
+              // Store in measurement cache
+              if (!(window as any).measurementValues) {
+                (window as any).measurementValues = {};
+              }
+              (window as any).measurementValues[question.id] = val;
+              
+              console.log(`Measurement input ${question.id}: ${val} (length: ${val.length})`);
               
               handleValueChange(val);
             }}
             placeholder="0"
-            className={`w-full text-center text-sm px-1 border-2 rounded-lg py-2 ${isOutOfRange ? 'border-red-500' : 'border-gray-200'}`}
-            min={question.minValue}
-            max={question.maxValue}
-            step="0.1"
+            className={`w-full text-center text-sm px-1 border-2 rounded-lg py-1 ${isOutOfRange ? 'border-red-500' : 'border-gray-200'}`}
             maxLength={5}
+            style={{width: "60px", fontSize: "12px"}}
           />
         </div>
       </div>
