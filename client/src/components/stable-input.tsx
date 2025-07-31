@@ -80,11 +80,12 @@ export function StableInput({ questionId, type = 'text', placeholder, initialVal
       min={min}
       max={max}
       step={step}
-      className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-transparent ${className || ''}`}
+      className={`${questionId?.startsWith('m') ? 'w-auto' : 'w-full'} px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-transparent ${className || ''}`}
       style={{ 
         fontSize: '16px',
         backgroundColor: 'white',
-        color: '#000'
+        color: '#000',
+        ...(questionId?.startsWith('m') ? { width: '50px', textAlign: 'center' } : {})
       }}
     />
   );
