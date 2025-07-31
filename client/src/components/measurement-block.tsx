@@ -172,7 +172,7 @@ export function MeasurementBlock({ questions, onChange, onAddError }: Measuremen
                       type="number"
                       placeholder="0"
                       className="text-center font-mono border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      style={{width: "50px", fontSize: "12px"}}
+                      style={{width: "70px", fontSize: "12px"}}
                       min={question.minValue}
                       max={question.maxValue}
                     />

@@ -85,7 +85,7 @@ export function StableInput({ questionId, type = 'text', placeholder, initialVal
         fontSize: '16px',
         backgroundColor: 'white',
         color: '#000',
-        ...(questionId?.startsWith('m') ? { width: '50px', textAlign: 'center' } : {})
+        ...(questionId?.startsWith('m') ? { width: '70px', textAlign: 'center' } : {})
       }}
     />
   );
