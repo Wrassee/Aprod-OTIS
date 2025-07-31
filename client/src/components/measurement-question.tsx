@@ -127,9 +127,17 @@ export function MeasurementQuestion({ question, value, onChange }: MeasurementQu
               handleValueChange(val);
             }}
             placeholder="0"
-            className={`text-center text-lg px-3 border-2 rounded-lg py-3 ${isOutOfRange ? 'border-red-500' : 'border-gray-200'}`}
+            className={`text-center border-2 rounded-lg ${isOutOfRange ? 'border-red-500' : 'border-gray-200'}`}
             maxLength={5}
-            style={{width: "200px", fontSize: "16px", minWidth: "200px", maxWidth: "200px"}}
+            style={{
+              width: "200px", 
+              fontSize: "18px", 
+              minWidth: "200px", 
+              maxWidth: "200px",
+              padding: "12px",
+              height: "48px",
+              fontWeight: "500"
+            }}
           />
         </div>
       </div>

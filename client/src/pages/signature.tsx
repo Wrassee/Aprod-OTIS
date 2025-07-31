@@ -71,9 +71,11 @@ export function Signature({
               {t.printedName}:
             </label>
             <div className="relative">
-              <SimpleTextInput
+              <input
+                type="text"
                 value={localName}
-                onChange={(newValue) => {
+                onChange={(e) => {
+                  const newValue = e.target.value;
                   console.log(`Signature name changed: ${newValue}`);
                   setLocalName(newValue);
                   (window as any).signatureNameValue = newValue;
@@ -83,8 +85,11 @@ export function Signature({
                 className="w-full h-12 px-4 text-lg border-2 border-gray-300 rounded-lg focus:border-otis-blue focus:outline-none bg-white"
                 style={{ 
                   fontSize: '18px',
-                  minHeight: '48px'
+                  minHeight: '48px',
+                  position: 'relative',
+                  zIndex: 100
                 }}
+                autoComplete="off"
               />
             </div>
           </div>
