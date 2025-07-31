@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calculator, Ruler, AlertTriangle } from 'lucide-react';
-import { StableInput } from './stable-input';
+// import { StableInput } from './stable-input'; // DISABLED - using custom input with character limit
 import { MeasurementCache } from '@/utils/measurement-cache';
 import { useLanguage } from '@/hooks/use-language';
 
@@ -167,13 +167,45 @@ export function MeasurementBlock({ questions, onChange, onAddError }: Measuremen
                     )}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <StableInput
-                      questionId={question.id}
-                      type="number"
+                    <input
+                      type="text"
                       placeholder="0"
-                      className="w-20 text-center font-mono border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      min={question.minValue}
-                      max={question.maxValue}
+                      className="text-center font-mono border border-gray-300 rounded-md px-1 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      style={{
+                        width: "50px",
+                        fontSize: "12px"
+                      }}
+                      maxLength={5}
+                      onInput={(e) => {
+                        const input = e.target as HTMLInputElement;
+                        let val = input.value;
+                        
+                        // Only allow numbers and decimal point
+                        val = val.replace(/[^0-9.]/g, '');
+                        
+                        // STRICT 5 character limit
+                        if (val.length > 5) {
+                          val = val.slice(0, 5);
+                          input.value = val;
+                        }
+                        
+                        // Store in measurement cache
+                        if (!(window as any).measurementValues) {
+                          (window as any).measurementValues = {};
+                        }
+                        (window as any).measurementValues[question.id] = val;
+                        
+                        console.log(`MeasurementBlock input ${question.id}: "${val}" (length: ${val.length})`);
+                        
+                        // Call onChange for parent component
+                        const numValue = parseFloat(val);
+                        if (!isNaN(numValue)) {
+                          onChange(question.id, numValue);
+                        }
+                        
+                        // Trigger calculation update
+                        window.dispatchEvent(new CustomEvent('measurement-change'));
+                      }}
                     />
                     {question.unit && (
                       <span className="text-sm text-gray-500 w-8">{question.unit}</span>
