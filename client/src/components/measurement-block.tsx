@@ -168,7 +168,14 @@ export function MeasurementBlock({ questions, onChange, onAddError }: Measuremen
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <input
-                      key={`measurement-${question.id}`}
+                      ref={(ref) => {
+                        if (ref && !(window as any).measurementInputRefs) {
+                          (window as any).measurementInputRefs = {};
+                        }
+                        if (ref) {
+                          (window as any).measurementInputRefs[question.id] = ref;
+                        }
+                      }}
                       type="text"
                       placeholder="0"
                       className="text-center font-mono border border-gray-300 rounded-md px-1 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -177,35 +184,38 @@ export function MeasurementBlock({ questions, onChange, onAddError }: Measuremen
                         fontSize: "12px"
                       }}
                       maxLength={5}
-                      onChange={(e) => {
+                      onKeyDown={(e) => {
+                        // Prevent form submission on Enter
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }
+                      }}
+                      onBlur={(e) => {
                         const input = e.target as HTMLInputElement;
                         let val = input.value;
                         
-                        // STRICT 5 character limit FIRST
+                        // STRICT 5 character limit
                         if (val.length > 5) {
                           val = val.slice(0, 5);
                           input.value = val;
                         }
                         
-                        // Store in measurement cache WITHOUT triggering re-render
+                        // Store in cache ONLY on blur to prevent re-renders
                         if (!(window as any).measurementValues) {
                           (window as any).measurementValues = {};
                         }
                         (window as any).measurementValues[question.id] = val;
                         
-                        console.log(`MeasurementBlock input ${question.id}: "${val}" (length: ${val.length})`);
+                        console.log(`MeasurementBlock BLUR ${question.id}: "${val}" (length: ${val.length})`);
                         
-                        // Call onChange for parent component BUT debounced
-                        clearTimeout((window as any)[`measurement-timeout-${question.id}`]);
-                        (window as any)[`measurement-timeout-${question.id}`] = setTimeout(() => {
-                          const numValue = parseFloat(val);
-                          if (!isNaN(numValue)) {
-                            onChange(question.id, numValue);
-                          }
-                          
-                          // Trigger calculation update
-                          window.dispatchEvent(new CustomEvent('measurement-change'));
-                        }, 300);
+                        // Update parent without causing re-render
+                        const numValue = parseFloat(val);
+                        if (!isNaN(numValue)) {
+                          onChange(question.id, numValue);
+                        }
+                        
+                        window.dispatchEvent(new CustomEvent('measurement-change'));
                       }}
                     />
                     {question.unit && (

@@ -79,26 +79,33 @@ export function MeasurementQuestion({ question, value, onChange }: MeasurementQu
         
         <input
           ref={inputRef}
-          key={`measurement-q-${question.id}`}
           type="text"
           defaultValue={currentValue}
-          onChange={(e) => {
+          className={`text-center border-2 rounded-lg py-1 px-1 ${isOutOfRange ? 'border-red-500' : 'border-gray-200'}`}
+          maxLength={5}
+          style={{
+            width: "50px",
+            fontSize: "12px",
+            fontFamily: "monospace"
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              e.stopPropagation();
+            }
+          }}
+          onBlur={(e) => {
             const input = e.target as HTMLInputElement;
             let val = input.value;
             
-            // STRICT 5 character limit FIRST
+            // STRICT 5 character limit
             if (val.length > 5) {
               val = val.slice(0, 5);
               input.value = val;
             }
             
-            console.log(`Measurement input ${question.id}: "${val}" (length: ${val.length})`);
-            
-            // Debounced value change to prevent UI flicker
-            clearTimeout((window as any)[`measurement-q-timeout-${question.id}`]);
-            (window as any)[`measurement-q-timeout-${question.id}`] = setTimeout(() => {
-              handleValueChange(val);
-            }, 300);
+            console.log(`Measurement BLUR ${question.id}: "${val}" (length: ${val.length})`);
+            handleValueChange(val);
           }}
           placeholder="0"
           className={`text-center border-2 rounded-lg py-1 px-1 ${isOutOfRange ? 'border-red-500' : 'border-gray-200'}`}
