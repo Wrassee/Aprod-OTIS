@@ -168,6 +168,7 @@ export function MeasurementBlock({ questions, onChange, onAddError }: Measuremen
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <input
+                      key={`measurement-${question.id}`}
                       type="text"
                       placeholder="0"
                       className="text-center font-mono border border-gray-300 rounded-md px-1 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -176,7 +177,7 @@ export function MeasurementBlock({ questions, onChange, onAddError }: Measuremen
                         fontSize: "12px"
                       }}
                       maxLength={5}
-                      onInput={(e) => {
+                      onChange={(e) => {
                         const input = e.target as HTMLInputElement;
                         let val = input.value;
                         
@@ -186,7 +187,7 @@ export function MeasurementBlock({ questions, onChange, onAddError }: Measuremen
                           input.value = val;
                         }
                         
-                        // Store in measurement cache
+                        // Store in measurement cache WITHOUT triggering re-render
                         if (!(window as any).measurementValues) {
                           (window as any).measurementValues = {};
                         }
@@ -194,14 +195,17 @@ export function MeasurementBlock({ questions, onChange, onAddError }: Measuremen
                         
                         console.log(`MeasurementBlock input ${question.id}: "${val}" (length: ${val.length})`);
                         
-                        // Call onChange for parent component
-                        const numValue = parseFloat(val);
-                        if (!isNaN(numValue)) {
-                          onChange(question.id, numValue);
-                        }
-                        
-                        // Trigger calculation update
-                        window.dispatchEvent(new CustomEvent('measurement-change'));
+                        // Call onChange for parent component BUT debounced
+                        clearTimeout((window as any)[`measurement-timeout-${question.id}`]);
+                        (window as any)[`measurement-timeout-${question.id}`] = setTimeout(() => {
+                          const numValue = parseFloat(val);
+                          if (!isNaN(numValue)) {
+                            onChange(question.id, numValue);
+                          }
+                          
+                          // Trigger calculation update
+                          window.dispatchEvent(new CustomEvent('measurement-change'));
+                        }, 300);
                       }}
                     />
                     {question.unit && (

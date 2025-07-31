@@ -79,9 +79,10 @@ export function MeasurementQuestion({ question, value, onChange }: MeasurementQu
         
         <input
           ref={inputRef}
+          key={`measurement-q-${question.id}`}
           type="text"
           defaultValue={currentValue}
-          onInput={(e) => {
+          onChange={(e) => {
             const input = e.target as HTMLInputElement;
             let val = input.value;
             
@@ -92,7 +93,12 @@ export function MeasurementQuestion({ question, value, onChange }: MeasurementQu
             }
             
             console.log(`Measurement input ${question.id}: "${val}" (length: ${val.length})`);
-            handleValueChange(val);
+            
+            // Debounced value change to prevent UI flicker
+            clearTimeout((window as any)[`measurement-q-timeout-${question.id}`]);
+            (window as any)[`measurement-q-timeout-${question.id}`] = setTimeout(() => {
+              handleValueChange(val);
+            }, 300);
           }}
           placeholder="0"
           className={`text-center border-2 rounded-lg py-1 px-1 ${isOutOfRange ? 'border-red-500' : 'border-gray-200'}`}
