@@ -29,39 +29,39 @@ export function Signature({
 
   const canComplete = true; // Allow completion with or without signature, printed name allowed independently
 
-  // Stable input handling - prevent cursor jumping
+  // Ultra stable input handling - completely isolated from canvas
   useEffect(() => {
     const input = inputRef.current;
     if (!input) return;
 
-    // Set initial value only if empty
-    if (!input.value) {
-      input.value = signatureName || '';
-    }
+    // Initialize value independently
+    input.value = signatureName || '';
 
     const handleInput = (e: Event) => {
       const target = e.target as HTMLInputElement;
       const newValue = target.value;
-      console.log(`Signature name typing: ${newValue}`);
+      console.log(`Signature name input: ${newValue}`);
       
-      // Store globally without triggering React updates
+      // Store value immediately in global cache
       (window as any).signatureNameValue = newValue;
       
-      // Debounced update to prevent cursor jumping
+      // Delayed React state update to prevent UI conflicts
       clearTimeout((window as any).signatureNameTimeout);
       (window as any).signatureNameTimeout = setTimeout(() => {
         onSignatureNameChange(newValue);
-      }, 500);
+      }, 1000); // Longer delay
     };
 
-    // Only use input event to prevent focus loss
+    // Use both input and change events for maximum compatibility
     input.addEventListener('input', handleInput);
+    input.addEventListener('change', handleInput);
     
     return () => {
       input.removeEventListener('input', handleInput);
+      input.removeEventListener('change', handleInput);
       clearTimeout((window as any).signatureNameTimeout);
     };
-  }, []); // Only run once on mount
+  }, []); // Run only once on mount
 
   return (
     <div className="min-h-screen bg-light-surface">
