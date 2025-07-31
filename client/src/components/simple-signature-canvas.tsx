@@ -156,7 +156,7 @@ export function SimpleSignatureCanvas({ onSignatureChange, initialSignature }: S
             style={{ 
               maxWidth: '100%',
               height: 'auto',
-              touchAction: 'none'
+              touchAction: 'manipulation'
             }}
             onMouseDown={startDrawing}
             onMouseMove={draw}

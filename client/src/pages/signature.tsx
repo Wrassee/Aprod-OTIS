@@ -29,39 +29,24 @@ export function Signature({
 
   const canComplete = true; // Allow completion with or without signature, printed name allowed independently
 
-  // Ultra stable input handling - completely isolated from canvas
+  // Simple controlled input - no interference from canvas
+  const [localName, setLocalName] = useState(signatureName || '');
+
   useEffect(() => {
-    const input = inputRef.current;
-    if (!input) return;
+    setLocalName(signatureName || '');
+  }, [signatureName]);
 
-    // Initialize value independently
-    input.value = signatureName || '';
-
-    const handleInput = (e: Event) => {
-      const target = e.target as HTMLInputElement;
-      const newValue = target.value;
-      console.log(`Signature name input: ${newValue}`);
-      
-      // Store value immediately in global cache
-      (window as any).signatureNameValue = newValue;
-      
-      // Delayed React state update to prevent UI conflicts
-      clearTimeout((window as any).signatureNameTimeout);
-      (window as any).signatureNameTimeout = setTimeout(() => {
-        onSignatureNameChange(newValue);
-      }, 1000); // Longer delay
-    };
-
-    // Use both input and change events for maximum compatibility
-    input.addEventListener('input', handleInput);
-    input.addEventListener('change', handleInput);
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    console.log(`Signature name changed: ${newValue}`);
+    setLocalName(newValue);
     
-    return () => {
-      input.removeEventListener('input', handleInput);
-      input.removeEventListener('change', handleInput);
-      clearTimeout((window as any).signatureNameTimeout);
-    };
-  }, []); // Run only once on mount
+    // Store globally for completion sync
+    (window as any).signatureNameValue = newValue;
+    
+    // Update parent state immediately
+    onSignatureNameChange(newValue);
+  };
 
   return (
     <div className="min-h-screen bg-light-surface">
@@ -99,8 +84,9 @@ export function Signature({
             </label>
             <div className="relative">
               <input
-                ref={inputRef}
                 type="text"
+                value={localName}
+                onChange={handleNameChange}
                 placeholder={t.printedName}
                 className="w-full h-12 px-4 text-lg border-2 border-gray-300 rounded-lg focus:border-otis-blue focus:outline-none bg-white"
                 autoComplete="off"
