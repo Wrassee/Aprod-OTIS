@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -89,7 +89,7 @@ export function NiedervoltMeasurements({
     onMeasurementsChange(measurements.filter(row => row.id !== rowId));
   };
 
-  const updateRow = (rowId: string, field: keyof MeasurementRow, value: string) => {
+  const updateRow = useCallback((rowId: string, field: keyof MeasurementRow, value: string) => {
     onMeasurementsChange(measurements.map(row => {
       if (row.id === rowId) {
         const updatedRow = { ...row, [field]: value };
@@ -106,7 +106,7 @@ export function NiedervoltMeasurements({
       }
       return row;
     }));
-  };
+  }, [measurements, measurementTypes, onMeasurementsChange]);
 
   const saveToStorage = () => {
     localStorage.setItem('niedervolt-measurements', JSON.stringify(measurements));
