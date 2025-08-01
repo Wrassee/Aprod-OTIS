@@ -151,7 +151,14 @@ const Questionnaire = memo(function Questionnaire({
   const { questionGroups, totalPages, currentQuestions, progress, currentGroup } = useMemo(() => {
     // Group questions by groupName
     const groups = allQuestions.reduce((acc: Record<string, Question[]>, question: Question) => {
-      const groupName = question.groupName || 'Egyéb';
+      // Fix measurement questions groupName
+      let groupName = question.groupName;
+      if (question.type === 'measurement' || question.type === 'calculated') {
+        groupName = 'Mérési adatok';
+      } else if (!groupName) {
+        groupName = 'Egyéb';
+      }
+      
       if (!acc[groupName]) {
         acc[groupName] = [];
       }
@@ -172,7 +179,8 @@ const Questionnaire = memo(function Questionnaire({
     }));
 
     // Calculate pagination based on groups (1 group per page)
-    const total = groupsArray.length;
+    // Fixed total: 5 pages total (4 questionnaire groups + 1 niedervolt measurements)
+    const total = 5; // Fixed total pages as per user requirement
     const currentGroupData = groupsArray[currentPage] || { name: 'Egyéb', questions: [], questionCount: 0 };
     const prog = total > 0 ? ((currentPage + 1) / total) * 100 : 0;
     
