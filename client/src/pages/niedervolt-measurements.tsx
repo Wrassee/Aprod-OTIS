@@ -117,8 +117,7 @@ const NiedervoltMeasurementsComponent = memo(function NiedervoltMeasurements({
   }, [measurements, measurementTypes, onMeasurementsChange]);
 
   // Isolated input update handler that doesn't depend on measurements array
-  const handleIsolatedInputChange = useCallback((inputId: string, value: string) => {
-    const [rowId, field] = inputId.split('_');
+  const handleIsolatedInputChange = useCallback((rowId: string, field: string, value: string) => {
     updateRowStable(rowId, field as keyof MeasurementRow, value);
   }, [updateRowStable]);
 
@@ -377,7 +376,8 @@ const NiedervoltMeasurementsComponent = memo(function NiedervoltMeasurements({
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
                         <IsolatedInput
-                          id={`${row.id}_description`}
+                          rowId={row.id}
+                          field="description"
                           type="text"
                           initialValue={row.description}
                           onValueChange={handleIsolatedInputChange}
@@ -387,7 +387,8 @@ const NiedervoltMeasurementsComponent = memo(function NiedervoltMeasurements({
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
                         <IsolatedInput
-                          id={`${row.id}_value1`}
+                          rowId={row.id}
+                          field="value1"
                           type="number"
                           initialValue={row.value1}
                           onValueChange={handleIsolatedInputChange}
@@ -397,7 +398,8 @@ const NiedervoltMeasurementsComponent = memo(function NiedervoltMeasurements({
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
                         <IsolatedInput
-                          id={`${row.id}_value2`}
+                          rowId={row.id}
+                          field="value2"
                           type="number"
                           initialValue={row.value2}
                           onValueChange={handleIsolatedInputChange}
@@ -407,7 +409,8 @@ const NiedervoltMeasurementsComponent = memo(function NiedervoltMeasurements({
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
                         <IsolatedInput
-                          id={`${row.id}_value3`}
+                          rowId={row.id}
+                          field="value3"
                           type="number"
                           initialValue={row.value3}
                           onValueChange={handleIsolatedInputChange}
@@ -417,7 +420,8 @@ const NiedervoltMeasurementsComponent = memo(function NiedervoltMeasurements({
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
                         <IsolatedInput
-                          id={`${row.id}_unit`}
+                          rowId={row.id}
+                          field="unit"
                           type="text"
                           initialValue={row.unit}
                           onValueChange={handleIsolatedInputChange}
@@ -427,7 +431,8 @@ const NiedervoltMeasurementsComponent = memo(function NiedervoltMeasurements({
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
                         <IsolatedInput
-                          id={`${row.id}_notes`}
+                          rowId={row.id}
+                          field="notes"
                           type="text"
                           initialValue={row.notes}
                           onValueChange={handleIsolatedInputChange}

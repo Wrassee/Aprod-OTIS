@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef, memo } from 'react';
 
 interface IsolatedInputProps {
-  id: string;
+  rowId: string;
+  field: string;
   initialValue: string | number;
   type?: 'text' | 'number';
   placeholder?: string;
   className?: string;
-  onValueChange: (id: string, value: string) => void;
+  onValueChange: (rowId: string, field: string, value: string) => void;
 }
 
 // Global storage for isolated input values
@@ -14,13 +15,16 @@ const inputStorage = new Map<string, string>();
 const inputTimeouts = new Map<string, NodeJS.Timeout>();
 
 export const IsolatedInput = memo(({ 
-  id, 
+  rowId,
+  field,
   initialValue, 
   type = 'text', 
   placeholder, 
   className,
   onValueChange 
 }: IsolatedInputProps) => {
+  const id = `${rowId}_${field}`;
+  
   // Use stored value or initial value
   const [localValue, setLocalValue] = useState(() => {
     const stored = inputStorage.get(id);
@@ -39,7 +43,7 @@ export const IsolatedInput = memo(({
       inputStorage.set(id, newValue);
       lastSyncedValue.current = newValue;
     }
-  }, [initialValue, isFocused, id]);
+  }, [initialValue, isFocused, rowId, field]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -53,7 +57,7 @@ export const IsolatedInput = memo(({
     
     // Debounced update to parent
     const timeout = setTimeout(() => {
-      onValueChange(id, newValue);
+      onValueChange(rowId, field, newValue);
       lastSyncedValue.current = newValue;
       inputTimeouts.delete(id);
     }, 800); // Shorter debounce for better responsiveness
@@ -81,7 +85,7 @@ export const IsolatedInput = memo(({
       inputTimeouts.delete(id);
     }
     
-    onValueChange(id, localValue);
+    onValueChange(rowId, field, localValue);
     lastSyncedValue.current = localValue;
   };
 
@@ -93,7 +97,7 @@ export const IsolatedInput = memo(({
         inputTimeouts.delete(id);
       }
     };
-  }, [id]);
+  }, [rowId, field]);
 
   return (
     <input
@@ -112,7 +116,8 @@ export const IsolatedInput = memo(({
 }, (prevProps, nextProps) => {
   // Only re-render if key props actually changed
   return (
-    prevProps.id === nextProps.id &&
+    prevProps.rowId === nextProps.rowId &&
+    prevProps.field === nextProps.field &&
     prevProps.initialValue === nextProps.initialValue &&
     prevProps.type === nextProps.type &&
     prevProps.placeholder === nextProps.placeholder &&
