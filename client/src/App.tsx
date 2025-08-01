@@ -43,6 +43,10 @@ function App() {
     if (saved) {
       try {
         const parsedData = JSON.parse(saved);
+        // If no receptionDate is saved or it's empty, use today's date
+        if (!parsedData.receptionDate || parsedData.receptionDate === '') {
+          parsedData.receptionDate = new Date().toISOString().split('T')[0];
+        }
         setFormData(parsedData);
       } catch (e) {
         console.error('Error loading saved form data:', e);
