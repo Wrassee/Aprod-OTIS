@@ -238,6 +238,11 @@ export function MeasurementBlock({ questions, onChange, onAddError }: Measuremen
                           </span>
                         )}
                       </p>
+                      {isOutOfBounds && (
+                        <p className="text-xs text-red-600 font-medium mt-1">
+                          → {language === 'de' ? 'Fehlerdokumentation erforderlich' : 'Hiba rögzítése szükséges'}
+                        </p>
+                      )}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <div className={`text-center font-mono text-lg font-bold px-3 py-2 rounded-md ${

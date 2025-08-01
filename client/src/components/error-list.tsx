@@ -146,11 +146,6 @@ export function ErrorList({ errors = [], onAddError, onEditError, onDeleteError 
                           )}
                         </div>
                         <h4 className="font-medium text-gray-800">{error.title}</h4>
-                        {error.severity === 'critical' && (
-                          <span className="ml-2 text-xs text-red-600 font-medium">
-                            → {t.errorRegistrationRequired}
-                          </span>
-                        )}
                       </div>
                       <p className="text-gray-600 text-sm mb-3">{error.description}</p>
                       
