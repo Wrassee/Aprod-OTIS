@@ -8,6 +8,7 @@ import { ArrowLeft, Plus, Trash2, Save, Settings, Home, RotateCcw } from 'lucide
 import { MeasurementRow } from '@/lib/types';
 import { MegaStableInput } from '@/components/mega-stable-input';
 import { IsolatedInput } from '@/components/isolated-input';
+import { NativeStableInput } from '@/components/native-stable-input';
 import { QuestionGroupHeader } from '@/components/question-group-header';
 
 // Measurement types for the Niedervolt Installation Regulation
@@ -375,7 +376,7 @@ const NiedervoltMeasurementsComponent = memo(function NiedervoltMeasurements({
                         </div>
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
-                        <IsolatedInput
+                        <NativeStableInput
                           rowId={row.id}
                           field="description"
                           type="text"
@@ -386,7 +387,7 @@ const NiedervoltMeasurementsComponent = memo(function NiedervoltMeasurements({
                         />
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
-                        <IsolatedInput
+                        <NativeStableInput
                           rowId={row.id}
                           field="value1"
                           type="number"
@@ -397,7 +398,7 @@ const NiedervoltMeasurementsComponent = memo(function NiedervoltMeasurements({
                         />
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
-                        <IsolatedInput
+                        <NativeStableInput
                           rowId={row.id}
                           field="value2"
                           type="number"
@@ -408,7 +409,7 @@ const NiedervoltMeasurementsComponent = memo(function NiedervoltMeasurements({
                         />
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
-                        <IsolatedInput
+                        <NativeStableInput
                           rowId={row.id}
                           field="value3"
                           type="number"
@@ -419,7 +420,7 @@ const NiedervoltMeasurementsComponent = memo(function NiedervoltMeasurements({
                         />
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
-                        <IsolatedInput
+                        <NativeStableInput
                           rowId={row.id}
                           field="unit"
                           type="text"
@@ -430,7 +431,7 @@ const NiedervoltMeasurementsComponent = memo(function NiedervoltMeasurements({
                         />
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
-                        <IsolatedInput
+                        <NativeStableInput
                           rowId={row.id}
                           field="notes"
                           type="text"
