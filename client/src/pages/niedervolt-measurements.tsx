@@ -193,7 +193,7 @@ export function NiedervoltMeasurements({
                 <span className="text-sm font-medium text-gray-600">{t.progress}</span>
               </div>
               <span className="text-sm font-medium text-otis-blue">
-                5 / 5
+                5 / 5 (100%)
               </span>
             </div>
             <div className="bg-gray-200 rounded-full h-2">
