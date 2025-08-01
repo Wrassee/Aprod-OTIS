@@ -13,14 +13,20 @@ export function SimpleSignatureCanvas({ onSignatureChange, initialSignature }: S
   const [isDrawing, setIsDrawing] = useState(false);
   const [lastPoint, setLastPoint] = useState<{ x: number, y: number } | null>(null);
 
+  // Stable ref to prevent re-initialization
+  const initializedRef = useRef(false);
+  const canvasInitialized = useRef(false);
+
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || canvasInitialized.current) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Set canvas size
+    console.log('Initializing signature canvas...');
+
+    // Set canvas size ONCE
     canvas.width = 600;
     canvas.height = 200;
 
@@ -28,11 +34,15 @@ export function SimpleSignatureCanvas({ onSignatureChange, initialSignature }: S
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Set drawing style
+    // Set drawing style - IMPORTANT: Set these AFTER canvas dimensions
     ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
+    ctx.globalCompositeOperation = 'source-over';
+    
+    // Mark as initialized to prevent re-initialization
+    canvasInitialized.current = true;
     
     // Load initial signature if provided
     if (initialSignature && initialSignature !== canvas.toDataURL()) {
@@ -42,16 +52,18 @@ export function SimpleSignatureCanvas({ onSignatureChange, initialSignature }: S
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0);
+        console.log('Initial signature loaded');
       };
       img.src = initialSignature;
-    } else {
-      // Initial signature change callback
+    } else if (!initializedRef.current) {
+      // Only call onSignatureChange once on initial mount
+      initializedRef.current = true;
       setTimeout(() => {
         onSignatureChange(canvas.toDataURL());
         console.log('Signature initialized');
       }, 100);
     }
-  }, [onSignatureChange, initialSignature]);
+  }, []);
 
   const getEventPos = (e: any, canvas: HTMLCanvasElement) => {
     const rect = canvas.getBoundingClientRect();
@@ -76,63 +88,101 @@ export function SimpleSignatureCanvas({ onSignatureChange, initialSignature }: S
 
   const startDrawing = (e: any) => {
     e.preventDefault();
+    e.stopPropagation();
+    
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !canvasInitialized.current) {
+      console.log('Canvas not ready for drawing');
+      return;
+    }
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    // Ensure drawing settings are applied
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.globalCompositeOperation = 'source-over';
     
     const pos = getEventPos(e, canvas);
     setIsDrawing(true);
     setLastPoint(pos);
 
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.beginPath();
-      ctx.moveTo(pos.x, pos.y);
-    }
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+    
+    console.log('Started drawing at:', pos);
   };
 
   const draw = (e: any) => {
+    if (!isDrawing || !canvasInitialized.current) return;
+    
     e.preventDefault();
-    if (!isDrawing || !lastPoint) return;
-
+    e.stopPropagation();
+    
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
     const pos = getEventPos(e, canvas);
-    
-    ctx.lineTo(pos.x, pos.y);
-    ctx.stroke();
-    
-    setLastPoint(pos);
+    const ctx = canvas.getContext('2d');
+
+    if (ctx && lastPoint) {
+      // Continuous line drawing
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+      setLastPoint(pos);
+    }
   };
 
   const stopDrawing = (e?: any) => {
-    if (e) e.preventDefault();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     if (!isDrawing) return;
     
     setIsDrawing(false);
     setLastPoint(null);
 
+    // CRITICAL: Only update signature if canvas is initialized and has content
     const canvas = canvasRef.current;
-    if (canvas) {
-      const dataURL = canvas.toDataURL();
-      onSignatureChange(dataURL);
-      console.log('Signature saved:', dataURL.length > 0);
+    if (canvas && canvasInitialized.current) {
+      // Small delay to ensure drawing is complete before capturing
+      setTimeout(() => {
+        const dataURL = canvas.toDataURL();
+        onSignatureChange(dataURL);
+        console.log('Signature saved:', dataURL.length > 0);
+      }, 50);
     }
   };
 
   const clearSignature = () => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !canvasInitialized.current) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    // Clear and reset canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Set white background
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    onSignatureChange('');
+    
+    // Reset drawing settings
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.globalCompositeOperation = 'source-over';
+    
+    // Update signature immediately
+    onSignatureChange(canvas.toDataURL());
+    console.log('Signature cleared');
   };
 
   return (
