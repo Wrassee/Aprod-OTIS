@@ -370,6 +370,10 @@ function App() {
     setFormData(prev => ({ ...prev, errors }));
   }, []);
 
+  const handleNiedervoltMeasurementsChange = useCallback((measurements: MeasurementRow[]) => {
+    setFormData(prev => ({ ...prev, niedervoltMeasurements: measurements }));
+  }, []);
+
   const handleAdminAccess = useCallback(() => setCurrentScreen('admin'), []);
   const handleHome = useCallback(() => setCurrentScreen('start'), []);
 
@@ -405,8 +409,9 @@ function App() {
             case 'niedervolt':
               return (
                 <NiedervoltMeasurements
+                  key="stable-niedervolt-key"
                   measurements={formData.niedervoltMeasurements || []}
-                  onMeasurementsChange={(measurements) => setFormData(prev => ({ ...prev, niedervoltMeasurements: measurements }))}
+                  onMeasurementsChange={handleNiedervoltMeasurementsChange}
                   onBack={handleNiedervoltBack}
                   onNext={handleNiedervoltNext}
                   receptionDate={formData.receptionDate}
