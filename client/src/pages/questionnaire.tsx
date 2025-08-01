@@ -151,13 +151,9 @@ const Questionnaire = memo(function Questionnaire({
   const { questionGroups, totalPages, currentQuestions, progress, currentGroup } = useMemo(() => {
     // Group questions by groupName
     const groups = allQuestions.reduce((acc: Record<string, Question[]>, question: Question) => {
-      // Fix measurement questions groupName  
-      let groupName = question.groupName;
-      if (question.type === 'measurement' || question.type === 'calculated') {
-        groupName = 'Mérési adatok';
-      }
+      const groupName = question.groupName;
       
-      // Skip questions without groupName (don't create "Egyéb" group)
+      // Skip questions without groupName (don't create empty groups)
       if (!groupName) {
         return acc;
       }

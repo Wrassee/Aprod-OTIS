@@ -435,24 +435,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const questionConfigs = await storage.getQuestionConfigsByTemplate(questionsTemplate.id);
       
       // Convert to frontend Question format with groups
-      const questions = questionConfigs.map(config => ({
-        id: config.questionId,
-        title: language === 'hu' && config.titleHu ? config.titleHu : 
-               language === 'de' && config.titleDe ? config.titleDe : 
-               config.title,
-        type: config.type,
-        required: config.required,
-        placeholder: config.placeholder || undefined,
-        cellReference: config.cellReference || undefined,
-        sheetName: config.sheetName || undefined,
-        groupName: language === 'de' && config.groupNameDe ? config.groupNameDe : config.groupName || undefined,
-        groupOrder: config.groupOrder || 0,
-        unit: config.unit || undefined,
-        minValue: config.minValue || undefined,
-        maxValue: config.maxValue || undefined,
-        calculationFormula: config.calculationFormula || undefined,
-        calculationInputs: config.calculationInputs || undefined,
-      }));
+      const questions = questionConfigs.map(config => {
+        let groupName = language === 'de' && config.groupNameDe ? config.groupNameDe : config.groupName;
+        
+        // Fix measurement and calculated questions - assign them to "Mérési adatok" group
+        if (config.type === 'measurement' || config.type === 'calculated') {
+          groupName = language === 'de' ? 'Messdaten' : 'Mérési adatok';
+        }
+        
+        return {
+          id: config.questionId,
+          title: language === 'hu' && config.titleHu ? config.titleHu : 
+                 language === 'de' && config.titleDe ? config.titleDe : 
+                 config.title,
+          type: config.type,
+          required: config.required,
+          placeholder: config.placeholder || undefined,
+          cellReference: config.cellReference || undefined,
+          sheetName: config.sheetName || undefined,
+          groupName: groupName || undefined,
+          groupOrder: config.groupOrder || 0,
+          unit: config.unit || undefined,
+          minValue: config.minValue || undefined,
+          maxValue: config.maxValue || undefined,
+          calculationFormula: config.calculationFormula || undefined,
+          calculationInputs: config.calculationInputs || undefined,
+        };
+      });
 
       res.json(questions);
     } catch (error) {
