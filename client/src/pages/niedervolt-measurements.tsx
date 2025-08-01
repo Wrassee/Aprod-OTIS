@@ -82,16 +82,20 @@ export function NiedervoltMeasurements({
       unit: '',
       notes: ''
     };
-    onMeasurementsChange([...measurements, newRow]);
+    const currentMeasurements = Array.isArray(measurements) ? measurements : [];
+    onMeasurementsChange([...currentMeasurements, newRow]);
   };
 
   const removeRow = (rowId: string) => {
+    if (!Array.isArray(measurements)) return;
     onMeasurementsChange(measurements.filter(row => row.id !== rowId));
   };
 
   // Single stable update function with useCallback to prevent re-creation
   const updateRowStable = useCallback((rowId: string, field: keyof MeasurementRow, value: string) => {
-    onMeasurementsChange(prev => prev.map(row => {
+    if (!Array.isArray(measurements)) return;
+    
+    const updatedMeasurements = measurements.map(row => {
       if (row.id === rowId) {
         const updatedRow = { ...row, [field]: value };
         
@@ -106,8 +110,10 @@ export function NiedervoltMeasurements({
         return updatedRow;
       }
       return row;
-    }));
-  }, [measurementTypes, onMeasurementsChange]);
+    });
+    
+    onMeasurementsChange(updatedMeasurements);
+  }, [measurements, measurementTypes, onMeasurementsChange]);
 
   const saveToStorage = () => {
     localStorage.setItem('niedervolt-measurements', JSON.stringify(measurements));
@@ -213,7 +219,7 @@ export function NiedervoltMeasurements({
         {/* Group Header */}
         <QuestionGroupHeader
           groupName={language === 'de' ? 'Niedervolt Installationsverordnung art.14' : 'Niedervolt Installations Verordnung art.14'}
-          questionCount={measurements.length}
+          questionCount={Array.isArray(measurements) ? measurements.length : 0}
           totalGroups={5}
           currentGroupIndex={4}
           language={language}
@@ -225,7 +231,7 @@ export function NiedervoltMeasurements({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-600 text-sm font-medium">Összes mérés</p>
-                <p className="text-2xl font-bold text-blue-800">{measurements.length}</p>
+                <p className="text-2xl font-bold text-blue-800">{Array.isArray(measurements) ? measurements.length : 0}</p>
               </div>
               <div className="h-12 w-12 bg-blue-500 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold">📊</span>
@@ -238,7 +244,7 @@ export function NiedervoltMeasurements({
               <div>
                 <p className="text-green-600 text-sm font-medium">Kitöltött értékek</p>
                 <p className="text-2xl font-bold text-green-800">
-                  {measurements.filter(m => m.value1 || m.value2 || m.value3).length}
+                  {Array.isArray(measurements) ? measurements.filter(m => m.value1 || m.value2 || m.value3).length : 0}
                 </p>
               </div>
               <div className="h-12 w-12 bg-green-500 rounded-lg flex items-center justify-center">
@@ -321,7 +327,7 @@ export function NiedervoltMeasurements({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {measurements.length === 0 ? (
+                {!Array.isArray(measurements) || measurements.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="px-6 py-12 text-center">
                       <div className="flex flex-col items-center gap-4">
@@ -336,7 +342,7 @@ export function NiedervoltMeasurements({
                     </td>
                   </tr>
                 ) : (
-                  measurements.map((row, index) => (
+                  (Array.isArray(measurements) ? measurements : []).map((row, index) => (
                     <tr key={row.id} className="hover:bg-blue-50/30 transition-colors duration-200 border-l-4 border-transparent hover:border-l-otis-blue">
                       <td className="px-6 py-4 border-r border-gray-100">
                         <div className="flex items-center gap-2">
@@ -438,9 +444,9 @@ export function NiedervoltMeasurements({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="text-sm font-medium text-gray-700">
-                  📊 Összesen {measurements.length} mérési sor
+                  📊 Összesen {Array.isArray(measurements) ? measurements.length : 0} mérési sor
                 </div>
-                {measurements.length > 0 && (
+                {Array.isArray(measurements) && measurements.length > 0 && (
                   <div className="text-xs text-gray-500 bg-white px-3 py-1 rounded-full border">
                     Mérési sorok: {measurements.length}
                   </div>
