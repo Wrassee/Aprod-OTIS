@@ -183,14 +183,20 @@ export function NiedervoltMeasurements({
                 <Button
                   variant="outline"
                   onClick={saveToStorage}
-                  className="flex items-center gap-2 border-green-200 text-green-700 hover:bg-green-50 bg-white"
+                  className="flex items-center gap-2 border-green-200 text-green-700 hover:bg-green-50 bg-white shadow-sm"
+                  style={{ backgroundColor: 'white', color: '#15803d' }}
                 >
                   <Save className="h-4 w-4" />
                   Mentés
                 </Button>
                 <Button
                   onClick={addNewRow}
-                  className="flex items-center gap-2 bg-gradient-to-r from-otis-blue to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-md text-white"
+                  className="flex items-center gap-2 shadow-md"
+                  style={{ 
+                    backgroundColor: '#1d4ed8', 
+                    color: 'white',
+                    background: 'linear-gradient(to right, #1d4ed8, #2563eb)'
+                  }}
                 >
                   <Plus className="h-4 w-4" />
                   Új sor
@@ -360,14 +366,20 @@ export function NiedervoltMeasurements({
                 <Button
                   variant="outline"
                   onClick={onBack}
-                  className="flex items-center gap-2 border-gray-300 hover:bg-gray-50 bg-white"
+                  className="flex items-center gap-2 border-gray-300 hover:bg-gray-50 shadow-sm"
+                  style={{ backgroundColor: 'white', color: '#374151' }}
                 >
                   <ArrowLeft className="h-4 w-4" />
                   {t.previous}
                 </Button>
                 <Button
                   onClick={onNext}
-                  className="flex items-center gap-2 bg-gradient-to-r from-otis-blue to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-md text-white"
+                  className="flex items-center gap-2 shadow-md"
+                  style={{ 
+                    backgroundColor: '#1d4ed8', 
+                    color: 'white',
+                    background: 'linear-gradient(to right, #1d4ed8, #2563eb)'
+                  }}
                 >
                   {t.next}
                   <span className="ml-1">→</span>

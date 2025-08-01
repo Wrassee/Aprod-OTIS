@@ -230,32 +230,93 @@ function App() {
 
   const handleDownloadExcel = async () => {
     try {
+      console.log('Starting Excel download...');
+      
+      // Sync all cached values before sending data
+      const cachedRadioValues = (window as any).radioCache?.getAll?.() || {};
+      const cachedTrueFalseValues = (window as any).trueFalseCache || new Map();
+      const cachedInputValues = (window as any).stableInputValues || {};
+      const cachedMeasurementValues = (window as any).measurementCache?.getAll?.() || {};
+      const cachedCalculatedValues = (window as any).calculatedCache?.getAll?.() || {};
+      
+      // Convert Map to object if needed
+      const trueFalseAnswers: Record<string, string> = {};
+      if (cachedTrueFalseValues instanceof Map) {
+        cachedTrueFalseValues.forEach((value, key) => {
+          trueFalseAnswers[key] = value;
+        });
+      } else {
+        Object.assign(trueFalseAnswers, cachedTrueFalseValues);
+      }
+      
+      // Combine all answers including measurements
+      const combinedAnswers = {
+        ...formData.answers,
+        ...cachedRadioValues,
+        ...trueFalseAnswers,
+        ...cachedInputValues,
+        ...cachedMeasurementValues,
+        ...cachedCalculatedValues,
+      };
+      
+      const fullFormData = {
+        ...formData,
+        answers: combinedAnswers,
+      };
+      
+      console.log('Sending Excel generation request with', Object.keys(combinedAnswers).length, 'answers');
+      
       const response = await fetch('/api/protocols/download-excel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ formData, language }),
+        body: JSON.stringify({ formData: fullFormData, language }),
       });
       
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        
-        // Get Otis Lift ID from all sources (cache + formData)
-        const cachedInputValues = (window as any).stableInputValues || {};
-        const otisLiftId = cachedInputValues['7'] || formData.answers['7'] || 'Unknown';
-        a.download = `AP_${otisLiftId}.xlsx`;
-        
-        console.log('Excel download filename:', `AP_${otisLiftId}.xlsx`);
-        
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Excel generation failed:', response.status, errorText);
+        throw new Error(`Excel generation failed: ${response.status} - ${errorText}`);
       }
+      
+      const blob = await response.blob();
+      if (blob.size === 0) {
+        throw new Error('Generated Excel file is empty');
+      }
+      
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      
+      // Get Otis Lift ID from all sources (cache + formData)
+      const otisLiftId = cachedInputValues['7'] || formData.answers['7'] || 'Unknown';
+      a.download = `AP_${otisLiftId}.xlsx`;
+      
+      console.log('Excel download filename:', `AP_${otisLiftId}.xlsx`);
+      console.log('Excel file size:', blob.size, 'bytes');
+      
+      document.body.appendChild(a);
+      a.click();
+      
+      // Clean up - but with timeout to prevent crashes
+      setTimeout(() => {
+        try {
+          window.URL.revokeObjectURL(url);
+          if (document.body.contains(a)) {
+            document.body.removeChild(a);
+          }
+        } catch (cleanupError) {
+          console.warn('Error during Excel download cleanup:', cleanupError);
+        }
+      }, 1000);
+      
+      console.log('Excel download completed successfully');
+      
     } catch (error) {
       console.error('Error downloading Excel:', error);
+      
+      // User-friendly error message
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      alert(`Excel letöltési hiba: ${errorMessage}\n\nKérjük, próbálja újra vagy lépjen kapcsolatba a támogatással.`);
     }
   };
 
