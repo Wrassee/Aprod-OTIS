@@ -174,18 +174,22 @@ const Questionnaire = memo(function Questionnaire({
       groups[groupName].sort((a: Question, b: Question) => (a.groupOrder || 0) - (b.groupOrder || 0));
     });
 
-    // Convert to array format for pagination
-    const groupsArray = Object.entries(groups).map(([name, questions]) => ({
-      name,
-      questions,
-      questionCount: questions.length
-    }));
+    // Convert to array format for pagination, filter out empty groups
+    const groupsArray = Object.entries(groups)
+      .filter(([name, questions]) => questions.length > 0)
+      .map(([name, questions]) => ({
+        name,
+        questions,
+        questionCount: questions.length
+      }));
 
     // Calculate pagination based on groups (1 group per page)
     // Total: actual questionnaire groups + 1 niedervolt measurements page
     const total = groupsArray.length + 1; // questionnaire groups + niedervolt page
     const currentGroupData = groupsArray[currentPage] || { name: '', questions: [], questionCount: 0 };
     const prog = total > 0 ? ((currentPage + 1) / total) * 100 : 0;
+    
+    console.log(`DEBUG: Found ${groupsArray.length} groups, total pages: ${total}, current page: ${currentPage + 1}/${total}`);
     
     return { 
       questionGroups: groupsArray, 
