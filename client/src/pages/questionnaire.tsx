@@ -311,8 +311,9 @@ const Questionnaire = memo(function Questionnaire({
     return checkCanProceed();
   }, [currentQuestions, answers, cacheUpdateTrigger]);
 
-  // Never show as last page - questionnaire should always continue to Niedervolt measurements
-  const isLastPage = false;
+  // Check if this is truly the last page, but ensure measurement pages don't show "complete"
+  const hasMeasurementQuestions = currentQuestions.some((q: Question) => q.type === 'measurement' || q.type === 'calculated');
+  const isLastPage = (currentPage === totalPages - 1) && !hasMeasurementQuestions;
 
   return (
     <div className="min-h-screen bg-light-surface" onSubmit={(e) => e.preventDefault()}>
