@@ -41,7 +41,7 @@ interface NiedervoltMeasurementsProps {
   onStartNew?: () => void;
 }
 
-export function NiedervoltMeasurements({
+const NiedervoltMeasurementsComponent = memo(function NiedervoltMeasurements({
   measurements,
   onMeasurementsChange,
   onBack,
@@ -521,4 +521,19 @@ export function NiedervoltMeasurements({
       </main>
     </div>
   );
-}
+}, (prevProps, nextProps) => {
+  // Custom comparison function for memo
+  return (
+    prevProps.measurements === nextProps.measurements &&
+    prevProps.receptionDate === nextProps.receptionDate &&
+    prevProps.onMeasurementsChange === nextProps.onMeasurementsChange &&
+    prevProps.onBack === nextProps.onBack &&
+    prevProps.onNext === nextProps.onNext &&
+    prevProps.onReceptionDateChange === nextProps.onReceptionDateChange &&
+    prevProps.onAdminAccess === nextProps.onAdminAccess &&
+    prevProps.onHome === nextProps.onHome &&
+    prevProps.onStartNew === nextProps.onStartNew
+  );
+});
+
+export const NiedervoltMeasurements = NiedervoltMeasurementsComponent;

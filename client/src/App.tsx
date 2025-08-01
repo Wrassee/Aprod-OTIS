@@ -381,7 +381,6 @@ function App() {
     return (
       <Switch>
         <Route path="/" component={() => {
-          console.log('🏠 Route component function called - currentScreen:', currentScreen);
           
           if (currentScreen === 'questionnaire') {
             return (
