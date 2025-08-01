@@ -13,20 +13,22 @@ export function SimpleSignatureCanvas({ onSignatureChange, initialSignature }: S
   const [isDrawing, setIsDrawing] = useState(false);
   const [lastPoint, setLastPoint] = useState<{ x: number, y: number } | null>(null);
 
-  // Stable ref to prevent re-initialization
+  // Local refs for this component only
   const initializedRef = useRef(false);
   const canvasInitialized = useRef(false);
+  const initialCallbackSent = useRef(false);
 
+  // Canvas initialization - runs ONLY ONCE per component mount
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || canvasInitialized.current) return;
+    if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    console.log('Initializing signature canvas...');
+    console.log('Setting up signature canvas...');
 
-    // Set canvas size ONCE
+    // Set canvas size
     canvas.width = 600;
     canvas.height = 200;
 
@@ -34,36 +36,45 @@ export function SimpleSignatureCanvas({ onSignatureChange, initialSignature }: S
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Set drawing style - IMPORTANT: Set these AFTER canvas dimensions
+    // Set drawing style
     ctx.strokeStyle = '#000000';
     ctx.lineWidth = 3;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.globalCompositeOperation = 'source-over';
     
-    // Mark as initialized to prevent re-initialization
     canvasInitialized.current = true;
     
-    // Load initial signature if provided
-    if (initialSignature && initialSignature !== canvas.toDataURL()) {
+    // Load initial signature if provided, otherwise send empty canvas
+    if (initialSignature) {
       const img = new Image();
       img.onload = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Restore canvas settings after loading image
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0);
-        console.log('Initial signature loaded');
+        
+        // Restore drawing settings
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.globalCompositeOperation = 'source-over';
+        
+        console.log('Signature loaded from initial data');
       };
       img.src = initialSignature;
-    } else if (!initializedRef.current) {
-      // Only call onSignatureChange once on initial mount
-      initializedRef.current = true;
+    } else if (!initialCallbackSent.current) {
+      // Send initial empty signature callback
+      initialCallbackSent.current = true;
       setTimeout(() => {
         onSignatureChange(canvas.toDataURL());
-        console.log('Signature initialized');
-      }, 100);
+        console.log('Clean canvas ready');
+      }, 50);
     }
-  }, []);
+  }, []); // Only run once per mount
+  
+  // NO SEPARATE EFFECT FOR INITIAL SIGNATURE - handled in main init
 
   const getEventPos = (e: any, canvas: HTMLCanvasElement) => {
     const rect = canvas.getBoundingClientRect();
@@ -154,7 +165,7 @@ export function SimpleSignatureCanvas({ onSignatureChange, initialSignature }: S
       setTimeout(() => {
         const dataURL = canvas.toDataURL();
         onSignatureChange(dataURL);
-        console.log('Signature saved:', dataURL.length > 0);
+        console.log('Signature saved - canvas ready');
       }, 50);
     }
   };
