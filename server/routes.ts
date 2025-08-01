@@ -169,7 +169,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate Excel with XML manipulation (proven to preserve formatting)
       let excelBuffer = await simpleXmlExcelService.generateExcelFromTemplate(formData, language);
       
-      // If Niedervolt measurements exist, integrate them
+      // NIEDERVOLT INTEGRATION TEMPORARILY DISABLED
+      // This prevents interference with basic Excel functionality
+      // Will be re-enabled after UI completion and template configuration
+      /*
       if (formData.niedervoltMeasurements && formData.niedervoltMeasurements.length > 0) {
         console.log(`NIEDERVOLT: Integrating ${formData.niedervoltMeasurements.length} measurements`);
         excelBuffer = await niedervoltExcelService.integrateMeasurements({
@@ -177,6 +180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           language
         });
       }
+      */
       
       if (!excelBuffer || excelBuffer.length < 1000) {
         throw new Error('Generated Excel buffer is invalid or too small');

@@ -1,109 +1,139 @@
-# Hogyan adjunk hozzá mérési kérdéseket az Excel template-hez
+# OTIS APROD - Kérdés Template Excel Módosítási Útmutató
 
-## 1. Excel Template felépítése
+## Niedervolt Installations Verordnung art.14 Mérési Jegyzőkönyv Konfigurálása
 
-Az Excel template-nek 2 munkalapot kell tartalmaznia:
+### Áttekintés
 
-### A) "questions" munkálap (kérdések definíciója)
-| A oszlop | B oszlop | C oszlop | D oszlop | E oszlop | F oszlop | G oszlop | H oszlop | I oszlop | J oszlop |
-|----------|----------|----------|----------|----------|----------|----------|----------|----------|----------|
-| question_id | title_hu | title_de | type | cell_reference | unit | calculation_formula | calculation_inputs | min_value | max_value |
+Ez az útmutató bemutatja, hogyan kell módosítani a **questions template Excel** fájlt, hogy a Niedervolt mérési oldal megfelelő kérdéseket és fejléc szövegeket kapjon.
 
-### B) "protocol" munkálap (az actual protokoll template)
-- Ez a munkálap tartalmazza a formázott OTIS protokollt
-- A cellák (pl. D25, D26) ide kerülnek a válaszok
+---
 
-## 2. Mérési kérdések hozzáadása (measurement type)
+## 1. Excel Template Szerkezete
 
-### Példa a "questions" munkalapon:
+A questions template Excel fájl tartalmazza az összes kérdést és azok konfigurációját. A Niedervolt mérési funkciókhoz új sorokat kell hozzáadni.
+
+### Jelenlegi Oszlop Struktúra:
+- **A oszlop**: Kérdés ID (pl. "niedervolt_1", "niedervolt_2")  
+- **B oszlop**: Kérdés címe (pl. "Isolationsmessung")
+- **C oszlop**: Kérdés típusa (mindig "measurement")
+- **D oszlop**: Kötelező-e (TRUE/FALSE)
+- **E oszlop**: Placeholder szöveg
+- **F oszlop**: Cell referencia (Excel koordináta)
+- **G oszlop**: Sheet név (pl. "Sheet1")
+- **H oszlop**: Csoport név (pl. "niedervolt_measurements")
+
+---
+
+## 2. Példa Konfigurációk
+
+### Mérési Típusok Hozzáadása
+
+Írd be ezeket a sorokat a questions template Excel fájlba:
+
+| A | B | C | D | E | F | G | H |
+|---|---|---|---|---|---|---|---|
+| `niedervolt_isolation` | `Isolationsmessung` | `measurement` | `FALSE` | `Ohm értékek` | `A667` | `Sheet1` | `niedervolt_measurements` |
+| `niedervolt_shortcircuit` | `Kurzschluss-strommessung` | `measurement` | `FALSE` | `Ampere értékek` | `A668` | `Sheet1` | `niedervolt_measurements` |
+| `niedervolt_voltage` | `Spannungsmessung` | `measurement` | `FALSE` | `Volt értékek` | `A669` | `Sheet1` | `niedervolt_measurements` |
+| `niedervolt_continuity` | `Durchgangsprüfung` | `measurement` | `FALSE` | `Ohm értékek` | `A670` | `Sheet1` | `niedervolt_measurements` |
+| `niedervolt_insulation_resistance` | `Isolationswiderstand` | `measurement` | `FALSE` | `MOhm értékek` | `A671` | `Sheet1` | `niedervolt_measurements` |
+| `niedervolt_earth_resistance` | `Erdungswiderstand` | `measurement` | `FALSE` | `Ohm értékek` | `A672` | `Sheet1` | `niedervolt_measurements` |
+
+---
+
+## 3. Kétnyelvű Támogatás
+
+### Magyar-Német verzió esetén:
+
+Ha unified (kétnyelvű) template-et használsz, add hozzá ezeket az oszlopokat:
+
+| I oszlop (titleHu) | J oszlop (titleDe) |
+|---|---|
+| `Szigetelési mérés` | `Isolationsmessung` |
+| `Rövidzárlat áram mérés` | `Kurzschluss-strommessung` |
+| `Feszültség mérés` | `Spannungsmessung` |
+| `Folytonosság vizsgálat` | `Durchgangsprüfung` |
+| `Szigetelési ellenállás` | `Isolationswiderstand` |
+| `Földelési ellenállás` | `Erdungswiderstand` |
+
+---
+
+## 4. Excel Cell Mapping Példa
+
+### Protocol Template Módosítás
+
+A protocol template Excel fájlban készítsd elő a 667+ sorokat:
 
 ```
-| question_id | title_hu | title_de | type | cell_reference | unit | min_value | max_value |
-|-------------|----------|----------|------|----------------|------|-----------|-----------|
-| m1 | Távolság az aknatető és a kabintető között | Abstand zwischen Schachtkopf und Kabinendach | measurement | D25 | mm | 500 | 3000 |
-| m2 | Távolság a legfelső ajtóküszöb és a kabinküszöb között | Abstand zwischen oberster Türschwelle und Kabinenschwelle | measurement | D26 | mm | 0 | 50 |
-| m3 | Távolság az ellensúly puffer és a süllyeszték között | Abstand zwischen Gegengewichtpuffer und Grube | measurement | D27 | mm | 100 | 1000 |
+Sor 667: [Mérési típus] [Leírás] [Érték1] [Érték2] [Érték3] [Egység] [Megjegyzés]
+Sor 668: [Mérési típus] [Leírás] [Érték1] [Érték2] [Érték3] [Egység] [Megjegyzés]
+...stb
 ```
 
-### Magyarázat:
-- **question_id**: Egyedi azonosító (pl. m1, m2, m3)
-- **title_hu**: Magyar cím
-- **title_de**: Német cím  
-- **type**: "measurement" 
-- **cell_reference**: Melyik Excel cellába kerüljön (pl. D25)
-- **unit**: Mértékegység (pl. mm, cm, m)
-- **min_value**: Minimális elfogadható érték
-- **max_value**: Maximális elfogadható érték
+### Példa Excel Template Cellák:
+- **A667**: Mérési típus neve
+- **B667**: Részletes leírás  
+- **C667**: Első mért érték
+- **D667**: Második mért érték
+- **E667**: Harmadik mért érték
+- **F667**: Mértékegység
+- **G667**: Megjegyzések
 
-## 3. Számított kérdések hozzáadása (calculated type)
+---
 
-### Példa:
+## 5. Konfigurációs Fájl Frissítése
 
+### A `excelParserService` automatikusan felismeri:
+
+1. **Csoport alapú csoportosítás**: `groupName: "niedervolt_measurements"`
+2. **Measurement típusú kérdések**: `type: "measurement"`  
+3. **Cell referenciák**: `cellReference: "A667"`
+4. **Kétnyelvű címek**: `titleHu` és `titleDe` oszlopok
+
+---
+
+## 6. Tesztelési Lépések
+
+### Template Feltöltése:
+1. Módosítsd a questions template Excel fájlt a fenti példák szerint
+2. Töltsd fel az Admin oldalon: **"questions"** típusként
+3. Aktiváld a template-et
+4. Indíts új protokollt és navigálj a Niedervolt oldalra
+
+### Ellenőrzés:
+✅ A 6 mérési típus megjelenik a dropdown-ban  
+✅ A magyar/német címek helyesen töltődnek be  
+✅ A táblázat oszlopok megfelelően működnek  
+✅ A localStorage mentés és betöltés működik  
+
+---
+
+## 7. Hibaelhárítás
+
+### Gyakori problémák:
+
+**Nem jelenik meg a mérési típus:**
+- Ellenőrizd, hogy a `type` oszlopban "measurement" érték van
+- Győződj meg róla, hogy a `groupName` "niedervolt_measurements"
+
+**Rossz nyelvi címek:**
+- Kétnyelvű template esetén használd a `titleHu` és `titleDe` oszlopokat
+- Egyes nyelvű template esetén a `B` oszlop tartalmazza a címet
+
+**Excel integráció nem működik:**
+- Jelenleg le van tiltva, amíg az UI nem készül el teljesen
+- A cell referenciák előkészítése fontos a jövőbeli integrációhoz
+
+---
+
+## 8. Példa Template Struktúra (Teljes Sor)
+
+```excel
+niedervolt_isolation | Isolationsmessung | measurement | FALSE | Ohm értékek | A667 | Sheet1 | niedervolt_measurements | Szigetelési mérés | Isolationsmessung
 ```
-| question_id | title_hu | title_de | type | cell_reference | unit | calculation_formula | calculation_inputs | min_value | max_value |
-|-------------|----------|----------|------|----------------|------|---------------------|-------------------|-----------|-----------|
-| c1 | Szabadmagasság összesen | Gesamte Kopfhöhe | calculated | D28 | mm | m1 + m2 | m1,m2 | 2500 | 5000 |
-| c2 | Biztonsági távolság | Sicherheitsabstand | calculated | D29 | mm | m3 - 100 | m3 | 150 | 800 |
-```
 
-### Magyarázat:
-- **type**: "calculated"
-- **calculation_formula**: Matematikai képlet (pl. "m1 + m2", "m3 - 100")
-- **calculation_inputs**: Vesszővel elválasztott input kérdés ID-k (pl. "m1,m2")
+Ez a sor létrehoz egy "Isolationsmessung" mérési típust, amely az A667 cellába fog bekerülni az Excel protocol template-ben.
 
-## 4. Protocol munkálap formázása
+---
 
-A "protocol" munkalapon a megfelelő celláknak (D25, D26, D27, D28, D29) formázottnak kell lenniük:
-
-```
-| C oszlop | D oszlop |
-|----------|----------|
-| Aknatető-kabintető távolság: | [D25] mm |
-| Ajtóküszöb-kabinküszöb távolság: | [D26] mm |
-| Ellensúly puffer távolság: | [D27] mm |
-| Szabadmagasság összesen: | [D28] mm |
-| Biztonsági távolság: | [D29] mm |
-```
-
-## 5. Template feltöltése a rendszerbe
-
-1. **Admin felület** → **Template Management**
-2. **"Upload Questions Template"** gomb
-3. Excel fájl kiválasztása
-4. **Language**: "Multilingual (HU/DE)" kiválasztása
-5. **Upload** gomb
-6. **Activate** gomb a feltöltött template mellett
-
-## 6. Működési logika
-
-### Mérési kérdések:
-- A felhasználó számot ad meg
-- A program ellenőrzi a min/max értékeket
-- Ha kívül esik → automatikusan hozzáadja a hibalistához
-- Excel-ben: "1250 mm" formátumban jelenik meg
-
-### Számított kérdések:
-- Automatikusan számítódnak a mérési értékekből
-- Ha a számított érték kívül esik a határértékeken → hibalistára kerül
-- Excel-ben: "1350 mm" formátumban jelenik meg
-
-## 7. Hibakeresés
-
-Ha a kérdések nem jelennek meg:
-
-1. **Ellenőrizd a munkálap neveket**: "questions" és "protocol"
-2. **Ellenőrizd az oszlop fejléceket**: question_id, title_hu, title_de, type, stb.
-3. **Ellenőrizd a type értékeket**: "measurement" vagy "calculated" (kisbetűvel!)
-4. **Console log**: F12 → Console → nézd meg a hibákat
-
-## 8. Teljes példa Excel template
-
-Létrehoztam egy demo template-et a `measurement-demo-template.xlsx` fájlban, amit referenciaként használhatsz.
-
-## 9. Tesztelés
-
-1. Template feltöltése után frissítsd az oldalt
-2. Indítsd el a protokoll kitöltést
-3. A mérési kérdések új input mezőkként jelennek meg
-4. A számított kérdések automatikusan frissülnek
-5. Az Excel letöltésnél minden érték megjelenik a megfelelő cellákban
+**Megjegyzés**: Az Excel integráció jelenleg le van tiltva a stabil UI fejlesztés érdekében. A template konfigurálása után fokozatosan fogjuk újra aktiválni a funkcionalitást.

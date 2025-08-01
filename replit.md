@@ -68,11 +68,12 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 ### NEW: Niedervolt Installations Verordnung art.14 Mérési Jegyzőkönyv (February 1, 2025)
 - **Táblázatos Mérési Interfész**: ✅ COMPLETED - Professional measurement table with 6 measurement types
 - **Premium Dizájn**: ✅ ENHANCED - Gradient backgrounds, colorful stats cards, modern UI design
-- **Excel Integráció**: ✅ IMPLEMENTED - Automatic integration starting from row 667 in OTIS template
+- **Excel Integráció**: 🚧 TEMPORARILY DISABLED - UI first approach, Excel integration follows after completion
 - **Mérési Típusok**: ✅ COMPLETE - Isolationsmessung, Kurzschluss-strommessung, Spannungsmessung, etc.
 - **3 Érték Oszlop**: ✅ FUNCTIONAL - Multiple measurement values per row with units (Volt, Ohm, Ampere)
 - **LocalStorage Mentés**: ✅ WORKING - Automatic save/load functionality with visual feedback
 - **Statisztikai Kártyák**: ✅ ADDED - Real-time stats showing total measurements, filled values, Excel rows
+- **Template Útmutató**: ✅ CREATED - Detailed guide for modifying questions template Excel (KERDES-TEMPLATE-MINTA.md)
 
 ### Previous Signature Component Fixes (February 1, 2025)
 - **Canvas Initialization**: ✅ FIXED - Single initialization per component mount, no re-rendering loops

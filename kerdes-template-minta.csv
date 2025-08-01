@@ -1,0 +1,7 @@
+id,title,type,required,placeholder,cellReference,sheetName,groupName,titleHu,titleDe
+niedervolt_isolation,Isolationsmessung,measurement,FALSE,Ohm értékek,A667,Sheet1,niedervolt_measurements,Szigetelési mérés,Isolationsmessung
+niedervolt_shortcircuit,Kurzschluss-strommessung,measurement,FALSE,Ampere értékek,A668,Sheet1,niedervolt_measurements,Rövidzárlat áram mérés,Kurzschluss-strommessung
+niedervolt_voltage,Spannungsmessung,measurement,FALSE,Volt értékek,A669,Sheet1,niedervolt_measurements,Feszültség mérés,Spannungsmessung
+niedervolt_continuity,Durchgangsprüfung,measurement,FALSE,Ohm értékek,A670,Sheet1,niedervolt_measurements,Folytonosság vizsgálat,Durchgangsprüfung
+niedervolt_insulation_resistance,Isolationswiderstand,measurement,FALSE,MOhm értékek,A671,Sheet1,niedervolt_measurements,Szigetelési ellenállás,Isolationswiderstand
+niedervolt_earth_resistance,Erdungswiderstand,measurement,FALSE,Ohm értékek,A672,Sheet1,niedervolt_measurements,Földelési ellenállás,Erdungswiderstand
