@@ -104,45 +104,51 @@ export function NiedervoltMeasurements({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Header - Forced Visibility */}
-      <header className="bg-gradient-to-r from-otis-blue via-blue-600 to-blue-700 shadow-lg" style={{ backgroundColor: '#1d4ed8', minHeight: '120px', display: 'block', position: 'relative', zIndex: 10 }}>
-        <div className="max-w-7xl mx-auto px-6 py-6">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
+            {/* Logo and Title */}
             <div className="flex items-center">
-              <div className="h-12 w-16 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center mr-6 border border-white/30">
-                <span className="text-white font-bold text-lg">OTIS</span>
-              </div>
+              <img 
+                src="/otis-elevators-seeklogo_1753525178175.png" 
+                alt="OTIS Logo" 
+                className="h-12 w-12 mr-4"
+              />
               <div>
-                <h1 className="text-2xl font-bold text-white drop-shadow-sm">
-                  Niedervolt Installations Verordnung art.14
-                </h1>
-                <p className="text-blue-100 mt-1 flex items-center gap-2">
-                  <span className="inline-block w-2 h-2 bg-blue-200 rounded-full"></span>
-                  Mérési jegyzőkönyv - Excel sor 667+
-                </p>
+                <span className="text-lg font-medium text-gray-800">{t.title}</span>
+                <p className="text-sm text-gray-600 mt-1">Niedervolt Installations Verordnung art.14</p>
               </div>
             </div>
-            <Button
-              variant="outline"
-              onClick={onBack}
-              className="flex items-center gap-2 bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              {t.back}
-            </Button>
+            
+            {/* Back Button */}
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="outline"
+                onClick={onBack}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                {t.back}
+              </Button>
+            </div>
           </div>
           
           {/* Progress Bar */}
-          <div className="mt-6">
-            <div className="bg-white/20 rounded-full h-2 mb-2">
+          <div className="mt-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-3">
+                <span className="text-sm font-medium text-gray-600">{t.progress}</span>
+              </div>
+              <span className="text-sm font-medium text-otis-blue">
+                5 / 6
+              </span>
+            </div>
+            <div className="bg-gray-200 rounded-full h-2">
               <div 
-                className="bg-white rounded-full h-2 transition-all duration-300" 
+                className="bg-otis-blue rounded-full h-2 transition-all duration-300" 
                 style={{ width: '83%' }}
               ></div>
-            </div>
-            <div className="flex justify-between text-sm text-blue-100">
-              <span>{t.progress}</span>
-              <span>Niedervolt mérések (5/6)</span>
             </div>
           </div>
         </div>
