@@ -7,6 +7,7 @@ import { useLanguageContext } from '@/components/language-provider';
 import { ArrowLeft, Plus, Trash2, Save, Settings, Home, RotateCcw } from 'lucide-react';
 import { MeasurementRow } from '@/lib/types';
 import { MegaStableInput } from '@/components/mega-stable-input';
+import { IsolatedInput } from '@/components/isolated-input';
 import { QuestionGroupHeader } from '@/components/question-group-header';
 
 // Measurement types for the Niedervolt Installation Regulation
@@ -114,6 +115,12 @@ const NiedervoltMeasurementsComponent = memo(function NiedervoltMeasurements({
     
     onMeasurementsChange(updatedMeasurements);
   }, [measurements, measurementTypes, onMeasurementsChange]);
+
+  // Isolated input update handler that doesn't depend on measurements array
+  const handleIsolatedInputChange = useCallback((inputId: string, value: string) => {
+    const [rowId, field] = inputId.split('_');
+    updateRowStable(rowId, field as keyof MeasurementRow, value);
+  }, [updateRowStable]);
 
   const saveToStorage = () => {
     localStorage.setItem('niedervolt-measurements', JSON.stringify(measurements));
@@ -369,55 +376,61 @@ const NiedervoltMeasurementsComponent = memo(function NiedervoltMeasurements({
                         </div>
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
-                        <MegaStableInput
+                        <IsolatedInput
+                          id={`${row.id}_description`}
                           type="text"
-                          value={row.description}
-                          onChange={(value) => updateRowStable(row.id, 'description', value.toString())}
+                          initialValue={row.description}
+                          onValueChange={handleIsolatedInputChange}
                           placeholder="Részletes mérés leírása..."
                           className="w-full border-blue-200 focus:border-otis-blue focus:ring-otis-blue/20"
                         />
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
-                        <MegaStableInput
+                        <IsolatedInput
+                          id={`${row.id}_value1`}
                           type="number"
-                          value={row.value1}
-                          onChange={(value) => updateRowStable(row.id, 'value1', value.toString())}
+                          initialValue={row.value1}
+                          onValueChange={handleIsolatedInputChange}
                           placeholder="0.000"
                           className="w-full text-right font-mono border-green-200 focus:border-green-400 focus:ring-green-200"
                         />
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
-                        <MegaStableInput
+                        <IsolatedInput
+                          id={`${row.id}_value2`}
                           type="number"
-                          value={row.value2}
-                          onChange={(value) => updateRowStable(row.id, 'value2', value.toString())}
+                          initialValue={row.value2}
+                          onValueChange={handleIsolatedInputChange}
                           placeholder="0.000"
                           className="w-full text-right font-mono border-green-200 focus:border-green-400 focus:ring-green-200"
                         />
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
-                        <MegaStableInput
+                        <IsolatedInput
+                          id={`${row.id}_value3`}
                           type="number"
-                          value={row.value3}
-                          onChange={(value) => updateRowStable(row.id, 'value3', value.toString())}
+                          initialValue={row.value3}
+                          onValueChange={handleIsolatedInputChange}
                           placeholder="0.000"
                           className="w-full text-right font-mono border-green-200 focus:border-green-400 focus:ring-green-200"
                         />
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
-                        <MegaStableInput
+                        <IsolatedInput
+                          id={`${row.id}_unit`}
                           type="text"
-                          value={row.unit}
-                          onChange={(value) => updateRowStable(row.id, 'unit', value.toString())}
+                          initialValue={row.unit}
+                          onValueChange={handleIsolatedInputChange}
                           placeholder="Egység"
                           className="w-full text-center text-sm font-medium border-purple-200 focus:border-purple-400 focus:ring-purple-200"
                         />
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
-                        <MegaStableInput
+                        <IsolatedInput
+                          id={`${row.id}_notes`}
                           type="text"
-                          value={row.notes}
-                          onChange={(value) => updateRowStable(row.id, 'notes', value.toString())}
+                          initialValue={row.notes}
+                          onValueChange={handleIsolatedInputChange}
                           placeholder="További megjegyzések..."
                           className="w-full border-orange-200 focus:border-orange-400 focus:ring-orange-200"
                         />
