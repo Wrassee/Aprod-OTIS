@@ -60,10 +60,19 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Build Tools**: `vite`, `tsx`, `esbuild`
 - **Database Migrations**: `drizzle-kit`
 
-## VERSION 0.4.4 PRODUCTION RELEASE - NIEDERVOLT MÉRÉSI JEGYZŐKÖNYV ✅
+## VERSION 0.4.5 PRODUCTION RELEASE - UI FIXES & CONSISTENCY ✅
 
 ### Release Date: February 1, 2025 
-### Status: OTIS APROD 0.4.4 - PRODUCTION READY (MINDEN KOMPONENS HIBÁTLAN!)
+### Status: OTIS APROD 0.4.5 - PRODUCTION READY (MINDEN KOMPONENS HIBÁTLAN!)
+
+### New Fixes (February 1, 2025)
+- **Group Header Konzisztencia**: ✅ PERFECT - Minden oldal mutatja a csoport fejlécet és helyes számozást
+- **Folyamatjelző Javítás**: ✅ FIXED - Measurement oldal header most 4/5 jelzést mutat questionnaire csoportok helyett totalPages használatával
+- **Niedervolt Group Header**: ✅ ADDED - "Niedervolt Installations Verordnung art.14" csoport fejléc hozzáadva
+- **Automatikus Dátum**: ✅ ENHANCED - localStorage betöltéskor üres receptionDate esetén automatikus mai dátum kitöltés
+- **UI Egységesség**: ✅ COMPLETE - Minden oldal konzisztens group header megjelenítéssel és számozással
+
+### Previous VERSION 0.4.4 Features
 
 ### NEW: Niedervolt Installations Verordnung art.14 Mérési Jegyzőkönyv (February 1, 2025)
 - **Táblázatos Mérési Interfész**: ✅ COMPLETED - Professional measurement table with 6 measurement types
@@ -101,5 +110,7 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Error Documentation**: Automatic boundary errors with triangle button interface
 - **Visual Feedback**: Clear typography and intuitive layout
 - **Professional Interface**: OTIS branding maintained throughout
+- **Page Structure**: Clean 5-page layout (Általános 1/5, Gépház 2/5, Modernizáció 3/5, Mérési adatok 4/5, Niedervolt 5/5)
+- **Group Headers**: Every page displays consistent group information with proper numbering
 
 **STATUS: READY FOR DEPLOYMENT - All user requirements satisfied!**
