@@ -153,12 +153,12 @@ export function MeasurementBlock({ questions, onChange, onAddError }: Measuremen
                   <div className="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 font-semibold rounded-full shrink-0">
                     {index + 1}
                   </div>
-                  <div className="flex-1">
-                    <p className="text-base font-medium text-gray-800 leading-relaxed">
+                  <div className="flex-1 min-w-0 pr-4">
+                    <p className="text-lg font-medium text-gray-800 leading-relaxed">
                       {language === 'de' ? question.titleDe : question.title}
                     </p>
                     {question.unit && (
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-base text-gray-500 mt-1">
                         {question.unit}
                         {question.minValue !== undefined && question.maxValue !== undefined && 
                           ` (${question.minValue}-${question.maxValue})`
@@ -226,11 +226,11 @@ export function MeasurementBlock({ questions, onChange, onAddError }: Measuremen
                     <div className="flex items-center justify-center w-8 h-8 bg-green-100 text-green-600 font-semibold rounded-full shrink-0">
                       {measurementQuestions.length + index + 1}
                     </div>
-                    <div className="flex-1">
-                      <p className="text-base font-medium text-gray-800 leading-relaxed">
+                    <div className="flex-1 min-w-0 pr-4">
+                      <p className="text-lg font-medium text-gray-800 leading-relaxed">
                         {language === 'de' ? question.titleDe : question.title}
                       </p>
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-base text-gray-500 mt-1">
                         {question.unit}
                         {isOutOfBounds && (
                           <span className="ml-2 text-red-500 font-medium">
