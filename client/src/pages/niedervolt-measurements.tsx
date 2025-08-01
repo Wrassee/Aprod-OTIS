@@ -131,6 +131,20 @@ export function NiedervoltMeasurements({
               {t.back}
             </Button>
           </div>
+          
+          {/* Progress Bar */}
+          <div className="mt-6">
+            <div className="bg-white/20 rounded-full h-2 mb-2">
+              <div 
+                className="bg-white rounded-full h-2 transition-all duration-300" 
+                style={{ width: '83%' }}
+              ></div>
+            </div>
+            <div className="flex justify-between text-sm text-blue-100">
+              <span>{t.progress}</span>
+              <span>Niedervolt mérések (5/6)</span>
+            </div>
+          </div>
         </div>
       </header>
 
