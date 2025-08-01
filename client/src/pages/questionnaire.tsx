@@ -422,7 +422,7 @@ const Questionnaire = memo(function Questionnaire({
           <QuestionGroupHeader
             groupName={currentGroup.name}
             questionCount={currentGroup.questionCount}
-            totalGroups={questionGroups.length}
+            totalGroups={totalPages}
             currentGroupIndex={currentPage}
             language={language}
           />
