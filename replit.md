@@ -60,12 +60,21 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Build Tools**: `vite`, `tsx`, `esbuild`
 - **Database Migrations**: `drizzle-kit`
 
-## VERSION 0.4.3 PRODUCTION RELEASE - ALÁÍRÁS KOMPONENS TÖKÉLETESÍTVE ✅
+## VERSION 0.4.4 PRODUCTION RELEASE - NIEDERVOLT MÉRÉSI JEGYZŐKÖNYV ✅
 
 ### Release Date: February 1, 2025 
-### Status: OTIS APROD 0.4.3 - PRODUCTION READY (MINDEN KOMPONENS HIBÁTLAN!)
+### Status: OTIS APROD 0.4.4 - PRODUCTION READY (MINDEN KOMPONENS HIBÁTLAN!)
 
-### Critical Signature Component Fixes (February 1, 2025)
+### NEW: Niedervolt Installations Verordnung art.14 Mérési Jegyzőkönyv (February 1, 2025)
+- **Táblázatos Mérési Interfész**: ✅ COMPLETED - Professional measurement table with 6 measurement types
+- **Premium Dizájn**: ✅ ENHANCED - Gradient backgrounds, colorful stats cards, modern UI design
+- **Excel Integráció**: ✅ IMPLEMENTED - Automatic integration starting from row 667 in OTIS template
+- **Mérési Típusok**: ✅ COMPLETE - Isolationsmessung, Kurzschluss-strommessung, Spannungsmessung, etc.
+- **3 Érték Oszlop**: ✅ FUNCTIONAL - Multiple measurement values per row with units (Volt, Ohm, Ampere)
+- **LocalStorage Mentés**: ✅ WORKING - Automatic save/load functionality with visual feedback
+- **Statisztikai Kártyák**: ✅ ADDED - Real-time stats showing total measurements, filled values, Excel rows
+
+### Previous Signature Component Fixes (February 1, 2025)
 - **Canvas Initialization**: ✅ FIXED - Single initialization per component mount, no re-rendering loops
 - **First Input Detection**: ✅ RESOLVED - Canvas ready state properly tracked, immediate drawing response
 - **UI Stability**: ✅ PERFECT - No more component "kidob" issues, stable signature interface
