@@ -11,7 +11,7 @@ interface MegaStableInputProps {
   multiline?: boolean;
 }
 
-const MegaStableInputComponent = ({ 
+export const MegaStableInput = memo(({ 
   type = 'text', 
   placeholder, 
   value, 
@@ -150,6 +150,4 @@ const MegaStableInputComponent = ({
       )}
     </div>
   );
-};
-
-export const MegaStableInput = memo(MegaStableInputComponent);
+});

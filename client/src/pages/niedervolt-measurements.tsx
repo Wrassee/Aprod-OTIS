@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useLanguageContext } from '@/components/language-provider';
 import { ArrowLeft, Plus, Trash2, Save } from 'lucide-react';
 import { MeasurementRow } from '@/lib/types';
+import { MegaStableInput } from '@/components/mega-stable-input';
 
 // Measurement types for the Niedervolt Installation Regulation
 const MEASUREMENT_TYPES = {
@@ -279,55 +280,55 @@ export function NiedervoltMeasurements({
                         </div>
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
-                        <Input
+                        <MegaStableInput
+                          type="text"
                           value={row.description}
-                          onChange={(e) => updateRow(row.id, 'description', e.target.value)}
+                          onChange={(value) => updateRow(row.id, 'description', value.toString())}
                           placeholder="Részletes mérés leírása..."
                           className="w-full border-blue-200 focus:border-otis-blue focus:ring-otis-blue/20"
                         />
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
-                        <Input
+                        <MegaStableInput
                           type="number"
-                          step="0.001"
                           value={row.value1}
-                          onChange={(e) => updateRow(row.id, 'value1', e.target.value)}
+                          onChange={(value) => updateRow(row.id, 'value1', value.toString())}
                           placeholder="0.000"
                           className="w-full text-right font-mono border-green-200 focus:border-green-400 focus:ring-green-200"
                         />
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
-                        <Input
+                        <MegaStableInput
                           type="number"
-                          step="0.001"
                           value={row.value2}
-                          onChange={(e) => updateRow(row.id, 'value2', e.target.value)}
+                          onChange={(value) => updateRow(row.id, 'value2', value.toString())}
                           placeholder="0.000"
                           className="w-full text-right font-mono border-green-200 focus:border-green-400 focus:ring-green-200"
                         />
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
-                        <Input
+                        <MegaStableInput
                           type="number"
-                          step="0.001"
                           value={row.value3}
-                          onChange={(e) => updateRow(row.id, 'value3', e.target.value)}
+                          onChange={(value) => updateRow(row.id, 'value3', value.toString())}
                           placeholder="0.000"
                           className="w-full text-right font-mono border-green-200 focus:border-green-400 focus:ring-green-200"
                         />
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
-                        <Input
+                        <MegaStableInput
+                          type="text"
                           value={row.unit}
-                          onChange={(e) => updateRow(row.id, 'unit', e.target.value)}
+                          onChange={(value) => updateRow(row.id, 'unit', value.toString())}
                           placeholder="Egység"
                           className="w-full text-center text-sm font-medium border-purple-200 focus:border-purple-400 focus:ring-purple-200"
                         />
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
-                        <Input
+                        <MegaStableInput
+                          type="text"
                           value={row.notes}
-                          onChange={(e) => updateRow(row.id, 'notes', e.target.value)}
+                          onChange={(value) => updateRow(row.id, 'notes', value.toString())}
                           placeholder="További megjegyzések..."
                           className="w-full border-orange-200 focus:border-orange-400 focus:ring-orange-200"
                         />
