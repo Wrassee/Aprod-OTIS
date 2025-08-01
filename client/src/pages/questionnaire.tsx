@@ -615,7 +615,7 @@ const Questionnaire = memo(function Questionnaire({
                     : 'bg-gray-400 cursor-not-allowed'
                 }`}
               >
-                {t.complete}
+                {t.next}
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             ) : (
