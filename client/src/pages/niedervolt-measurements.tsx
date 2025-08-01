@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -89,36 +89,25 @@ export function NiedervoltMeasurements({
     onMeasurementsChange(measurements.filter(row => row.id !== rowId));
   };
 
-  // Create stable update functions for each row
-  const stableUpdateFunctions = useMemo(() => {
-    const functions: { [key: string]: { [field: string]: (value: string) => void } } = {};
-    
-    measurements.forEach(row => {
-      functions[row.id] = {};
-      (['measurementType', 'description', 'value1', 'value2', 'value3', 'unit', 'notes'] as (keyof MeasurementRow)[]).forEach(field => {
-        functions[row.id][field] = (value: string) => {
-          onMeasurementsChange(measurements.map(r => {
-            if (r.id === row.id) {
-              const updatedRow = { ...r, [field]: value };
-              
-              // Auto-set unit when measurement type changes
-              if (field === 'measurementType') {
-                const selectedType = measurementTypes.find(type => type.id === value);
-                if (selectedType) {
-                  updatedRow.unit = selectedType.unit;
-                }
-              }
-              
-              return updatedRow;
-            }
-            return r;
-          }));
-        };
-      });
-    });
-    
-    return functions;
-  }, [measurements, measurementTypes, onMeasurementsChange]);
+  // Single stable update function with useCallback to prevent re-creation
+  const updateRowStable = useCallback((rowId: string, field: keyof MeasurementRow, value: string) => {
+    onMeasurementsChange(prev => prev.map(row => {
+      if (row.id === rowId) {
+        const updatedRow = { ...row, [field]: value };
+        
+        // Auto-set unit when measurement type changes
+        if (field === 'measurementType') {
+          const selectedType = measurementTypes.find(type => type.id === value);
+          if (selectedType) {
+            updatedRow.unit = selectedType.unit;
+          }
+        }
+        
+        return updatedRow;
+      }
+      return row;
+    }));
+  }, [measurementTypes, onMeasurementsChange]);
 
   const saveToStorage = () => {
     localStorage.setItem('niedervolt-measurements', JSON.stringify(measurements));
@@ -356,7 +345,7 @@ export function NiedervoltMeasurements({
                           </span>
                           <Select
                             value={row.measurementType}
-                            onValueChange={stableUpdateFunctions[row.id]?.measurementType}
+                            onValueChange={(value) => updateRowStable(row.id, 'measurementType', value)}
                           >
                             <SelectTrigger className="w-full border-blue-200 focus:border-otis-blue focus:ring-otis-blue/20">
                               <SelectValue placeholder="Válassz típust..." />
@@ -377,7 +366,7 @@ export function NiedervoltMeasurements({
                         <MegaStableInput
                           type="text"
                           value={row.description}
-                          onChange={(value) => stableUpdateFunctions[row.id]?.description?.(value.toString())}
+                          onChange={(value) => updateRowStable(row.id, 'description', value.toString())}
                           placeholder="Részletes mérés leírása..."
                           className="w-full border-blue-200 focus:border-otis-blue focus:ring-otis-blue/20"
                         />
@@ -386,7 +375,7 @@ export function NiedervoltMeasurements({
                         <MegaStableInput
                           type="number"
                           value={row.value1}
-                          onChange={(value) => stableUpdateFunctions[row.id]?.value1?.(value.toString())}
+                          onChange={(value) => updateRowStable(row.id, 'value1', value.toString())}
                           placeholder="0.000"
                           className="w-full text-right font-mono border-green-200 focus:border-green-400 focus:ring-green-200"
                         />
@@ -395,7 +384,7 @@ export function NiedervoltMeasurements({
                         <MegaStableInput
                           type="number"
                           value={row.value2}
-                          onChange={(value) => stableUpdateFunctions[row.id]?.value2?.(value.toString())}
+                          onChange={(value) => updateRowStable(row.id, 'value2', value.toString())}
                           placeholder="0.000"
                           className="w-full text-right font-mono border-green-200 focus:border-green-400 focus:ring-green-200"
                         />
@@ -404,7 +393,7 @@ export function NiedervoltMeasurements({
                         <MegaStableInput
                           type="number"
                           value={row.value3}
-                          onChange={(value) => stableUpdateFunctions[row.id]?.value3?.(value.toString())}
+                          onChange={(value) => updateRowStable(row.id, 'value3', value.toString())}
                           placeholder="0.000"
                           className="w-full text-right font-mono border-green-200 focus:border-green-400 focus:ring-green-200"
                         />
@@ -413,7 +402,7 @@ export function NiedervoltMeasurements({
                         <MegaStableInput
                           type="text"
                           value={row.unit}
-                          onChange={(value) => stableUpdateFunctions[row.id]?.unit?.(value.toString())}
+                          onChange={(value) => updateRowStable(row.id, 'unit', value.toString())}
                           placeholder="Egység"
                           className="w-full text-center text-sm font-medium border-purple-200 focus:border-purple-400 focus:ring-purple-200"
                         />
@@ -422,7 +411,7 @@ export function NiedervoltMeasurements({
                         <MegaStableInput
                           type="text"
                           value={row.notes}
-                          onChange={(value) => stableUpdateFunctions[row.id]?.notes?.(value.toString())}
+                          onChange={(value) => updateRowStable(row.id, 'notes', value.toString())}
                           placeholder="További megjegyzések..."
                           className="w-full border-orange-200 focus:border-orange-400 focus:ring-orange-200"
                         />
