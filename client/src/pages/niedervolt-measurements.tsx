@@ -7,6 +7,7 @@ import { useLanguageContext } from '@/components/language-provider';
 import { ArrowLeft, Plus, Trash2, Save, Settings, Home, RotateCcw } from 'lucide-react';
 import { MeasurementRow } from '@/lib/types';
 import { MegaStableInput } from '@/components/mega-stable-input';
+import { QuestionGroupHeader } from '@/components/question-group-header';
 
 // Measurement types for the Niedervolt Installation Regulation
 const MEASUREMENT_TYPES = {
@@ -208,6 +209,15 @@ export function NiedervoltMeasurements({
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-8">
+        {/* Group Header */}
+        <QuestionGroupHeader
+          groupName={language === 'de' ? 'Niedervolt Installationsverordnung art.14' : 'Niedervolt Installations Verordnung art.14'}
+          questionCount={measurements.length}
+          totalGroups={5}
+          currentGroupIndex={4}
+          language={language}
+        />
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
