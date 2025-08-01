@@ -136,7 +136,7 @@ export function NiedervoltMeasurements({
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
             <div className="flex items-center justify-between">
               <div>
@@ -162,18 +162,6 @@ export function NiedervoltMeasurements({
               </div>
             </div>
           </div>
-          
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-purple-600 text-sm font-medium">Excel cellák</p>
-                <p className="text-2xl font-bold text-purple-800">{667 + measurements.length - 1}</p>
-              </div>
-              <div className="h-12 w-12 bg-purple-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold">📋</span>
-              </div>
-            </div>
-          </div>
         </div>
 
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
@@ -195,14 +183,14 @@ export function NiedervoltMeasurements({
                 <Button
                   variant="outline"
                   onClick={saveToStorage}
-                  className="flex items-center gap-2 border-green-200 text-green-700 hover:bg-green-50"
+                  className="flex items-center gap-2 border-green-200 text-green-700 hover:bg-green-50 bg-white"
                 >
                   <Save className="h-4 w-4" />
                   Mentés
                 </Button>
                 <Button
                   onClick={addNewRow}
-                  className="flex items-center gap-2 bg-gradient-to-r from-otis-blue to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-md"
+                  className="flex items-center gap-2 bg-gradient-to-r from-otis-blue to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-md text-white"
                 >
                   <Plus className="h-4 w-4" />
                   Új sor
@@ -364,7 +352,7 @@ export function NiedervoltMeasurements({
                 </div>
                 {measurements.length > 0 && (
                   <div className="text-xs text-gray-500 bg-white px-3 py-1 rounded-full border">
-                    Excel: {667}-{666 + measurements.length} sorok
+                    Mérési sorok: {measurements.length}
                   </div>
                 )}
               </div>
@@ -372,14 +360,14 @@ export function NiedervoltMeasurements({
                 <Button
                   variant="outline"
                   onClick={onBack}
-                  className="flex items-center gap-2 border-gray-300 hover:bg-gray-50"
+                  className="flex items-center gap-2 border-gray-300 hover:bg-gray-50 bg-white"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   {t.previous}
                 </Button>
                 <Button
                   onClick={onNext}
-                  className="flex items-center gap-2 bg-gradient-to-r from-otis-blue to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-md"
+                  className="flex items-center gap-2 bg-gradient-to-r from-otis-blue to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-md text-white"
                 >
                   {t.next}
                   <span className="ml-1">→</span>

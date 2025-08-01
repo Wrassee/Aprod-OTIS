@@ -172,15 +172,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // NIEDERVOLT INTEGRATION TEMPORARILY DISABLED
       // This prevents interference with basic Excel functionality
       // Will be re-enabled after UI completion and template configuration
-      /*
       if (formData.niedervoltMeasurements && formData.niedervoltMeasurements.length > 0) {
-        console.log(`NIEDERVOLT: Integrating ${formData.niedervoltMeasurements.length} measurements`);
-        excelBuffer = await niedervoltExcelService.integrateMeasurements({
-          measurements: formData.niedervoltMeasurements,
-          language
-        });
+        console.log(`NIEDERVOLT: ${formData.niedervoltMeasurements.length} measurements found but integration disabled`);
       }
-      */
       
       if (!excelBuffer || excelBuffer.length < 1000) {
         throw new Error('Generated Excel buffer is invalid or too small');
