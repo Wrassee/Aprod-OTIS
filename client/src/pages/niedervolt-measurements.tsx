@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLanguageContext } from '@/components/language-provider';
-import { ArrowLeft, Plus, Trash2, Save } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Save, Settings, Home, RotateCcw } from 'lucide-react';
 import { MeasurementRow } from '@/lib/types';
 import { MegaStableInput } from '@/components/mega-stable-input';
 
@@ -32,6 +33,11 @@ interface NiedervoltMeasurementsProps {
   onMeasurementsChange: (measurements: MeasurementRow[]) => void;
   onBack: () => void;
   onNext: () => void;
+  receptionDate: string;
+  onReceptionDateChange: (date: string) => void;
+  onAdminAccess?: () => void;
+  onHome?: () => void;
+  onStartNew?: () => void;
 }
 
 export function NiedervoltMeasurements({
@@ -39,6 +45,11 @@ export function NiedervoltMeasurements({
   onMeasurementsChange,
   onBack,
   onNext,
+  receptionDate,
+  onReceptionDateChange,
+  onAdminAccess,
+  onHome,
+  onStartNew,
 }: NiedervoltMeasurementsProps) {
   const { t, language } = useLanguageContext();
   const nextIdRef = useRef(Date.now());
@@ -108,29 +119,70 @@ export function NiedervoltMeasurements({
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            {/* Logo and Title */}
+            {/* Logo, Home and Title */}
             <div className="flex items-center">
               <img 
                 src="/otis-elevators-seeklogo_1753525178175.png" 
                 alt="OTIS Logo" 
                 className="h-12 w-12 mr-4"
               />
+              {onHome && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onHome}
+                  className="text-gray-600 hover:text-gray-800 mr-4"
+                  title={language === 'de' ? 'Startseite' : 'Kezdőlap'}
+                >
+                  <Home className="h-4 w-4" />
+                </Button>
+              )}
               <div>
                 <span className="text-lg font-medium text-gray-800">{t.title}</span>
                 <p className="text-sm text-gray-600 mt-1">Niedervolt Installations Verordnung art.14</p>
               </div>
             </div>
             
-            {/* Back Button */}
+            {/* Date Picker, Start New and Admin */}
             <div className="flex items-center space-x-4">
-              <Button
-                variant="outline"
-                onClick={onBack}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                {t.back}
-              </Button>
+              <Label className="text-sm font-medium text-gray-600">{t.receptionDate}</Label>
+              <Input
+                type="date"
+                value={receptionDate}
+                onChange={(e) => {
+                  e.preventDefault();
+                  onReceptionDateChange(e.target.value);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }
+                }}
+                className="w-auto"
+              />
+              {onStartNew && (
+                <Button
+                  onClick={onStartNew}
+                  className="bg-green-600 hover:bg-green-700 text-white flex items-center"
+                  size="sm"
+                  title={t.startNew || 'Új protokoll indítása'}
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  {t.startNew || 'Új protokoll'}
+                </Button>
+              )}
+              {onAdminAccess && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onAdminAccess}
+                  className="text-gray-600 hover:text-gray-800"
+                  title="Admin"
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </div>
           

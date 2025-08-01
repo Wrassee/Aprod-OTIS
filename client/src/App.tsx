@@ -405,6 +405,11 @@ function App() {
                   onMeasurementsChange={(measurements) => setFormData(prev => ({ ...prev, niedervoltMeasurements: measurements }))}
                   onBack={handleNiedervoltBack}
                   onNext={handleNiedervoltNext}
+                  receptionDate={formData.receptionDate}
+                  onReceptionDateChange={handleReceptionDateChange}
+                  onAdminAccess={handleAdminAccess}
+                  onHome={handleGoHome}
+                  onStartNew={handleStartNew}
                 />
               );
             case 'signature':
