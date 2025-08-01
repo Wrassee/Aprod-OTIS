@@ -160,3 +160,15 @@ export interface Question {
   calculationFormula?: string;
   calculationInputs?: string;
 }
+
+// Niedervolt Measurements for Excel integration
+export interface MeasurementRow {
+  id: string;
+  measurementType: string;
+  description: string;
+  value1: string;
+  value2: string;
+  value3: string;
+  unit: string;
+  notes: string;
+}

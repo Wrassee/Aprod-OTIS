@@ -10,6 +10,7 @@ import { excelService } from "./services/excel-service";
 import { pdfService } from "./services/pdf-service";
 import { emailService } from "./services/email-service";
 import { excelParserService } from "./services/excel-parser";
+import { niedervoltExcelService } from "./services/niedervolt-excel-service";
 import { z } from "zod";
 import JSZip from "jszip";
 
@@ -166,7 +167,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { simpleXmlExcelService } = await import('./services/simple-xml-excel');
       
       // Generate Excel with XML manipulation (proven to preserve formatting)
-      const excelBuffer = await simpleXmlExcelService.generateExcelFromTemplate(formData, language);
+      let excelBuffer = await simpleXmlExcelService.generateExcelFromTemplate(formData, language);
+      
+      // If Niedervolt measurements exist, integrate them
+      if (formData.niedervoltMeasurements && formData.niedervoltMeasurements.length > 0) {
+        console.log(`NIEDERVOLT: Integrating ${formData.niedervoltMeasurements.length} measurements`);
+        excelBuffer = await niedervoltExcelService.integrateMeasurements({
+          measurements: formData.niedervoltMeasurements,
+          language
+        });
+      }
       
       if (!excelBuffer || excelBuffer.length < 1000) {
         throw new Error('Generated Excel buffer is invalid or too small');

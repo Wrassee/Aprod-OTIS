@@ -7,16 +7,17 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/components/language-provider";
 import { StartScreen } from "@/pages/start-screen";
 import Questionnaire from "@/pages/questionnaire";
+import { NiedervoltMeasurements } from "@/pages/niedervolt-measurements";
 import { Signature } from "@/pages/signature";
 import { Completion } from "@/pages/completion";
 import { Admin } from "@/pages/admin";
 import { ProtocolPreview } from "@/pages/protocol-preview";
-import { FormData } from "@/lib/types";
+import { FormData, MeasurementRow } from "@/lib/types";
 import { AnswerValue, ProtocolError } from "@shared/schema";
 import NotFound from "@/pages/not-found";
 
 function App() {
-  const [currentScreen, setCurrentScreen] = useState<'start' | 'questionnaire' | 'signature' | 'completion' | 'admin' | 'protocol-preview'>('start');
+  const [currentScreen, setCurrentScreen] = useState<'start' | 'questionnaire' | 'niedervolt' | 'signature' | 'completion' | 'admin' | 'protocol-preview'>('start');
   const [language, setLanguage] = useState<'hu' | 'de'>('hu');
   const [formData, setFormData] = useState<FormData>({
     receptionDate: new Date().toISOString().split('T')[0], // Always keep as ISO format for HTML date input
@@ -24,6 +25,7 @@ function App() {
     errors: [],
     signature: '',
     signatureName: '',
+    niedervoltMeasurements: [],
   });
   const formDataRef = useRef(formData);
   
@@ -73,11 +75,11 @@ function App() {
   }, []);
 
   const handleQuestionnaireNext = () => {
-    setCurrentScreen('signature');
+    setCurrentScreen('niedervolt');
   };
 
-  const handleSignatureBack = () => {
-    console.log('🔙 Signature Back button clicked - returning to questionnaire');
+  const handleNiedervoltBack = () => {
+    console.log('🔙 Niedervolt Back button clicked - returning to questionnaire');
     
     // Restore questionnaire page to the last page
     const lastPage = localStorage.getItem('questionnaire-current-page');
@@ -86,6 +88,15 @@ function App() {
     }
     
     setCurrentScreen('questionnaire');
+  };
+
+  const handleNiedervoltNext = () => {
+    setCurrentScreen('signature');
+  };
+
+  const handleSignatureBack = () => {
+    console.log('🔙 Signature Back button clicked - returning to niedervolt');
+    setCurrentScreen('niedervolt');
   };
 
   const handleSignatureComplete = async () => {
@@ -259,6 +270,7 @@ function App() {
       errors: [],
       signature: '',
       signatureName: '',
+      niedervoltMeasurements: [],
     });
     setCurrentScreen('start');
     // Clear all localStorage data for new protocol
@@ -325,6 +337,15 @@ function App() {
           switch (currentScreen) {
             case 'start':
               return <StartScreen onLanguageSelect={handleLanguageSelect} />;
+            case 'niedervolt':
+              return (
+                <NiedervoltMeasurements
+                  measurements={formData.niedervoltMeasurements || []}
+                  onMeasurementsChange={(measurements) => setFormData(prev => ({ ...prev, niedervoltMeasurements: measurements }))}
+                  onBack={handleNiedervoltBack}
+                  onNext={handleNiedervoltNext}
+                />
+              );
             case 'signature':
               return (
                 <Signature
