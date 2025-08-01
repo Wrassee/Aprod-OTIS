@@ -238,11 +238,7 @@ export function MeasurementBlock({ questions, onChange, onAddError }: Measuremen
                           </span>
                         )}
                       </p>
-                      {isOutOfBounds && (
-                        <p className="text-xs text-red-600 font-medium mt-1">
-                          → {language === 'de' ? 'Fehlerdokumentation erforderlich' : 'Hiba rögzítése szükséges'}
-                        </p>
-                      )}
+
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <div className={`text-center font-mono text-lg font-bold px-3 py-2 rounded-md ${
@@ -254,56 +250,61 @@ export function MeasurementBlock({ questions, onChange, onAddError }: Measuremen
                         <span className="text-sm text-gray-500 w-8">{question.unit}</span>
                       )}
                       {isOutOfBounds && onAddError && (
-                        <button
-                          onClick={async (e) => {
-                            e.preventDefault(); 
-                            e.stopPropagation();
-                            
-                            const questionTitle = language === 'de' ? question.titleDe : question.title;
-                            const errorTitle = language === 'de' 
-                              ? `Berechneter Wert außerhalb der Grenzen: ${questionTitle}`
-                              : `Határértéken kívüli számított érték: ${questionTitle}`;
-                            
-                            const errorDescription = language === 'de'
-                              ? `Der berechnete Wert ${calculatedValue} ${question.unit} liegt außerhalb der zulässigen Grenzen (${question.minValue}-${question.maxValue} ${question.unit}). Bitte überprüfen Sie die Eingabewerte.`
-                              : `A számított érték ${calculatedValue} ${question.unit} kívül esik a megengedett határokon (${question.minValue}-${question.maxValue} ${question.unit}). Kérjük, ellenőrizze a bemeneti értékeket.`;
+                        <div className="ml-2 text-center">
+                          <button
+                            onClick={async (e) => {
+                              e.preventDefault(); 
+                              e.stopPropagation();
+                              
+                              const questionTitle = language === 'de' ? question.titleDe : question.title;
+                              const errorTitle = language === 'de' 
+                                ? `Berechneter Wert außerhalb der Grenzen: ${questionTitle}`
+                                : `Határértéken kívüli számított érték: ${questionTitle}`;
+                              
+                              const errorDescription = language === 'de'
+                                ? `Der berechnete Wert ${calculatedValue} ${question.unit} liegt außerhalb der zulässigen Grenzen (${question.minValue}-${question.maxValue} ${question.unit}). Bitte überprüfen Sie die Eingabewerte.`
+                                : `A számított érték ${calculatedValue} ${question.unit} kívül esik a megengedett határokon (${question.minValue}-${question.maxValue} ${question.unit}). Kérjük, ellenőrizze a bemeneti értékeket.`;
 
-                            // BYPASS REACT - Add error directly to localStorage errors list instead of calling onAddError
-                            const currentErrors = JSON.parse(localStorage.getItem('protocol-errors') || '[]');
-                            const newError = {
-                              id: `boundary-${question.id}-${Date.now()}`,
-                              title: errorTitle,
-                              description: errorDescription,
-                              severity: 'critical',
-                              images: []
-                            };
-                            currentErrors.push(newError);
-                            localStorage.setItem('protocol-errors', JSON.stringify(currentErrors));
-                            
-                            console.log('✅ Error saved to localStorage without React render:', newError);
-                            
-                            // Force error list refresh via custom event
-                            window.dispatchEvent(new CustomEvent('protocol-error-added', { 
-                              detail: { error: newError } 
-                            }));
-                            
-                            // Show confirmation without triggering React re-render
-                            const confirmMsg = language === 'de' 
-                              ? 'Fehler zur Fehlerliste hinzugefügt!'
-                              : 'Hiba hozzáadva a hibalistához!';
-                            
-                            // Create a temporary toast instead of alert to avoid blocking
-                            const toast = document.createElement('div');
-                            toast.textContent = confirmMsg;
-                            toast.style.cssText = 'position:fixed;top:20px;right:20px;background:#10b981;color:white;padding:12px 24px;border-radius:8px;z-index:9999;font-weight:500;';
-                            document.body.appendChild(toast);
-                            setTimeout(() => document.body.removeChild(toast), 2000);
-                          }}
-                          className="ml-2 p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
-                          title={language === 'de' ? 'Fehler zur Liste hinzufügen' : 'Hiba hozzáadása a listához'}
-                        >
-                          <AlertTriangle className="h-6 w-6" />
-                        </button>
+                              // BYPASS REACT - Add error directly to localStorage errors list instead of calling onAddError
+                              const currentErrors = JSON.parse(localStorage.getItem('protocol-errors') || '[]');
+                              const newError = {
+                                id: `boundary-${question.id}-${Date.now()}`,
+                                title: errorTitle,
+                                description: errorDescription,
+                                severity: 'critical',
+                                images: []
+                              };
+                              currentErrors.push(newError);
+                              localStorage.setItem('protocol-errors', JSON.stringify(currentErrors));
+                              
+                              console.log('✅ Error saved to localStorage without React render:', newError);
+                              
+                              // Force error list refresh via custom event
+                              window.dispatchEvent(new CustomEvent('protocol-error-added', { 
+                                detail: { error: newError } 
+                              }));
+                              
+                              // Show confirmation without triggering React re-render
+                              const confirmMsg = language === 'de' 
+                                ? 'Fehler zur Fehlerliste hinzugefügt!'
+                                : 'Hiba hozzáadva a hibalistához!';
+                              
+                              // Create a temporary toast instead of alert to avoid blocking
+                              const toast = document.createElement('div');
+                              toast.textContent = confirmMsg;
+                              toast.style.cssText = 'position:fixed;top:20px;right:20px;background:#10b981;color:white;padding:12px 24px;border-radius:8px;z-index:9999;font-weight:500;';
+                              document.body.appendChild(toast);
+                              setTimeout(() => document.body.removeChild(toast), 2000);
+                            }}
+                            className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors block"
+                            title={language === 'de' ? 'Fehler zur Liste hinzufügen' : 'Hiba hozzáadása a listához'}
+                          >
+                            <AlertTriangle className="h-6 w-6" />
+                          </button>
+                          <p className="text-xs text-red-600 font-medium mt-1">
+                            {language === 'de' ? 'Dokumentation erforderlich' : 'Hiba rögzítése szükséges'}
+                          </p>
+                        </div>
                       )}
                     </div>
                   </div>
