@@ -54,6 +54,10 @@ export function NiedervoltMeasurements({
 }: NiedervoltMeasurementsProps) {
   const { t, language } = useLanguageContext();
   const nextIdRef = useRef(Date.now());
+  
+  // Save status states - same as questionnaire
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   // Load measurements from localStorage on mount
   useEffect(() => {
@@ -120,10 +124,24 @@ export function NiedervoltMeasurements({
     return functions;
   }, [measurements, measurementTypes, onMeasurementsChange]);
 
-  const saveToStorage = () => {
-    localStorage.setItem('niedervolt-measurements', JSON.stringify(measurements));
-    onMeasurementsChange(measurements); // Also update parent state
-    console.log('Niedervolt measurements saved to localStorage');
+  const saveToStorage = async () => {
+    console.log('Save button clicked on niedervolt page');
+    setSaveStatus('saving');
+    try {
+      localStorage.setItem('niedervolt-measurements', JSON.stringify(measurements));
+      onMeasurementsChange(measurements); // Also update parent state
+      console.log('Niedervolt measurements saved to localStorage');
+      setSaveStatus('saved');
+      setLastSaved(new Date());
+      
+      // Auto-clear saved status after 3 seconds
+      setTimeout(() => {
+        setSaveStatus('idle');
+      }, 3000);
+    } catch (error) {
+      console.error('Error saving niedervolt measurements:', error);
+      setSaveStatus('idle');
+    }
   };
 
   return (
@@ -275,15 +293,22 @@ export function NiedervoltMeasurements({
                 </div>
               </div>
               <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  onClick={saveToStorage}
-                  className="flex items-center gap-2 border-green-200 text-green-700 hover:bg-green-50 bg-white shadow-sm"
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onTouchStart={(e) => e.preventDefault()}
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    await saveToStorage();
+                  }}
+                  disabled={saveStatus === 'saving'}
+                  className="flex items-center gap-2 px-4 py-2 border border-green-200 text-green-700 hover:bg-green-50 bg-white shadow-sm rounded-md font-medium text-sm disabled:opacity-50"
                   style={{ backgroundColor: 'white', color: '#15803d' }}
                 >
                   <Save className="h-4 w-4" />
-                  Mentés
-                </Button>
+                  {saveStatus === 'saving' ? t.saving : saveStatus === 'saved' ? t.saved : t.save}
+                </button>
                 <Button
                   onClick={addNewRow}
                   className="flex items-center gap-2 shadow-md"
