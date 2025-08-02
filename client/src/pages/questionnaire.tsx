@@ -433,7 +433,7 @@ const Questionnaire = memo(function Questionnaire({
           {/* Force 2-column layout for pages 1 and 2 (currentPage 0 and 1) */}
           {currentPage === 0 || currentPage === 1 ? (
             /* Regular Question Grid (2x2 Layout) for pages 1 and 2 */
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-2 gap-8">
               {(currentQuestions as Question[]).map((question: Question) => {
                 return (
                   <IsolatedQuestion
