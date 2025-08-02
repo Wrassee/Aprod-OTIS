@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Switch, Route } from "wouter";
+// Removed Wouter routing to prevent re-mounting issues with focus stability
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -373,92 +373,90 @@ function App() {
   const handleAdminAccess = useCallback(() => setCurrentScreen('admin'), []);
   const handleHome = useCallback(() => setCurrentScreen('start'), []);
 
-  function Router() {
-    return (
-      <Switch>
-        <Route path="/" component={() => {
-          console.log('🏠 Route component function called - currentScreen:', currentScreen);
-          
-          if (currentScreen === 'questionnaire') {
-            return (
-              <Questionnaire
-                key="stable-questionnaire-key"
-                receptionDate={formData.receptionDate}
-                onReceptionDateChange={handleReceptionDateChange}
-                answers={formData.answers}
-                onAnswerChange={handleAnswerChange}
-                errors={formData.errors}
-                onErrorsChange={handleErrorsChange}
-                onNext={handleQuestionnaireNext}
-                onSave={handleSaveProgress}
-                language={language}
-                onAdminAccess={handleAdminAccess}
-                onHome={handleHome}
-                onStartNew={handleStartNew}
-              />
-            );
-          }
-          
-          switch (currentScreen) {
-            case 'start':
-              return <StartScreen onLanguageSelect={handleLanguageSelect} />;
-            case 'niedervolt':
-              return (
-                <NiedervoltMeasurements
-                  measurements={formData.niedervoltMeasurements || []}
-                  onMeasurementsChange={(measurements) => setFormData(prev => ({ ...prev, niedervoltMeasurements: measurements }))}
-                  onBack={handleNiedervoltBack}
-                  onNext={handleNiedervoltNext}
-                  receptionDate={formData.receptionDate}
-                  onReceptionDateChange={handleReceptionDateChange}
-                  onAdminAccess={handleAdminAccess}
-                  onHome={handleGoHome}
-                  onStartNew={handleStartNew}
-                />
-              );
-            case 'signature':
-              return (
-                <Signature
-                  signature={formData.signature || ''}
-                  onSignatureChange={(signature) => setFormData(prev => ({ ...prev, signature }))}
-                  signatureName={formData.signatureName || ''}
-                  onSignatureNameChange={(signatureName) => setFormData(prev => ({ ...prev, signatureName }))}
-                  onBack={handleSignatureBack}
-                  onComplete={handleSignatureComplete}
-                />
-              );
-            case 'completion':
-              return (
-                <Completion
-                  onEmailPDF={handleEmailPDF}
-                  onSaveToCloud={handleSaveToCloud}
-                  onDownloadPDF={handleDownloadPDF}
-                  onDownloadExcel={handleDownloadExcel}
-                  onViewProtocol={handleViewProtocol}
-                  onStartNew={handleStartNew}
-                  onGoHome={handleGoHome}
-                  onSettings={handleSettings}
-                />
-              );
-            case 'admin':
-              return <Admin onBack={() => setCurrentScreen('questionnaire')} onHome={() => setCurrentScreen('start')} />;
-            case 'protocol-preview':
-              return <ProtocolPreview onBack={() => setCurrentScreen('completion')} />;
-            default:
-              return <StartScreen onLanguageSelect={handleLanguageSelect} />;
-          }
-        }} />
-        <Route component={NotFound} />
-      </Switch>
-    );
-  }
+  // Memoized measurement change handler to prevent re-renders
+  const handleMeasurementsChange = useCallback((measurements: MeasurementRow[]) => {
+    setFormData(prev => ({ ...prev, niedervoltMeasurements: measurements }));
+  }, []);
+
+  // Conditional render without Wouter to prevent re-mounting
+  const renderCurrentScreen = () => {
+    console.log('🏠 Route component function called - currentScreen:', currentScreen);
+    
+    switch (currentScreen) {
+      case 'start':
+        return <StartScreen onLanguageSelect={handleLanguageSelect} />;
+      case 'questionnaire':
+        return (
+          <Questionnaire
+            key="stable-questionnaire"
+            receptionDate={formData.receptionDate}
+            onReceptionDateChange={handleReceptionDateChange}
+            answers={formData.answers}
+            onAnswerChange={handleAnswerChange}
+            errors={formData.errors}
+            onErrorsChange={handleErrorsChange}
+            onNext={handleQuestionnaireNext}
+            onSave={handleSaveProgress}
+            language={language}
+            onAdminAccess={handleAdminAccess}
+            onHome={handleHome}
+            onStartNew={handleStartNew}
+          />
+        );
+      case 'niedervolt':
+        return (
+          <NiedervoltMeasurements
+            key="stable-niedervolt"
+            measurements={formData.niedervoltMeasurements || []}
+            onMeasurementsChange={handleMeasurementsChange}
+            onBack={handleNiedervoltBack}
+            onNext={handleNiedervoltNext}
+            receptionDate={formData.receptionDate}
+            onReceptionDateChange={handleReceptionDateChange}
+            onAdminAccess={handleAdminAccess}
+            onHome={handleGoHome}
+            onStartNew={handleStartNew}
+          />
+        );
+      case 'signature':
+        return (
+          <Signature
+            signature={formData.signature || ''}
+            onSignatureChange={(signature) => setFormData(prev => ({ ...prev, signature }))}
+            signatureName={formData.signatureName || ''}
+            onSignatureNameChange={(signatureName) => setFormData(prev => ({ ...prev, signatureName }))}
+            onBack={handleSignatureBack}
+            onComplete={handleSignatureComplete}
+          />
+        );
+      case 'completion':
+        return (
+          <Completion
+            onEmailPDF={handleEmailPDF}
+            onSaveToCloud={handleSaveToCloud}
+            onDownloadPDF={handleDownloadPDF}
+            onDownloadExcel={handleDownloadExcel}
+            onViewProtocol={handleViewProtocol}
+            onStartNew={handleStartNew}
+            onGoHome={handleGoHome}
+            onSettings={handleSettings}
+          />
+        );
+      case 'admin':
+        return <Admin onBack={() => setCurrentScreen('questionnaire')} onHome={() => setCurrentScreen('start')} />;
+      case 'protocol-preview':
+        return <ProtocolPreview onBack={() => setCurrentScreen('completion')} />;
+      default:
+        return <StartScreen onLanguageSelect={handleLanguageSelect} />;
+    }
+  };
 
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
         <TooltipProvider>
           <Toaster />
-          <Router />
+          {renderCurrentScreen()}
         </TooltipProvider>
       </LanguageProvider>
     </QueryClientProvider>
