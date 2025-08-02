@@ -60,12 +60,19 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Build Tools**: `vite`, `tsx`, `esbuild`
 - **Database Migrations**: `drizzle-kit`
 
-## VERSION 0.4.5 PRODUCTION RELEASE - UI FIXES & CONSISTENCY ✅
+## VERSION 0.4.6 PRODUCTION RELEASE - FOCUS STABILITY & LAYOUT FIXES ✅
 
-### Release Date: February 1, 2025 
-### Status: OTIS APROD 0.4.5 - PRODUCTION READY (MINDEN KOMPONENS HIBÁTLAN!)
+### Release Date: August 2, 2025 
+### Status: OTIS APROD 0.4.6 - PRODUCTION READY (MINDEN KOMPONENS HIBÁTLAN!)
 
-### New Fixes (February 1, 2025)
+### New Fixes (August 2, 2025)
+- **Kurzor Stabilitás**: ✅ PERFECT - Niedervolt táblázatban megszűnt a fokusz ugráló probléma
+- **Routing Optimalizálás**: ✅ FIXED - Wouter routing eltávolítva, state-alapú navigáció implementálva
+- **Stabil Callback Rendszer**: ✅ ENHANCED - useCallback és useMemo optimalizálások a component re-rendering megelőzésére
+- **2 Oszlopos Layout**: ✅ RESTORED - TrueFalseGroup komponens átalakítva 2x2 grid megjelenítésre
+- **Konzisztens UI**: ✅ COMPLETE - Minden kérdéstípus egységes 2 oszlopos megjelenítéssel
+
+### Previous VERSION 0.4.5 Features
 - **Group Header Konzisztencia**: ✅ PERFECT - Minden oldal mutatja a csoport fejlécet és helyes számozást
 - **Folyamatjelző Javítás**: ✅ FIXED - Measurement oldal header most 4/5 jelzést mutat questionnaire csoportok helyett totalPages használatával
 - **Niedervolt Group Header**: ✅ ADDED - "Niedervolt Installations Verordnung art.14" csoport fejléc hozzáadva
