@@ -135,8 +135,6 @@ export class ErrorExportService {
   }
 
   static async generatePDF(data: ExportData): Promise<Buffer> {
-    // For now, return a simple HTML-to-PDF conversion
-    // In production, you might want to use puppeteer or a similar library
     const { errors, protocolData, language } = data;
     
     const translations = {
@@ -243,7 +241,134 @@ export class ErrorExportService {
       </html>
     `;
 
-    // For now, return HTML as buffer. In production, you'd use puppeteer or similar for PDF generation
-    return Buffer.from(html, 'utf-8');
+    try {
+      // Import puppeteer dynamically
+      const puppeteer = await import('puppeteer');
+      
+      console.log('🎯 PDF Generation: Starting Puppeteer for error list PDF');
+      
+      // Launch browser with minimal configuration for better compatibility
+      const browser = await puppeteer.default.launch({
+        headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+          '--no-first-run',
+          '--no-default-browser-check',
+          '--disable-default-apps'
+        ]
+      });
+
+      const page = await browser.newPage();
+      
+      // Set content and wait for it to load
+      await page.setContent(html, { waitUntil: 'networkidle0' });
+      
+      // Generate PDF with good settings
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        margin: {
+          top: '20mm',
+          right: '15mm',
+          bottom: '20mm',
+          left: '15mm'
+        },
+        printBackground: true,
+        preferCSSPageSize: true
+      });
+
+      await browser.close();
+      
+      console.log('🎯 PDF Generation: Successfully created error list PDF, size:', pdfBuffer.length);
+      return pdfBuffer;
+      
+    } catch (error) {
+      console.error('PDF Generation Error:', error);
+      
+      // Fallback: Use jsPDF for reliable PDF generation
+      console.log('🎯 PDF Generation: Falling back to jsPDF method');
+      
+      const jsPDF = await import('jspdf');
+      const { jsPDF: PDF } = jsPDF.default;
+      
+      const doc = new PDF();
+      
+      // Set font
+      doc.setFont('helvetica');
+      
+      // Title
+      doc.setFontSize(20);
+      doc.text(t.title, 20, 30);
+      
+      // Protocol info
+      doc.setFontSize(12);
+      let yPos = 50;
+      doc.text(`${t.building}: ${protocolData?.buildingAddress || ''}`, 20, yPos);
+      yPos += 10;
+      doc.text(`${t.liftId}: ${protocolData?.liftId || ''}`, 20, yPos);
+      yPos += 10;
+      doc.text(`${t.inspector}: ${protocolData?.inspectorName || ''}`, 20, yPos);
+      yPos += 10;
+      doc.text(`${t.date}: ${new Date().toLocaleDateString()}`, 20, yPos);
+      yPos += 20;
+      
+      // Errors
+      errors.forEach((error, index) => {
+        // Check if we need a new page
+        if (yPos > 250) {
+          doc.addPage();
+          yPos = 30;
+        }
+        
+        doc.setFontSize(14);
+        doc.text(`${index + 1}. ${error.title}`, 20, yPos);
+        yPos += 8;
+        
+        doc.setFontSize(10);
+        doc.text(`${t.severity}: ${t[error.severity as keyof typeof t] || error.severity}`, 20, yPos);
+        yPos += 6;
+        
+        // Split description into lines
+        const descLines = doc.splitTextToSize(error.description, 170);
+        doc.text(descLines, 20, yPos);
+        yPos += descLines.length * 5;
+        
+        if (error.images?.length) {
+          doc.text(`${t.photos}: ${error.images.length}`, 20, yPos);
+          yPos += 6;
+        }
+        yPos += 10;
+      });
+      
+      // Summary
+      if (yPos > 220) {
+        doc.addPage();
+        yPos = 30;
+      }
+      
+      doc.setFontSize(16);
+      doc.text(t.summary, 20, yPos);
+      yPos += 15;
+      
+      doc.setFontSize(12);
+      doc.text(`${t.totalErrors}: ${errors.length}`, 20, yPos);
+      yPos += 8;
+      doc.text(`${t.critical}: ${errors.filter(e => e.severity === 'critical').length}`, 20, yPos);
+      yPos += 8;
+      doc.text(`${t.medium}: ${errors.filter(e => e.severity === 'medium').length}`, 20, yPos);
+      yPos += 8;
+      doc.text(`${t.low}: ${errors.filter(e => e.severity === 'low').length}`, 20, yPos);
+      yPos += 15;
+      
+      doc.setFontSize(10);
+      doc.text(`${t.generatedOn}: ${new Date().toLocaleString()}`, 20, yPos);
+      
+      // Return PDF as buffer
+      const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
+      console.log('🎯 PDF Generation: jsPDF fallback successful, size:', pdfBuffer.length);
+      return pdfBuffer;
+    }
   }
 }
