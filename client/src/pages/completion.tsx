@@ -10,7 +10,8 @@ import {
   Eye, 
   Plus,
   Home,
-  Settings
+  Settings,
+  ArrowLeft
 } from 'lucide-react';
 
 interface CompletionProps {
@@ -22,6 +23,7 @@ interface CompletionProps {
   onStartNew: () => void;
   onGoHome: () => void;
   onSettings: () => void;
+  onBackToSignature: () => void;
   errors?: ProtocolError[];
   protocolData?: {
     buildingAddress?: string;
@@ -40,6 +42,7 @@ export function Completion({
   onStartNew,
   onGoHome,
   onSettings,
+  onBackToSignature,
   errors = [],
   protocolData,
 }: CompletionProps) {
@@ -150,15 +153,28 @@ export function Completion({
             </Button>
           </div>
           
-          {/* Start New Protocol */}
-          <Button
-            onClick={onStartNew}
-            variant="outline"
-            className="text-otis-blue border-2 border-otis-blue hover:bg-otis-light-blue px-8 py-3"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            {t.startNew}
-          </Button>
+          {/* Navigation buttons */}
+          <div className="flex gap-4 justify-center">
+            {/* Back to Signature */}
+            <Button
+              onClick={onBackToSignature}
+              variant="outline"
+              className="text-gray-600 border-2 border-gray-300 hover:bg-gray-50 px-6 py-3"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              {t.back}
+            </Button>
+            
+            {/* Start New Protocol */}
+            <Button
+              onClick={onStartNew}
+              variant="outline"
+              className="text-otis-blue border-2 border-otis-blue hover:bg-otis-light-blue px-8 py-3"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              {t.startNew}
+            </Button>
+          </div>
         </div>
 
         {/* Error Export Section - only show if there are errors */}

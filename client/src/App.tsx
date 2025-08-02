@@ -434,15 +434,20 @@ function App() {
   const handleStartNew = () => {
     console.log('🆕 Starting new protocol - clearing all data...');
     
-    // Clear all localStorage data
+    // Clear ALL localStorage data thoroughly
     localStorage.removeItem('otis-protocol-form-data');
     localStorage.removeItem('protocol-errors');
     localStorage.removeItem('niedervolt-measurements');
+    localStorage.removeItem('questionnaire-current-page');
     
     // Clear all cached values (radio buttons, inputs, measurements)
     if ((window as any).radioCache) {
       console.log('Clearing radio cache...');
       (window as any).radioCache.clear();
+    }
+    if ((window as any).trueFalseCache) {
+      console.log('Clearing true/false cache...');
+      (window as any).trueFalseCache.clear();
     }
     if ((window as any).stableInputValues) {
       console.log('Clearing input values...');
@@ -451,6 +456,10 @@ function App() {
     if ((window as any).measurementCache) {
       console.log('Clearing measurement cache...');
       (window as any).measurementCache.clear();
+    }
+    if ((window as any).calculatedCache) {
+      console.log('Clearing calculated values cache...');
+      (window as any).calculatedCache = {};
     }
     
     // Reset form data to completely fresh initial state
@@ -469,6 +478,11 @@ function App() {
     // Trigger event to notify error list component of the clear
     window.dispatchEvent(new CustomEvent('protocol-errors-cleared'));
     
+    // Force complete page refresh to clear any persistent cache
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
+    
     console.log('✅ All data cleared - new protocol ready');
   };
 
@@ -478,6 +492,10 @@ function App() {
 
   const handleSettings = () => {
     setCurrentScreen('admin');
+  };
+
+  const handleBackToSignature = () => {
+    setCurrentScreen('signature');
   };
 
   // Stable callbacks defined outside Router to prevent recreation
@@ -565,6 +583,8 @@ function App() {
             onViewProtocol={handleViewProtocol}
             onStartNew={handleStartNew}
             onGoHome={handleGoHome}
+            onSettings={handleSettings}
+            onBackToSignature={handleBackToSignature}
             onSettings={handleSettings}
             errors={formData.errors}
             protocolData={{
