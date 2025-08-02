@@ -79,6 +79,11 @@ export function usePWA(): UsePWAReturn {
 
   const registerServiceWorker = async () => {
     try {
+      // Temporarily disable service worker to fix desktop crash issues
+      console.log('[PWA] Service worker registration disabled for stability');
+      return;
+      
+      // This will be re-enabled after stability fixes
       const registration = await navigator.serviceWorker.register('/sw.js', {
         scope: '/',
         updateViaCache: 'none'
@@ -86,22 +91,6 @@ export function usePWA(): UsePWAReturn {
       
       console.log('[PWA] Service worker registered successfully:', registration);
       setSwRegistration(registration);
-
-      // Listen for updates
-      registration.addEventListener('updatefound', () => {
-        const newWorker = registration.installing;
-        if (newWorker) {
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              console.log('[PWA] New service worker available');
-              // Show update notification
-              if (window.confirm('Új verzió érhető el. Szeretné frissíteni az alkalmazást?')) {
-                window.location.reload();
-              }
-            }
-          });
-        }
-      });
 
     } catch (error) {
       console.error('[PWA] Service worker registration failed:', error);

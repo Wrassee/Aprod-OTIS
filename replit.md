@@ -63,12 +63,12 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 ## VERSION 0.4.6 PRODUCTION RELEASE - FINAL STABILITY & POLISH ✅
 
 ### Release Date: February 2, 2025 
-### Status: OTIS APROD 0.4.6 - PRODUCTION READY (MINDEN FUNKCIÓ TÖKÉLETES!)
+### Status: OTIS APROD 0.4.6 - STABILITY FIXES (PWA TEMPORARILY DISABLED)
 
 ### NEW VERSION 0.4.6 FINAL STABILITY FIXES (February 2, 2025)
 
-#### PWA CONVERSION COMPLETE ✅ (February 2, 2025)
-- **Progressive Web App Features**: ✅ TESTED & WORKING - User confirmed PWA installation successful
+#### PWA STABILITY FIXES ⚠️ (February 2, 2025)  
+- **PWA Temporarily Disabled**: ⚠️ Service Worker disabled due to desktop crash issues
   - Service Worker regisztrálva offline cache-eléssel és background sync támogatással
   - Web App Manifest telepíthetőséghez és app-szerű megjelenéshez
   - PWA install banner automatikus megjelenítéssel Android/iOS platformokon

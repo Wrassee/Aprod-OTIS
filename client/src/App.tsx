@@ -5,7 +5,8 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/components/language-provider";
-import { PWAInstallBanner, OfflineIndicator } from "@/components/pwa-install-banner";
+// Temporarily disabled PWA components for stability
+// import { PWAInstallBanner, OfflineIndicator } from "@/components/pwa-install-banner";
 import { StartScreen } from "@/pages/start-screen";
 import Questionnaire from "@/pages/questionnaire";
 import { NiedervoltMeasurements } from "@/pages/niedervolt-measurements";
@@ -524,8 +525,7 @@ function App() {
       <LanguageProvider>
         <TooltipProvider>
           <Toaster />
-          <OfflineIndicator />
-          <PWAInstallBanner />
+          {/* PWA components temporarily disabled for stability */}
           {renderCurrentScreen()}
         </TooltipProvider>
       </LanguageProvider>
