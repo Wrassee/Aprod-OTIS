@@ -6,141 +6,109 @@
     <title>OTIS APROD - Offline</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             margin: 0;
             padding: 20px;
-            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
-            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            color: white;
             text-align: center;
         }
         
         .container {
-            max-width: 500px;
-            padding: 40px;
+            max-width: 400px;
             background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
             border-radius: 20px;
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
         }
         
         .logo {
             width: 80px;
             height: 80px;
-            background: #dc2626;
-            border-radius: 16px;
+            background: white;
+            border-radius: 50%;
             margin: 0 auto 20px;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 32px;
             font-weight: bold;
-            font-size: 24px;
-            color: white;
+            color: #333;
         }
         
         h1 {
-            margin: 0 0 10px;
-            font-size: 28px;
+            margin: 0 0 20px;
+            font-size: 24px;
             font-weight: 600;
         }
         
-        .subtitle {
-            color: #d1d5db;
-            margin-bottom: 30px;
+        p {
+            margin: 0 0 30px;
             font-size: 16px;
-        }
-        
-        .offline-message {
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .offline-message h2 {
-            margin: 0 0 10px;
-            color: #fca5a5;
-            font-size: 18px;
-        }
-        
-        .offline-message p {
-            margin: 0;
-            color: #fed7d7;
+            opacity: 0.9;
             line-height: 1.5;
         }
         
-        .features {
-            text-align: left;
-            margin: 30px 0;
-        }
-        
-        .features h3 {
-            color: #10b981;
-            margin-bottom: 15px;
-            font-size: 16px;
-        }
-        
-        .features ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        
-        .features li {
-            padding: 8px 0;
-            padding-left: 25px;
-            position: relative;
-            color: #d1d5db;
-        }
-        
-        .features li:before {
-            content: "✓";
-            position: absolute;
-            left: 0;
-            color: #10b981;
-            font-weight: bold;
-        }
-        
-        .retry-btn {
-            background: linear-gradient(135deg, #dc2626, #b91c1c);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 20px;
-        }
-        
-        .retry-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(220, 38, 38, 0.3);
-        }
-        
         .status {
-            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
             padding: 15px;
-            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
             font-size: 14px;
         }
         
-        .status.online {
-            background: rgba(16, 185, 129, 0.2);
-            color: #6ee7b7;
-            border: 1px solid rgba(16, 185, 129, 0.3);
+        .indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff6b6b;
+            animation: pulse 2s infinite;
         }
         
-        .status.offline {
-            background: rgba(239, 68, 68, 0.2);
-            color: #fca5a5;
-            border: 1px solid rgba(239, 68, 68, 0.3);
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .actions {
+            margin-top: 30px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 5px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .note {
+            margin-top: 30px;
+            font-size: 14px;
+            opacity: 0.8;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
         }
     </style>
 </head>
@@ -148,73 +116,45 @@
     <div class="container">
         <div class="logo">O</div>
         <h1>OTIS APROD</h1>
-        <p class="subtitle">Átvételi Protokoll Alkalmazás</p>
+        <p>Az alkalmazás jelenleg offline módban működik. A protokoll adatok mentve maradnak a helyi tárolóban.</p>
         
-        <div class="offline-message">
-            <h2>🔌 Nincs internetkapcsolat</h2>
-            <p>Az alkalmazás offline módban fut. Bizonyos funkciók korlátozottan érhetők el.</p>
+        <div class="status">
+            <div class="indicator"></div>
+            <span>Nincs internetkapcsolat</span>
         </div>
         
-        <div class="features">
-            <h3>Elérhető offline funkciók:</h3>
-            <ul>
-                <li>Protokoll kitöltése (localStorage mentés)</li>
-                <li>Hibák rögzítése és szerkesztése</li>
-                <li>Mérési adatok bevitele</li>
-                <li>Aláírás funkció</li>
-                <li>Korábban betöltött sablonok</li>
-            </ul>
+        <div class="actions">
+            <a href="/" class="btn" onclick="window.location.reload()">Újrapróbálás</a>
         </div>
         
-        <button class="retry-btn" onclick="retryConnection()">
-            🔄 Kapcsolat újrapróbálása
-        </button>
-        
-        <div id="connection-status" class="status offline">
-            Offline állapot - Az adatok helyben mentődnek
+        <div class="note">
+            💾 <strong>Adatok biztonságban:</strong><br>
+            A kitöltött protokoll adatok automatikusan mentve vannak. Amikor helyreáll az internetkapcsolat, folytathatja a munkát ugyanott, ahol abbahagyta.
         </div>
     </div>
 
     <script>
-        // Connection status monitoring
-        function updateConnectionStatus() {
-            const statusElement = document.getElementById('connection-status');
-            
-            if (navigator.onLine) {
-                statusElement.className = 'status online';
-                statusElement.textContent = '✅ Online - Szinkronizálás elérhető';
-                
-                // Auto-redirect to main app when online
-                setTimeout(() => {
-                    window.location.href = '/';
-                }, 2000);
-            } else {
-                statusElement.className = 'status offline';
-                statusElement.textContent = '🔴 Offline - Helyi mentés aktív';
-            }
-        }
-        
-        function retryConnection() {
+        // Check for connection periodically
+        function checkConnection() {
             if (navigator.onLine) {
                 window.location.href = '/';
-            } else {
-                alert('Még mindig nincs internetkapcsolat. Kérjük ellenőrizze a hálózati beállításokat.');
             }
         }
         
-        // Listen for online/offline events
-        window.addEventListener('online', updateConnectionStatus);
-        window.addEventListener('offline', updateConnectionStatus);
+        // Check connection every 5 seconds
+        setInterval(checkConnection, 5000);
         
-        // Initial status check
-        updateConnectionStatus();
+        // Listen for online event
+        window.addEventListener('online', checkConnection);
         
-        // Periodic retry every 30 seconds
-        setInterval(() => {
-            if (navigator.onLine) {
-                updateConnectionStatus();
-            }
-        }, 30000);
+        // Update indicator when online
+        window.addEventListener('online', () => {
+            document.querySelector('.indicator').style.background = '#51cf66';
+            document.querySelector('.status span').textContent = 'Kapcsolat helyreállítva';
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1000);
+        });
     </script>
 </body>
 </html>

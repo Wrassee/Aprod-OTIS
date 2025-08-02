@@ -3,7 +3,7 @@
   "short_name": "OTIS APROD",
   "description": "OTIS lift inspection protocol application for technicians",
   "start_url": "/",
-  "display": "browser",
+  "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#1f2937",
   "orientation": "portrait-primary",
