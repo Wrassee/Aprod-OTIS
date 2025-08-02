@@ -168,8 +168,9 @@ export function NiedervoltStandalone({
         {/* Group Header */}
         <QuestionGroupHeader
           groupName="Niedervolt Installations Verordnung art.14"
-          currentPage={5}
-          totalPages={5}
+          questionCount={currentMeasurements.length}
+          totalGroups={5}
+          currentGroupIndex={4}
         />
 
         {/* Statistics Cards */}
