@@ -29,9 +29,35 @@ export function StableInput({ questionId, type = 'text', placeholder, initialVal
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
     
-    // STRICT 5 character limit for measurement inputs
-    if (questionId && questionId.startsWith('m') && value.length > 5) {
-      value = value.slice(0, 5);
+    // MEASUREMENT VALIDATION - Only allow numbers and decimal point for measurement questions
+    if (questionId && questionId.startsWith('m')) {
+      // Remove all non-numeric characters except decimal point and minus sign
+      value = value.replace(/[^0-9.-]/g, '');
+      
+      // Ensure only one decimal point
+      const decimalCount = (value.match(/\./g) || []).length;
+      if (decimalCount > 1) {
+        const firstDecimalIndex = value.indexOf('.');
+        value = value.substring(0, firstDecimalIndex + 1) + value.substring(firstDecimalIndex + 1).replace(/\./g, '');
+      }
+      
+      // Ensure only one minus sign at the beginning
+      if (value.includes('-')) {
+        const minusCount = (value.match(/-/g) || []).length;
+        if (minusCount > 1 || value.indexOf('-') !== 0) {
+          value = value.replace(/-/g, '');
+          if (value.charAt(0) !== '-' && e.target.value.charAt(0) === '-') {
+            value = '-' + value;
+          }
+        }
+      }
+      
+      // STRICT 5 character limit for measurement inputs
+      if (value.length > 5) {
+        value = value.slice(0, 5);
+      }
+      
+      // Update the input field with cleaned value
       e.target.value = value;
     }
     
@@ -74,6 +100,30 @@ export function StableInput({ questionId, type = 'text', placeholder, initialVal
           e.preventDefault();
           e.stopPropagation();
           return false;
+        }
+        
+        // Additional prevention for measurement fields - block non-numeric keys
+        if (questionId && questionId.startsWith('m')) {
+          const allowedKeys = [
+            'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
+            'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+            'Home', 'End', 'Minus'
+          ];
+          
+          const isNumber = /^[0-9]$/.test(e.key);
+          const isDecimal = e.key === '.';
+          const isMinus = e.key === '-';
+          const isAllowed = allowedKeys.includes(e.key);
+          const isCtrlA = e.ctrlKey && e.key === 'a';
+          const isCtrlC = e.ctrlKey && e.key === 'c';
+          const isCtrlV = e.ctrlKey && e.key === 'v';
+          const isCtrlX = e.ctrlKey && e.key === 'x';
+          const isCtrlZ = e.ctrlKey && e.key === 'z';
+          
+          if (!isNumber && !isDecimal && !isMinus && !isAllowed && !isCtrlA && !isCtrlC && !isCtrlV && !isCtrlX && !isCtrlZ) {
+            e.preventDefault();
+            return false;
+          }
         }
       }}
       placeholder={placeholder}
