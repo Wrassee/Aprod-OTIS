@@ -501,6 +501,13 @@ function App() {
             onStartNew={handleStartNew}
             onGoHome={handleGoHome}
             onSettings={handleSettings}
+            errors={formData.errors}
+            protocolData={{
+              buildingAddress: formData.answers['1'] as string || '',
+              liftId: formData.answers['7'] as string || '',
+              inspectorName: formData.answers['4'] as string || '',
+              inspectionDate: formData.receptionDate
+            }}
           />
         );
       case 'admin':

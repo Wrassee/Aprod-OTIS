@@ -1,5 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { useLanguageContext } from '@/components/language-provider';
+import { ErrorExport } from '@/components/error-export';
+import { ProtocolError } from '@shared/schema';
 import { 
   CheckCircle, 
   Mail, 
@@ -20,6 +22,13 @@ interface CompletionProps {
   onStartNew: () => void;
   onGoHome: () => void;
   onSettings: () => void;
+  errors?: ProtocolError[];
+  protocolData?: {
+    buildingAddress?: string;
+    liftId?: string;
+    inspectorName?: string;
+    inspectionDate?: string;
+  };
 }
 
 export function Completion({
@@ -31,6 +40,8 @@ export function Completion({
   onStartNew,
   onGoHome,
   onSettings,
+  errors = [],
+  protocolData,
 }: CompletionProps) {
   const { t } = useLanguageContext();
 
@@ -149,6 +160,21 @@ export function Completion({
             {t.startNew}
           </Button>
         </div>
+
+        {/* Error Export Section - only show if there are errors */}
+        {(errors.length > 0 || JSON.parse(localStorage.getItem('protocol-errors') || '[]').length > 0) && (
+          <div className="mt-8">
+            <ErrorExport 
+              errors={errors.length > 0 ? errors : JSON.parse(localStorage.getItem('protocol-errors') || '[]')}
+              protocolData={protocolData || {
+                buildingAddress: '',
+                liftId: '',
+                inspectorName: '',
+                inspectionDate: new Date().toISOString().split('T')[0]
+              }}
+            />
+          </div>
+        )}
       </main>
     </div>
   );

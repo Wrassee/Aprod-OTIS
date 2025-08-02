@@ -260,9 +260,9 @@ export function StableQuestionnaire({
         {/* Error Management */}
         <ErrorList
           errors={errors}
-          onAddError={addError}
-          onEditError={editError}
-          onDeleteError={deleteError}
+          onAddError={handleAddError}
+          onEditError={handleEditError}
+          onDeleteError={handleDeleteError}
         />
 
         {/* Error Export - only show if there are errors */}
