@@ -144,7 +144,7 @@ export function NiedervoltStandalone({
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center">
               <h1 className="text-2xl font-bold text-white">OTIS APROD</h1>
-              <span className="ml-4 text-white/80 text-sm">Niedervolt Installations Verordnung art.14</span>
+              <span className="ml-4 text-white/80 text-sm">5/5</span>
             </div>
             <div className="flex space-x-2">
               <Button variant="outline" size="sm" onClick={onSave} className="bg-white/10 border-white/20 text-white hover:bg-white/20">
@@ -205,63 +205,89 @@ export function NiedervoltStandalone({
           </Card>
         </div>
 
-        {/* Measurement Table */}
-        <Card className="shadow-xl">
-          <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100">
-            <div className="flex justify-between items-center">
-              <CardTitle className="text-xl text-gray-800">Mérési adatok táblázat</CardTitle>
-              <Button onClick={addRow} className="bg-otis-blue hover:bg-otis-blue/90">
-                <Plus className="w-4 h-4 mr-2" />
-                Új mérés hozzáadása
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b-2 border-gray-200">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-48">Mérés típusa</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Leírás</th>
-                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-32">1. érték</th>
-                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-32">2. érték</th>
-                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-32">3. érték</th>
-                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-24">Egység</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Megjegyzések</th>
-                    <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-16">Művelet</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {currentMeasurements.map((row, index) => (
-                    <tr key={row.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="px-6 py-4 border-r border-gray-100">
-                        <div className="w-full">
-                          <Select value={row.measurementType} onValueChange={(value) => handleSelectChange(row.id, value)}>
-                            <SelectTrigger className="w-full border-blue-200 focus:border-otis-blue focus:ring-otis-blue/20">
-                              <SelectValue placeholder="Válasszon mérés típust" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {measurementTypes.map((type) => (
-                                <SelectItem key={type.id} value={type.id}>
-                                  {type.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 border-r border-gray-100">
-                        <NativeStableInput
-                          rowId={row.id}
-                          field="description"
-                          type="text"
-                          initialValue={row.description}
-                          onValueChange={handleNativeInputChange}
-                          placeholder="Részletes mérés leírása..."
-                          className="w-full border-blue-200 focus:border-otis-blue focus:ring-otis-blue/20"
-                        />
-                      </td>
-                      <td className="px-6 py-4 border-r border-gray-100">
+        {/* Measurement Cards Grid */}
+        <div className="space-y-6">
+          {currentMeasurements.map((row, index) => (
+            <Card key={row.id} className="shadow-lg border-l-4 border-l-otis-blue">
+              <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 pb-4">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <CardTitle className="text-lg text-gray-800 mb-3">
+                      Mérés #{index + 1}
+                    </CardTitle>
+                    <div className="w-full max-w-md">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Mérés típusa
+                      </label>
+                      <Select value={row.measurementType} onValueChange={(value) => handleSelectChange(row.id, value)}>
+                        <SelectTrigger className="w-full border-blue-200 focus:border-otis-blue focus:ring-otis-blue/20">
+                          <SelectValue placeholder="Válasszon mérés típust" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {measurementTypes.map((type) => (
+                            <SelectItem key={type.id} value={type.id}>
+                              {type.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => deleteRow(row.id)}
+                    className="text-red-600 border-red-200 hover:bg-red-50"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Left Column */}
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Részletes leírás
+                      </label>
+                      <NativeStableInput
+                        rowId={row.id}
+                        field="description"
+                        type="text"
+                        initialValue={row.description}
+                        onValueChange={handleNativeInputChange}
+                        placeholder="Adja meg a mérés részletes leírását..."
+                        className="w-full border-blue-200 focus:border-otis-blue focus:ring-otis-blue/20"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Megjegyzések
+                      </label>
+                      <NativeStableInput
+                        rowId={row.id}
+                        field="notes"
+                        type="text"
+                        initialValue={row.notes}
+                        onValueChange={handleNativeInputChange}
+                        placeholder="További megjegyzések, észrevételek..."
+                        className="w-full border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Right Column - Measurement Values */}
+                  <div className="space-y-4">
+                    <h4 className="text-lg font-semibold text-gray-800 mb-4">Mérési értékek</h4>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          1. érték
+                        </label>
                         <NativeStableInput
                           rowId={row.id}
                           field="value1"
@@ -269,10 +295,14 @@ export function NiedervoltStandalone({
                           initialValue={row.value1}
                           onValueChange={handleNativeInputChange}
                           placeholder="0.000"
-                          className="w-full text-right font-mono border-green-200 focus:border-green-400 focus:ring-green-200"
+                          className="w-full text-right font-mono text-lg border-green-200 focus:border-green-400 focus:ring-green-200"
                         />
-                      </td>
-                      <td className="px-6 py-4 border-r border-gray-100">
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          2. érték
+                        </label>
                         <NativeStableInput
                           rowId={row.id}
                           field="value2"
@@ -280,10 +310,14 @@ export function NiedervoltStandalone({
                           initialValue={row.value2}
                           onValueChange={handleNativeInputChange}
                           placeholder="0.000"
-                          className="w-full text-right font-mono border-green-200 focus:border-green-400 focus:ring-green-200"
+                          className="w-full text-right font-mono text-lg border-green-200 focus:border-green-400 focus:ring-green-200"
                         />
-                      </td>
-                      <td className="px-6 py-4 border-r border-gray-100">
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          3. érték
+                        </label>
                         <NativeStableInput
                           rowId={row.id}
                           field="value3"
@@ -291,58 +325,54 @@ export function NiedervoltStandalone({
                           initialValue={row.value3}
                           onValueChange={handleNativeInputChange}
                           placeholder="0.000"
-                          className="w-full text-right font-mono border-green-200 focus:border-green-400 focus:ring-green-200"
+                          className="w-full text-right font-mono text-lg border-green-200 focus:border-green-400 focus:ring-green-200"
                         />
-                      </td>
-                      <td className="px-6 py-4 border-r border-gray-100">
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Mértékegység
+                        </label>
                         <NativeStableInput
                           rowId={row.id}
                           field="unit"
                           type="text"
                           initialValue={row.unit}
                           onValueChange={handleNativeInputChange}
-                          placeholder="Egység"
-                          className="w-full text-center text-sm font-medium border-purple-200 focus:border-purple-400 focus:ring-purple-200"
+                          placeholder="pl. MΩ, V, A"
+                          className="w-full text-center font-medium border-purple-200 focus:border-purple-400 focus:ring-purple-200"
                         />
-                      </td>
-                      <td className="px-6 py-4 border-r border-gray-100">
-                        <NativeStableInput
-                          rowId={row.id}
-                          field="notes"
-                          type="text"
-                          initialValue={row.notes}
-                          onValueChange={handleNativeInputChange}
-                          placeholder="További megjegyzések..."
-                          className="w-full border-orange-200 focus:border-orange-400 focus:ring-orange-200"
-                        />
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => deleteRow(row.id)}
-                          className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            
-            {currentMeasurements.length === 0 && (
-              <div className="py-12 text-center text-gray-500">
-                <p className="text-lg mb-4">Még nincsenek mérési adatok</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+          
+          {/* Add New Measurement Card */}
+          <Card className="shadow-lg border-2 border-dashed border-otis-blue/30 hover:border-otis-blue/60 transition-colors">
+            <CardContent className="p-8">
+              <div className="text-center">
+                <div className="mb-4">
+                  <div className="w-16 h-16 bg-otis-blue/10 rounded-full flex items-center justify-center mx-auto">
+                    <Plus className="w-8 h-8 text-otis-blue" />
+                  </div>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                  Új mérés hozzáadása
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  Kattintson ide egy új mérési sor létrehozásához
+                </p>
                 <Button onClick={addRow} className="bg-otis-blue hover:bg-otis-blue/90">
                   <Plus className="w-4 h-4 mr-2" />
-                  Első mérés hozzáadása
+                  Mérés hozzáadása
                 </Button>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Navigation */}
         <div className="flex justify-between items-center mt-8">
@@ -352,7 +382,7 @@ export function NiedervoltStandalone({
           </Button>
           
           <div className="text-sm text-gray-600">
-            Oldal 5/5 - Niedervolt mérések
+            Niedervolt Installations Verordnung art.14 - Mérési jegyzőkönyv
           </div>
           
           <Button onClick={onNext} className="bg-otis-blue hover:bg-otis-blue/90">
