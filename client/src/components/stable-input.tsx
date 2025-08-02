@@ -18,13 +18,34 @@ export function StableInput({ questionId, type = 'text', placeholder, initialVal
 
   useEffect(() => {
     if (inputRef.current && !mountedRef.current) {
-      // Set initial value only once on mount
-      if (initialValue) {
-        inputRef.current.value = initialValue;
+      // Load saved value from cache if available
+      const cachedValue = questionId && questionId.startsWith('m') 
+        ? ((window as any).measurementValues?.[questionId] || (window as any).stableInputValues?.[questionId])
+        : (window as any).stableInputValues?.[questionId];
+      
+      const valueToSet = cachedValue || initialValue || '';
+      
+      // Set the value in the input field
+      if (valueToSet) {
+        inputRef.current.value = valueToSet.toString();
+        
+        // Also store it back in the cache to ensure consistency
+        if (!(window as any).stableInputValues) {
+          (window as any).stableInputValues = {};
+        }
+        (window as any).stableInputValues[questionId] = valueToSet.toString();
+        
+        if (questionId && questionId.startsWith('m')) {
+          if (!(window as any).measurementValues) {
+            (window as any).measurementValues = {};
+          }
+          (window as any).measurementValues[questionId] = valueToSet.toString();
+        }
       }
+      
       mountedRef.current = true;
     }
-  }, [initialValue]);
+  }, [initialValue, questionId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;

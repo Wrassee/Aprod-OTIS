@@ -175,6 +175,14 @@ export function MeasurementBlock({ questions, onChange, onAddError }: Measuremen
                       style={{width: "70px", fontSize: "12px"}}
                       min={question.minValue}
                       max={question.maxValue}
+                      initialValue={(() => {
+                        // Load saved value from multiple sources
+                        const cachedValue = (window as any).measurementValues?.[question.id] || 
+                                          (window as any).stableInputValues?.[question.id];
+                        const savedFormData = JSON.parse(localStorage.getItem('otis-protocol-form-data') || '{"answers":{}}');
+                        const savedValue = savedFormData.answers?.[question.id];
+                        return cachedValue || savedValue || '';
+                      })()}
                     />
                     {question.unit && (
                       <span className="text-sm text-gray-500 w-8">{question.unit}</span>
