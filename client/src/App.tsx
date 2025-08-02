@@ -8,6 +8,7 @@ import { LanguageProvider } from "@/components/language-provider";
 import { StartScreen } from "@/pages/start-screen";
 import Questionnaire from "@/pages/questionnaire";
 import { NiedervoltMeasurements } from "@/pages/niedervolt-measurements";
+import { NiedervoltStandalone } from "@/pages/niedervolt-standalone";
 import { Signature } from "@/pages/signature";
 import { Completion } from "@/pages/completion";
 import { Admin } from "@/pages/admin";
@@ -407,7 +408,7 @@ function App() {
               return <StartScreen onLanguageSelect={handleLanguageSelect} />;
             case 'niedervolt':
               return (
-                <NiedervoltMeasurements
+                <NiedervoltStandalone
                   key="stable-niedervolt-key"
                   measurements={formData.niedervoltMeasurements || []}
                   onMeasurementsChange={handleNiedervoltMeasurementsChange}

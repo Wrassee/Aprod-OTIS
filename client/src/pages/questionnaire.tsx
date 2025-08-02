@@ -85,8 +85,19 @@ const Questionnaire = memo(function Questionnaire({
     localStorage.setItem('questionnaire-current-page', currentPage.toString());
   }, [currentPage]);
 
-  // Load questions ONCE on mount only - no dependency array to prevent re-runs
+  // Load questions ONCE on mount only with stable language reference
+  const loadQuestionsRef = useRef(false);
+  const lastLanguageRef = useRef(language);
+  
   useEffect(() => {
+    // Only load if language changed or first load
+    if (loadQuestionsRef.current && lastLanguageRef.current === language) {
+      return;
+    }
+    
+    loadQuestionsRef.current = true;
+    lastLanguageRef.current = language;
+    
     const loadQuestions = async () => {
       try {
         setQuestionsLoading(true);
@@ -143,9 +154,8 @@ const Questionnaire = memo(function Questionnaire({
       }
     };
 
-    // Load questions only on mount
     loadQuestions();
-  }, []); // Load questions only once on mount
+  }, [language]);
 
   // Group questions by groupName and organize by groups
   const { questionGroups, totalPages, currentQuestions, progress, currentGroup } = useMemo(() => {
