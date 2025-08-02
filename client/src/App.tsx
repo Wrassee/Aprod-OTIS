@@ -432,21 +432,44 @@ function App() {
   };
 
   const handleStartNew = () => {
-    setFormData({
+    console.log('🆕 Starting new protocol - clearing all data...');
+    
+    // Clear all localStorage data
+    localStorage.removeItem('otis-protocol-form-data');
+    localStorage.removeItem('protocol-errors');
+    localStorage.removeItem('niedervolt-measurements');
+    
+    // Clear all cached values (radio buttons, inputs, measurements)
+    if ((window as any).radioCache) {
+      console.log('Clearing radio cache...');
+      (window as any).radioCache.clear();
+    }
+    if ((window as any).stableInputValues) {
+      console.log('Clearing input values...');
+      (window as any).stableInputValues = {};
+    }
+    if ((window as any).measurementCache) {
+      console.log('Clearing measurement cache...');
+      (window as any).measurementCache.clear();
+    }
+    
+    // Reset form data to completely fresh initial state
+    const initialFormData: FormData = {
       receptionDate: new Date().toISOString().split('T')[0],
       answers: {},
       errors: [],
       signature: '',
       signatureName: '',
       niedervoltMeasurements: [],
-    });
+    };
+    
+    setFormData(initialFormData);
     setCurrentScreen('start');
-    // Clear all localStorage data for new protocol
-    localStorage.removeItem('otis-protocol-form-data');
-    localStorage.removeItem('protocol-errors');
     
     // Trigger event to notify error list component of the clear
     window.dispatchEvent(new CustomEvent('protocol-errors-cleared'));
+    
+    console.log('✅ All data cleared - new protocol ready');
   };
 
   const handleGoHome = () => {
