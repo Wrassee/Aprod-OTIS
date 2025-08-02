@@ -298,20 +298,28 @@ function App() {
       console.log('Excel download filename:', `AP_${otisLiftId}.xlsx`);
       console.log('Excel file size:', blob.size, 'bytes');
       
-      document.body.appendChild(a);
-      a.click();
+      // Safer download approach
+      try {
+        document.body.appendChild(a);
+        a.click();
+        console.log('Excel download completed successfully');
+      } catch (downloadError) {
+        console.error('Error during download click:', downloadError);
+        throw downloadError;
+      }
       
-      // Clean up - but with timeout to prevent crashes
+      // Clean up - but with safer timeout and error handling
       setTimeout(() => {
         try {
-          if (url) {
+          if (url && typeof window !== 'undefined' && window.URL) {
             window.URL.revokeObjectURL(url);
           }
-          if (a && document.body && document.body.contains(a)) {
+          if (a && document.body && document.body.contains && document.body.contains(a)) {
             document.body.removeChild(a);
           }
         } catch (cleanupError) {
-          console.warn('Error during Excel download cleanup:', cleanupError);
+          // Silent cleanup errors - don't crash the app
+          console.warn('Non-critical cleanup warning:', cleanupError);
         }
       }, 1000);
       
@@ -319,6 +327,13 @@ function App() {
       
     } catch (error) {
       console.error('Error downloading Excel:', error);
+      
+      // Detailed error logging for debugging
+      if (error instanceof Error) {
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+      }
       
       // User-friendly error message
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
