@@ -116,7 +116,13 @@ export function Completion({
             
             {/* Download Excel */}
             <Button
-              onClick={onDownloadExcel}
+              onMouseDown={(e) => e.preventDefault()}
+              onTouchStart={(e) => e.preventDefault()}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onDownloadExcel();
+              }}
               className="bg-orange-600 hover:bg-orange-700 text-white flex items-center justify-center py-4 h-auto"
             >
               <Download className="h-5 w-5 mr-3" />

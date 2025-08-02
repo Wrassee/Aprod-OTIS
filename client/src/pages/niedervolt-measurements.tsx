@@ -303,8 +303,11 @@ export function NiedervoltMeasurements({
                     await saveToStorage();
                   }}
                   disabled={saveStatus === 'saving'}
-                  className="flex items-center gap-2 px-4 py-2 border border-green-200 text-green-700 hover:bg-green-50 bg-white shadow-sm rounded-md font-medium text-sm disabled:opacity-50"
-                  style={{ backgroundColor: 'white', color: '#15803d' }}
+                  className={`flex items-center gap-2 px-4 py-2 border shadow-sm rounded-md font-medium text-sm disabled:opacity-50 transition-colors ${
+                    saveStatus === 'saved' 
+                      ? 'border-green-500 bg-green-500 text-white' 
+                      : 'border-green-200 text-green-700 hover:bg-green-50 bg-white'
+                  }`}
                 >
                   <Save className="h-4 w-4" />
                   {saveStatus === 'saving' ? t.saving : saveStatus === 'saved' ? t.saved : t.save}

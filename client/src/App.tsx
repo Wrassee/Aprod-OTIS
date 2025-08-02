@@ -304,8 +304,10 @@ function App() {
       // Clean up - but with timeout to prevent crashes
       setTimeout(() => {
         try {
-          window.URL.revokeObjectURL(url);
-          if (document.body.contains(a)) {
+          if (url) {
+            window.URL.revokeObjectURL(url);
+          }
+          if (a && document.body && document.body.contains(a)) {
             document.body.removeChild(a);
           }
         } catch (cleanupError) {

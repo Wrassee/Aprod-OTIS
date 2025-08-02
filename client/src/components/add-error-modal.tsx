@@ -84,7 +84,7 @@ export function AddErrorModal({ isOpen, onClose, onSave, editingError }: AddErro
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-sm max-h-[60vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[75vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t.addErrorTitle}</DialogTitle>
         </DialogHeader>
