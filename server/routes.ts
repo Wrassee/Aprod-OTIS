@@ -11,6 +11,7 @@ import { pdfService } from "./services/pdf-service";
 import { emailService } from "./services/email-service";
 import { excelParserService } from "./services/excel-parser";
 import { niedervoltExcelService } from "./services/niedervolt-excel-service";
+import { errorRoutes } from "./routes/error-routes";
 import { z } from "zod";
 import JSZip from "jszip";
 
@@ -43,6 +44,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     throw new Error('Failed to connect to database');
   }
   
+  // Error export routes
+  app.use('/api/errors', errorRoutes);
+
   // PWA routes - serve with correct MIME types
   app.get('/sw.js', (req, res) => {
     res.setHeader('Content-Type', 'application/javascript');

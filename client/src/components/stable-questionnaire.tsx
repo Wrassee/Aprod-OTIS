@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Label } from '@/components/ui/label';
 import { IsolatedQuestion } from '@/components/isolated-question';
 import { ErrorList } from '@/components/error-list';
+import { ErrorExport } from '@/components/error-export';
 import { useLanguageContext } from '@/components/language-provider';
 import { ArrowLeft, ArrowRight, Save, Settings, Home } from 'lucide-react';
 
@@ -210,7 +211,7 @@ export function StableQuestionnaire({
                     value={localAnswersRef.current[question.id] as string || ''}
                     onChange={(e) => handleAnswerChangeStable(question.id, e.target.value)}
                     className="w-full"
-                    placeholder={question.description || ''}
+                    placeholder={question.placeholder || ''}
                   />
                 )}
                 
@@ -244,12 +245,12 @@ export function StableQuestionnaire({
                     value={localAnswersRef.current[question.id] as number || ''}
                     onChange={(e) => handleAnswerChangeStable(question.id, parseInt(e.target.value) || 0)}
                     className="w-full"
-                    placeholder={question.description || ''}
+                    placeholder={question.placeholder || ''}
                   />
                 )}
                 
-                {question.description && (
-                  <p className="text-xs text-gray-500">{question.description}</p>
+                {question.placeholder && (
+                  <p className="text-xs text-gray-500">{question.placeholder}</p>
                 )}
               </div>
             ))}
@@ -257,21 +258,25 @@ export function StableQuestionnaire({
         </div>
 
         {/* Error Management */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-          <h3 className="text-lg font-medium text-gray-800 mb-4">{t.errorList}</h3>
-          {errors.length === 0 ? (
-            <p className="text-gray-500">{t.noErrors}</p>
-          ) : (
-            <div className="space-y-2">
-              {errors.map((error) => (
-                <div key={error.id} className="p-3 border rounded-lg">
-                  <p className="font-medium">{error.title}</p>
-                  <p className="text-sm text-gray-600">{error.description}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <ErrorList
+          errors={errors}
+          onAddError={addError}
+          onEditError={editError}
+          onDeleteError={deleteError}
+        />
+
+        {/* Error Export - only show if there are errors */}
+        {(errors.length > 0 || JSON.parse(localStorage.getItem('protocol-errors') || '[]').length > 0) && (
+          <ErrorExport 
+            errors={errors}
+            protocolData={{
+              buildingAddress: localAnswersRef.current['building_address'] as string,
+              liftId: localAnswersRef.current['lift_id'] as string,
+              inspectorName: localAnswersRef.current['inspector_name'] as string,
+              inspectionDate: receptionDate
+            }}
+          />
+        )}
 
         {/* Navigation */}
         <div className="flex justify-between items-center mt-8">

@@ -47,7 +47,7 @@ export const ProtocolError = z.object({
 });
 export type ProtocolError = z.infer<typeof ProtocolError>;
 
-export const Question = z.object({
+export const QuestionSchema = z.object({
   id: z.string(),
   title: z.string(),
   type: QuestionType,
@@ -57,7 +57,7 @@ export const Question = z.object({
   sheetName: z.string().optional(), // Sheet name in Excel file
   groupSize: z.number().optional(), // For true_false type: how many questions in this group
 });
-export type Question = z.infer<typeof Question>;
+export type Question = z.infer<typeof QuestionSchema>;
 
 // Template management
 export const templates = pgTable("templates", {
@@ -140,8 +140,8 @@ export interface MeasurementCalculation {
   unit: string; // mm, cm, m, etc.
 }
 
-// Question interface for frontend use
-export interface Question {
+// Question interface for frontend use  
+export interface QuestionInterface {
   id: string;
   title: string;
   titleHu?: string;
