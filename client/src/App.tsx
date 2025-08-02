@@ -106,11 +106,23 @@ function App() {
   };
 
   const handleSignatureComplete = async () => {
+    console.log('🔄 Starting protocol completion process...');
+    
+    // Prevent multiple clicks
+    const currentTime = Date.now();
+    if ((window as any).lastCompleteAttempt && currentTime - (window as any).lastCompleteAttempt < 3000) {
+      console.log('⚠️ Multiple clicks prevented - waiting for previous attempt to complete');
+      return;
+    }
+    (window as any).lastCompleteAttempt = currentTime;
+    
     try {
       // Sync all cached values before creating protocol
       const cachedRadioValues = (window as any).radioCache?.getAll?.() || {};
       const cachedTrueFalseValues = (window as any).trueFalseCache || new Map();
       const cachedInputValues = (window as any).stableInputValues || {};
+      const cachedMeasurementValues = (window as any).measurementCache?.getAll?.() || {};
+      const cachedCalculatedValues = (window as any).calculatedCache?.getAll?.() || {};
       
       // Convert Map to object if needed
       const trueFalseAnswers: Record<string, string> = {};
@@ -122,52 +134,81 @@ function App() {
         Object.assign(trueFalseAnswers, cachedTrueFalseValues);
       }
       
-      // Combine all answers
+      // Combine all answers including measurements
       const combinedAnswers = {
         ...formData.answers,
         ...cachedRadioValues,
         ...trueFalseAnswers,
         ...cachedInputValues,
+        ...cachedMeasurementValues,
+        ...cachedCalculatedValues,
       };
       
       // Ensure we have a valid receptionDate
       const receptionDate = formData.receptionDate || new Date().toISOString().split('T')[0];
       
+      // Include niedervolt measurements
       const protocolData = {
         receptionDate,
         language,
         answers: combinedAnswers,
         errors: formData.errors || [],
         signature: formData.signature || '',
-        signatureName: formData.signatureName || '',
+        signatureName: formData.signatureName || (window as any).signatureNameValue || '',
         completed: true,
       };
       
-      console.log('Creating protocol with data:', protocolData);
-      console.log('Combined answers count:', Object.keys(combinedAnswers).length);
-      console.log('Reception date:', receptionDate);
+      console.log('✅ Protocol data prepared:', {
+        answerCount: Object.keys(combinedAnswers).length,
+        errorCount: protocolData.errors.length,
+        hasSignature: Boolean(protocolData.signature),
+        hasSignatureName: Boolean(protocolData.signatureName),
+        receptionDate: protocolData.receptionDate,
+        language: protocolData.language
+      });
       
       // Submit the protocol data to backend
+      console.log('📤 Sending protocol to backend...');
       const response = await fetch('/api/protocols', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(protocolData),
       });
 
+      console.log('📥 Backend response status:', response.status);
+
       if (response.ok) {
         const result = await response.json();
-        console.log('Protocol created successfully:', result);
+        console.log('✅ Protocol saved successfully:', result.id);
+        
+        // Save the final form data to localStorage before navigating
+        const finalFormData = {
+          ...formData,
+          answers: combinedAnswers,
+          signatureName: protocolData.signatureName,
+          completed: true
+        };
+        localStorage.setItem('otis-protocol-form-data', JSON.stringify(finalFormData));
+        
         setCurrentScreen('completion');
-        // Clear saved data after successful completion
-        localStorage.removeItem('otis-protocol-form-data');
+        console.log('🎉 Protocol completion successful - navigating to completion screen');
       } else {
         const errorText = await response.text();
-        console.error('Protocol creation failed:', errorText);
-        throw new Error(`Failed to save protocol: ${errorText}`);
+        console.error('❌ Protocol creation failed:', errorText);
+        alert(`Protokoll mentési hiba: ${errorText}\n\nKérjük próbálja újra vagy lépjen kapcsolatba a támogatással.`);
+        
+        // Reset completion lock
+        delete (window as any).lastCompleteAttempt;
       }
     } catch (error) {
-      console.error('Error completing protocol:', error);
-      // Handle error (show toast, etc.)
+      console.error('❌ Error completing protocol:', error);
+      
+      // User-friendly error message
+      const errorMessage = error instanceof Error ? error.message : 'Ismeretlen hiba történt';
+      alert(`Protokoll befejezési hiba: ${errorMessage}\n\nKérjük ellenőrizze az internetkapcsolatot és próbálja újra.`);
+      
+      // Reset completion lock
+      delete (window as any).lastCompleteAttempt;
     }
   };
 

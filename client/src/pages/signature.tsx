@@ -134,20 +134,28 @@ export function Signature({
             </button>
             
             <Button
-              onClick={() => {
+              onClick={(e) => {
+                console.log('🔘 Protocol completion button clicked');
+                
+                // Prevent default behavior and stop propagation
+                e.preventDefault();
+                e.stopPropagation();
+                
                 // Sync signature name from global storage before completing
                 const signatureName = (window as any).signatureNameValue || '';
                 if (signatureName) {
+                  console.log('📝 Syncing signature name:', signatureName);
                   onSignatureNameChange(signatureName);
                 }
                 
                 // Small delay to ensure state updates
                 setTimeout(() => {
+                  console.log('⏰ Calling onComplete after sync delay');
                   onComplete();
                 }, 100);
               }}
               disabled={!canComplete}
-              className="bg-otis-blue hover:bg-blue-700 text-white flex items-center px-8"
+              className="bg-otis-blue hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white flex items-center px-8"
             >
               <Check className="h-4 w-4 mr-2" />
               {t.complete}
