@@ -71,6 +71,8 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Niedervolt Group Header**: ✅ ADDED - "Niedervolt Installations Verordnung art.14" csoport fejléc hozzáadva
 - **Automatikus Dátum**: ✅ ENHANCED - localStorage betöltéskor üres receptionDate esetén automatikus mai dátum kitöltés
 - **UI Egységesség**: ✅ COMPLETE - Minden oldal konzisztens group header megjelenítéssel és számozással
+- **Niedervolt Focus Stability**: ✅ FIXED - Wouter routing eltávolítva, stabil callback functions, fokusz nem ugrik ki
+- **2 Oszlopos Layout Visszaállítás**: ✅ RESTORED - 1. és 2. oldal (currentPage 0-1) kényszerített 2 oszlopos grid layout
 
 ### Previous VERSION 0.4.4 Features
 
