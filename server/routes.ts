@@ -352,6 +352,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Download template file
+  app.get("/api/admin/templates/:id/download", async (req, res) => {
+    try {
+      const templateId = req.params.id;
+      const template = await storage.getTemplate(templateId);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      const filePath = template.filePath;
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ message: "Template file not found on disk" });
+      }
+
+      // Set appropriate headers for file download
+      const fileName = template.fileName || `${template.name}.xlsx`;
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      
+      // Send the file
+      res.sendFile(path.resolve(filePath));
+      
+    } catch (error) {
+      console.error("Error downloading template:", error);
+      res.status(500).json({ message: "Failed to download template" });
+    }
+  });
+
   // Delete template
   app.delete("/api/admin/templates/:id", async (req, res) => {
     try {

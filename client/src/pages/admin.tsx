@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useLanguageContext } from '@/components/language-provider';
 import { formatDate } from '@/lib/utils';
-import { Upload, Settings, FileSpreadsheet, CheckCircle, XCircle, Eye, Edit, Home, Trash2, X } from 'lucide-react';
+import { Upload, Settings, FileSpreadsheet, CheckCircle, XCircle, Eye, Edit, Home, Trash2, X, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Template {
@@ -175,6 +175,44 @@ export function Admin({ onBack, onHome }: AdminProps) {
     }
   };
 
+  const handleDownload = async (templateId: string, templateName: string) => {
+    try {
+      const response = await fetch(`/api/admin/templates/${templateId}/download`);
+      
+      if (!response.ok) {
+        throw new Error('Download failed');
+      }
+
+      // Get the blob and create download link
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create temporary download link
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = templateName.endsWith('.xlsx') ? templateName : `${templateName}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast({
+        title: 'Siker',
+        description: `Sablon sikeresen letöltve: ${templateName}`,
+      });
+      
+    } catch (error) {
+      console.error('Error downloading template:', error);
+      toast({
+        title: 'Hiba',
+        description: 'Sablon letöltése sikertelen',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleDelete = async (templateId: string, templateName: string) => {
     if (!confirm(`Biztosan törölni szeretnéd a(z) "${templateName}" sablont? Ez a művelet nem vonható vissza.`)) {
       return;
@@ -291,6 +329,15 @@ export function Admin({ onBack, onHome }: AdminProps) {
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDownload(template.id, template.fileName)}
+                            title="Sablon letöltése"
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
                           <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
                             <DialogTrigger asChild>
                               <Button

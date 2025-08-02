@@ -282,7 +282,7 @@ export class ErrorExportService {
       await browser.close();
       
       console.log('🎯 PDF Generation: Successfully created error list PDF, size:', pdfBuffer.length);
-      return pdfBuffer;
+      return Buffer.from(pdfBuffer);
       
     } catch (error) {
       console.error('PDF Generation Error:', error);
@@ -290,8 +290,7 @@ export class ErrorExportService {
       // Fallback: Use jsPDF for reliable PDF generation
       console.log('🎯 PDF Generation: Falling back to jsPDF method');
       
-      const jsPDF = await import('jspdf');
-      const { jsPDF: PDF } = jsPDF.default;
+      const { jsPDF: PDF } = await import('jspdf');
       
       const doc = new PDF();
       
