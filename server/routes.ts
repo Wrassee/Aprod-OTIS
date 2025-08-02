@@ -43,6 +43,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     throw new Error('Failed to connect to database');
   }
   
+  // PWA routes - serve with correct MIME types
+  app.get('/sw.js', (req, res) => {
+    res.setHeader('Content-Type', 'application/javascript');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.sendFile(path.resolve(process.cwd(), 'public', 'sw.js'));
+  });
+  
+  app.get('/manifest.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/manifest+json');
+    res.sendFile(path.resolve(process.cwd(), 'public', 'manifest.json'));
+  });
+  
+  app.get('/offline.html', (req, res) => {
+    res.setHeader('Content-Type', 'text/html');
+    res.sendFile(path.resolve(process.cwd(), 'public', 'offline.html'));
+  });
+  
   // Create protocol
   app.post("/api/protocols", async (req, res) => {
     try {
