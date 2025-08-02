@@ -43,22 +43,3 @@ export function usePWA(): UsePWAReturn {
     swRegistration: null,
   };
 }
-
-// PWA utility functions - disabled for safety
-export const PWAUtils = {
-  isStandalone(): boolean {
-    return false; // Disabled
-  },
-
-  isIOS(): boolean {
-    return false; // Disabled
-  },
-
-  isAndroid(): boolean {
-    return false; // Disabled
-  },
-
-  canInstall(): boolean {
-    return false; // Disabled
-  }
-};
