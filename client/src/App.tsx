@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Switch, Route } from "wouter";
+// Removed Switch, Route from "wouter" - using direct rendering instead
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -378,92 +378,83 @@ function App() {
   const handleAdminAccess = useCallback(() => setCurrentScreen('admin'), []);
   const handleHome = useCallback(() => setCurrentScreen('start'), []);
 
-  function Router() {
-    return (
-      <Switch>
-        <Route path="/" component={() => {
-          
-          if (currentScreen === 'questionnaire') {
-            return (
-              <Questionnaire
-                key="stable-questionnaire-key"
-                receptionDate={formData.receptionDate}
-                onReceptionDateChange={handleReceptionDateChange}
-                answers={formData.answers}
-                onAnswerChange={handleAnswerChange}
-                errors={formData.errors}
-                onErrorsChange={handleErrorsChange}
-                onNext={handleQuestionnaireNext}
-                onSave={handleSaveProgress}
-                language={language}
-                onAdminAccess={handleAdminAccess}
-                onHome={handleHome}
-                onStartNew={handleStartNew}
-              />
-            );
-          }
-          
-          switch (currentScreen) {
-            case 'start':
-              return <StartScreen onLanguageSelect={handleLanguageSelect} />;
-            case 'niedervolt':
-              return (
-                <NiedervoltStandalone
-                  key="stable-niedervolt-key"
-                  measurements={formData.niedervoltMeasurements || []}
-                  onMeasurementsChange={handleNiedervoltMeasurementsChange}
-                  onBack={handleNiedervoltBack}
-                  onNext={handleNiedervoltNext}
-                  receptionDate={formData.receptionDate}
-                  onReceptionDateChange={handleReceptionDateChange}
-                  onAdminAccess={handleAdminAccess}
-                  onHome={handleGoHome}
-                  onStartNew={handleStartNew}
-                />
-              );
-            case 'signature':
-              return (
-                <Signature
-                  signature={formData.signature || ''}
-                  onSignatureChange={(signature) => setFormData(prev => ({ ...prev, signature }))}
-                  signatureName={formData.signatureName || ''}
-                  onSignatureNameChange={(signatureName) => setFormData(prev => ({ ...prev, signatureName }))}
-                  onBack={handleSignatureBack}
-                  onComplete={handleSignatureComplete}
-                />
-              );
-            case 'completion':
-              return (
-                <Completion
-                  onEmailPDF={handleEmailPDF}
-                  onSaveToCloud={handleSaveToCloud}
-                  onDownloadPDF={handleDownloadPDF}
-                  onDownloadExcel={handleDownloadExcel}
-                  onViewProtocol={handleViewProtocol}
-                  onStartNew={handleStartNew}
-                  onGoHome={handleGoHome}
-                  onSettings={handleSettings}
-                />
-              );
-            case 'admin':
-              return <Admin onBack={() => setCurrentScreen('questionnaire')} onHome={() => setCurrentScreen('start')} />;
-            case 'protocol-preview':
-              return <ProtocolPreview onBack={() => setCurrentScreen('completion')} />;
-            default:
-              return <StartScreen onLanguageSelect={handleLanguageSelect} />;
-          }
-        }} />
-        <Route component={NotFound} />
-      </Switch>
-    );
-  }
+  // Router function removed - using direct rendering instead
+
+  // Direct render without Router to prevent remounting
+  const renderCurrentScreen = () => {
+    switch (currentScreen) {
+      case 'start':
+        return <StartScreen onLanguageSelect={handleLanguageSelect} />;
+      case 'questionnaire':
+        return (
+          <Questionnaire
+            key="stable-questionnaire-key"
+            receptionDate={formData.receptionDate}
+            onReceptionDateChange={handleReceptionDateChange}
+            answers={formData.answers}
+            onAnswerChange={handleAnswerChange}
+            errors={formData.errors}
+            onErrorsChange={handleErrorsChange}
+            onNext={handleQuestionnaireNext}
+            onSave={handleSaveProgress}
+            language={language}
+            onAdminAccess={handleAdminAccess}
+            onHome={handleHome}
+            onStartNew={handleStartNew}
+          />
+        );
+      case 'niedervolt':
+        return (
+          <NiedervoltStandalone
+            key="stable-niedervolt-key"
+            measurements={formData.niedervoltMeasurements || []}
+            onMeasurementsChange={handleNiedervoltMeasurementsChange}
+            onBack={handleNiedervoltBack}
+            onNext={handleNiedervoltNext}
+            onAdminAccess={handleAdminAccess}
+            onHome={handleGoHome}
+            onSave={handleSaveProgress}
+          />
+        );
+      case 'signature':
+        return (
+          <Signature
+            signature={formData.signature || ''}
+            onSignatureChange={(signature) => setFormData(prev => ({ ...prev, signature }))}
+            signatureName={formData.signatureName || ''}
+            onSignatureNameChange={(signatureName) => setFormData(prev => ({ ...prev, signatureName }))}
+            onBack={handleSignatureBack}
+            onComplete={handleSignatureComplete}
+          />
+        );
+      case 'completion':
+        return (
+          <Completion
+            onEmailPDF={handleEmailPDF}
+            onSaveToCloud={handleSaveToCloud}
+            onDownloadPDF={handleDownloadPDF}
+            onDownloadExcel={handleDownloadExcel}
+            onViewProtocol={handleViewProtocol}
+            onStartNew={handleStartNew}
+            onGoHome={handleGoHome}
+            onSettings={handleSettings}
+          />
+        );
+      case 'admin':
+        return <Admin onBack={() => setCurrentScreen('questionnaire')} onHome={() => setCurrentScreen('start')} />;
+      case 'protocol-preview':
+        return <ProtocolPreview onBack={() => setCurrentScreen('completion')} />;
+      default:
+        return <StartScreen onLanguageSelect={handleLanguageSelect} />;
+    }
+  };
 
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
         <TooltipProvider>
           <Toaster />
-          <Router />
+          {renderCurrentScreen()}
         </TooltipProvider>
       </LanguageProvider>
     </QueryClientProvider>
