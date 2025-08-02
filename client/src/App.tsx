@@ -370,10 +370,6 @@ function App() {
     setFormData(prev => ({ ...prev, errors }));
   }, []);
 
-  const handleNiedervoltMeasurementsChange = useCallback((measurements: MeasurementRow[]) => {
-    setFormData(prev => ({ ...prev, niedervoltMeasurements: measurements }));
-  }, []);
-
   const handleAdminAccess = useCallback(() => setCurrentScreen('admin'), []);
   const handleHome = useCallback(() => setCurrentScreen('start'), []);
 
@@ -381,6 +377,7 @@ function App() {
     return (
       <Switch>
         <Route path="/" component={() => {
+          console.log('🏠 Route component function called - currentScreen:', currentScreen);
           
           if (currentScreen === 'questionnaire') {
             return (
@@ -408,9 +405,8 @@ function App() {
             case 'niedervolt':
               return (
                 <NiedervoltMeasurements
-                  key="stable-niedervolt-key"
                   measurements={formData.niedervoltMeasurements || []}
-                  onMeasurementsChange={handleNiedervoltMeasurementsChange}
+                  onMeasurementsChange={(measurements) => setFormData(prev => ({ ...prev, niedervoltMeasurements: measurements }))}
                   onBack={handleNiedervoltBack}
                   onNext={handleNiedervoltNext}
                   receptionDate={formData.receptionDate}

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,8 +7,6 @@ import { useLanguageContext } from '@/components/language-provider';
 import { ArrowLeft, Plus, Trash2, Save, Settings, Home, RotateCcw } from 'lucide-react';
 import { MeasurementRow } from '@/lib/types';
 import { MegaStableInput } from '@/components/mega-stable-input';
-import { IsolatedInput } from '@/components/isolated-input';
-import { NativeStableInput } from '@/components/native-stable-input';
 import { QuestionGroupHeader } from '@/components/question-group-header';
 
 // Measurement types for the Niedervolt Installation Regulation
@@ -43,7 +41,7 @@ interface NiedervoltMeasurementsProps {
   onStartNew?: () => void;
 }
 
-const NiedervoltMeasurementsComponent = memo(function NiedervoltMeasurements({
+export function NiedervoltMeasurements({
   measurements,
   onMeasurementsChange,
   onBack,
@@ -84,43 +82,43 @@ const NiedervoltMeasurementsComponent = memo(function NiedervoltMeasurements({
       unit: '',
       notes: ''
     };
-    const currentMeasurements = Array.isArray(measurements) ? measurements : [];
-    onMeasurementsChange([...currentMeasurements, newRow]);
+    onMeasurementsChange([...measurements, newRow]);
   };
 
   const removeRow = (rowId: string) => {
-    if (!Array.isArray(measurements)) return;
     onMeasurementsChange(measurements.filter(row => row.id !== rowId));
   };
 
-  // Single stable update function with useCallback to prevent re-creation
-  const updateRowStable = useCallback((rowId: string, field: keyof MeasurementRow, value: string) => {
-    if (!Array.isArray(measurements)) return;
+  // Create stable update functions for each row
+  const stableUpdateFunctions = useMemo(() => {
+    const functions: { [key: string]: { [field: string]: (value: string) => void } } = {};
     
-    const updatedMeasurements = measurements.map(row => {
-      if (row.id === rowId) {
-        const updatedRow = { ...row, [field]: value };
-        
-        // Auto-set unit when measurement type changes
-        if (field === 'measurementType') {
-          const selectedType = measurementTypes.find(type => type.id === value);
-          if (selectedType) {
-            updatedRow.unit = selectedType.unit;
-          }
-        }
-        
-        return updatedRow;
-      }
-      return row;
+    measurements.forEach(row => {
+      functions[row.id] = {};
+      (['measurementType', 'description', 'value1', 'value2', 'value3', 'unit', 'notes'] as (keyof MeasurementRow)[]).forEach(field => {
+        functions[row.id][field] = (value: string) => {
+          onMeasurementsChange(measurements.map(r => {
+            if (r.id === row.id) {
+              const updatedRow = { ...r, [field]: value };
+              
+              // Auto-set unit when measurement type changes
+              if (field === 'measurementType') {
+                const selectedType = measurementTypes.find(type => type.id === value);
+                if (selectedType) {
+                  updatedRow.unit = selectedType.unit;
+                }
+              }
+              
+              return updatedRow;
+            }
+            return r;
+          }));
+        };
+      });
     });
     
-    onMeasurementsChange(updatedMeasurements);
+    return functions;
   }, [measurements, measurementTypes, onMeasurementsChange]);
-
-  // Isolated input update handler that doesn't depend on measurements array
-  const handleIsolatedInputChange = useCallback((rowId: string, field: string, value: string) => {
-    updateRowStable(rowId, field as keyof MeasurementRow, value);
-  }, [updateRowStable]);
 
   const saveToStorage = () => {
     localStorage.setItem('niedervolt-measurements', JSON.stringify(measurements));
@@ -226,7 +224,7 @@ const NiedervoltMeasurementsComponent = memo(function NiedervoltMeasurements({
         {/* Group Header */}
         <QuestionGroupHeader
           groupName={language === 'de' ? 'Niedervolt Installationsverordnung art.14' : 'Niedervolt Installations Verordnung art.14'}
-          questionCount={Array.isArray(measurements) ? measurements.length : 0}
+          questionCount={measurements.length}
           totalGroups={5}
           currentGroupIndex={4}
           language={language}
@@ -238,7 +236,7 @@ const NiedervoltMeasurementsComponent = memo(function NiedervoltMeasurements({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-600 text-sm font-medium">Összes mérés</p>
-                <p className="text-2xl font-bold text-blue-800">{Array.isArray(measurements) ? measurements.length : 0}</p>
+                <p className="text-2xl font-bold text-blue-800">{measurements.length}</p>
               </div>
               <div className="h-12 w-12 bg-blue-500 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold">📊</span>
@@ -251,7 +249,7 @@ const NiedervoltMeasurementsComponent = memo(function NiedervoltMeasurements({
               <div>
                 <p className="text-green-600 text-sm font-medium">Kitöltött értékek</p>
                 <p className="text-2xl font-bold text-green-800">
-                  {Array.isArray(measurements) ? measurements.filter(m => m.value1 || m.value2 || m.value3).length : 0}
+                  {measurements.filter(m => m.value1 || m.value2 || m.value3).length}
                 </p>
               </div>
               <div className="h-12 w-12 bg-green-500 rounded-lg flex items-center justify-center">
@@ -334,7 +332,7 @@ const NiedervoltMeasurementsComponent = memo(function NiedervoltMeasurements({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {!Array.isArray(measurements) || measurements.length === 0 ? (
+                {measurements.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="px-6 py-12 text-center">
                       <div className="flex flex-col items-center gap-4">
@@ -349,7 +347,7 @@ const NiedervoltMeasurementsComponent = memo(function NiedervoltMeasurements({
                     </td>
                   </tr>
                 ) : (
-                  (Array.isArray(measurements) ? measurements : []).map((row, index) => (
+                  measurements.map((row, index) => (
                     <tr key={row.id} className="hover:bg-blue-50/30 transition-colors duration-200 border-l-4 border-transparent hover:border-l-otis-blue">
                       <td className="px-6 py-4 border-r border-gray-100">
                         <div className="flex items-center gap-2">
@@ -358,7 +356,7 @@ const NiedervoltMeasurementsComponent = memo(function NiedervoltMeasurements({
                           </span>
                           <Select
                             value={row.measurementType}
-                            onValueChange={(value) => updateRowStable(row.id, 'measurementType', value)}
+                            onValueChange={stableUpdateFunctions[row.id]?.measurementType}
                           >
                             <SelectTrigger className="w-full border-blue-200 focus:border-otis-blue focus:ring-otis-blue/20">
                               <SelectValue placeholder="Válassz típust..." />
@@ -376,67 +374,55 @@ const NiedervoltMeasurementsComponent = memo(function NiedervoltMeasurements({
                         </div>
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
-                        <NativeStableInput
-                          rowId={row.id}
-                          field="description"
+                        <MegaStableInput
                           type="text"
-                          initialValue={row.description}
-                          onValueChange={handleIsolatedInputChange}
+                          value={row.description}
+                          onChange={(value) => stableUpdateFunctions[row.id]?.description?.(value.toString())}
                           placeholder="Részletes mérés leírása..."
                           className="w-full border-blue-200 focus:border-otis-blue focus:ring-otis-blue/20"
                         />
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
-                        <NativeStableInput
-                          rowId={row.id}
-                          field="value1"
+                        <MegaStableInput
                           type="number"
-                          initialValue={row.value1}
-                          onValueChange={handleIsolatedInputChange}
+                          value={row.value1}
+                          onChange={(value) => stableUpdateFunctions[row.id]?.value1?.(value.toString())}
                           placeholder="0.000"
                           className="w-full text-right font-mono border-green-200 focus:border-green-400 focus:ring-green-200"
                         />
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
-                        <NativeStableInput
-                          rowId={row.id}
-                          field="value2"
+                        <MegaStableInput
                           type="number"
-                          initialValue={row.value2}
-                          onValueChange={handleIsolatedInputChange}
+                          value={row.value2}
+                          onChange={(value) => stableUpdateFunctions[row.id]?.value2?.(value.toString())}
                           placeholder="0.000"
                           className="w-full text-right font-mono border-green-200 focus:border-green-400 focus:ring-green-200"
                         />
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
-                        <NativeStableInput
-                          rowId={row.id}
-                          field="value3"
+                        <MegaStableInput
                           type="number"
-                          initialValue={row.value3}
-                          onValueChange={handleIsolatedInputChange}
+                          value={row.value3}
+                          onChange={(value) => stableUpdateFunctions[row.id]?.value3?.(value.toString())}
                           placeholder="0.000"
                           className="w-full text-right font-mono border-green-200 focus:border-green-400 focus:ring-green-200"
                         />
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
-                        <NativeStableInput
-                          rowId={row.id}
-                          field="unit"
+                        <MegaStableInput
                           type="text"
-                          initialValue={row.unit}
-                          onValueChange={handleIsolatedInputChange}
+                          value={row.unit}
+                          onChange={(value) => stableUpdateFunctions[row.id]?.unit?.(value.toString())}
                           placeholder="Egység"
                           className="w-full text-center text-sm font-medium border-purple-200 focus:border-purple-400 focus:ring-purple-200"
                         />
                       </td>
                       <td className="px-6 py-4 border-r border-gray-100">
-                        <NativeStableInput
-                          rowId={row.id}
-                          field="notes"
+                        <MegaStableInput
                           type="text"
-                          initialValue={row.notes}
-                          onValueChange={handleIsolatedInputChange}
+                          value={row.notes}
+                          onChange={(value) => stableUpdateFunctions[row.id]?.notes?.(value.toString())}
                           placeholder="További megjegyzések..."
                           className="w-full border-orange-200 focus:border-orange-400 focus:ring-orange-200"
                         />
@@ -463,9 +449,9 @@ const NiedervoltMeasurementsComponent = memo(function NiedervoltMeasurements({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="text-sm font-medium text-gray-700">
-                  📊 Összesen {Array.isArray(measurements) ? measurements.length : 0} mérési sor
+                  📊 Összesen {measurements.length} mérési sor
                 </div>
-                {Array.isArray(measurements) && measurements.length > 0 && (
+                {measurements.length > 0 && (
                   <div className="text-xs text-gray-500 bg-white px-3 py-1 rounded-full border">
                     Mérési sorok: {measurements.length}
                   </div>
@@ -540,19 +526,4 @@ const NiedervoltMeasurementsComponent = memo(function NiedervoltMeasurements({
       </main>
     </div>
   );
-}, (prevProps, nextProps) => {
-  // Custom comparison function for memo
-  return (
-    prevProps.measurements === nextProps.measurements &&
-    prevProps.receptionDate === nextProps.receptionDate &&
-    prevProps.onMeasurementsChange === nextProps.onMeasurementsChange &&
-    prevProps.onBack === nextProps.onBack &&
-    prevProps.onNext === nextProps.onNext &&
-    prevProps.onReceptionDateChange === nextProps.onReceptionDateChange &&
-    prevProps.onAdminAccess === nextProps.onAdminAccess &&
-    prevProps.onHome === nextProps.onHome &&
-    prevProps.onStartNew === nextProps.onStartNew
-  );
-});
-
-export const NiedervoltMeasurements = NiedervoltMeasurementsComponent;
+}
