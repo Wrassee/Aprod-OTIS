@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLanguageContext } from '@/components/language-provider';
-import { ArrowLeft, Plus, Trash2, Save, Settings, Home, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Save, Settings, Home, RotateCcw, Check } from 'lucide-react';
 import { MeasurementRow } from '@/lib/types';
 import { MegaStableInput } from '@/components/mega-stable-input';
 import { QuestionGroupHeader } from '@/components/question-group-header';
@@ -56,7 +56,7 @@ export function NiedervoltMeasurements({
   const nextIdRef = useRef(Date.now());
   
   // Save status states - same as questionnaire
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   // Load measurements from localStorage on mount
@@ -303,14 +303,28 @@ export function NiedervoltMeasurements({
                     await saveToStorage();
                   }}
                   disabled={saveStatus === 'saving'}
-                  className={`flex items-center gap-2 px-4 py-2 border shadow-sm rounded-md font-medium text-sm disabled:opacity-50 transition-colors ${
-                    saveStatus === 'saved' 
-                      ? 'border-green-500 bg-green-500 text-white' 
-                      : 'border-green-200 text-green-700 hover:bg-green-50 bg-white'
+                  className={`inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input h-10 px-4 py-2 ${
+                    saveStatus === 'saved' ? 'bg-green-100 border-green-300 text-green-700' :
+                    saveStatus === 'error' ? 'bg-red-100 border-red-300 text-red-700' :
+                    'bg-background hover:bg-accent hover:text-accent-foreground'
                   }`}
                 >
-                  <Save className="h-4 w-4" />
-                  {saveStatus === 'saving' ? t.saving : saveStatus === 'saved' ? t.saved : t.save}
+                  {saveStatus === 'saving' ? (
+                    <>
+                      <div className="animate-spin h-4 w-4 mr-2 border-2 border-gray-300 border-t-blue-600 rounded-full"></div>
+                      {t.saving}
+                    </>
+                  ) : saveStatus === 'saved' ? (
+                    <>
+                      <Check className="h-4 w-4 mr-2 text-green-600" />
+                      {t.saved}
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      {t.save}
+                    </>
+                  )}
                 </button>
                 <Button
                   onClick={addNewRow}
