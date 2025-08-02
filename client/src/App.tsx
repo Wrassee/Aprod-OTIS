@@ -287,41 +287,84 @@ function App() {
         throw new Error('Generated Excel file is empty');
       }
       
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      
       // Get Otis Lift ID from all sources (cache + formData)
       const otisLiftId = cachedInputValues['7'] || formData.answers['7'] || 'Unknown';
-      a.download = `AP_${otisLiftId}.xlsx`;
+      const filename = `AP_${otisLiftId}.xlsx`;
       
-      console.log('Excel download filename:', `AP_${otisLiftId}.xlsx`);
+      console.log('Excel download filename:', filename);
       console.log('Excel file size:', blob.size, 'bytes');
       
-      // Safer download approach
+      // More robust download approach using different methods
       try {
-        document.body.appendChild(a);
-        a.click();
-        console.log('Excel download completed successfully');
-      } catch (downloadError) {
-        console.error('Error during download click:', downloadError);
-        throw downloadError;
+        // Method 1: Try modern download API
+        if ('showSaveFilePicker' in window) {
+          const fileHandle = await (window as any).showSaveFilePicker({
+            suggestedName: filename,
+            types: [{
+              description: 'Excel files',
+              accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] }
+            }]
+          });
+          const writable = await fileHandle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+          console.log('Excel download completed successfully (File API)');
+          return;
+        }
+      } catch (fileApiError) {
+        console.log('File API not available, falling back to blob URL');
       }
       
-      // Clean up - but with safer timeout and error handling
+      // Method 2: Traditional blob URL approach with better error handling
+      let url: string | null = null;
+      let a: HTMLAnchorElement | null = null;
+      
+      try {
+        url = URL.createObjectURL(blob);
+        a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.style.display = 'none';
+        
+        // Add to DOM, click, and immediately remove
+        document.body.appendChild(a);
+        
+        // Use setTimeout to ensure DOM is ready
+        setTimeout(() => {
+          if (a) {
+            a.click();
+            console.log('Excel download completed successfully (Blob URL)');
+          }
+        }, 10);
+        
+      } catch (downloadError) {
+        console.error('Error during blob download:', downloadError);
+        
+        // Method 3: Fallback - direct blob download
+        try {
+          const blobUrl = URL.createObjectURL(blob);
+          window.open(blobUrl, '_blank');
+          console.log('Excel download completed successfully (Window open)');
+        } catch (fallbackError) {
+          console.error('All download methods failed:', fallbackError);
+          throw new Error('Excel letöltés sikertelen. Kérjük próbálja újra.');
+        }
+      }
+      
+      // Clean up - delayed to ensure download completes
       setTimeout(() => {
         try {
-          if (url && typeof window !== 'undefined' && window.URL) {
-            window.URL.revokeObjectURL(url);
+          if (url) {
+            URL.revokeObjectURL(url);
           }
-          if (a && document.body && document.body.contains && document.body.contains(a)) {
+          if (a && document.body && document.body.contains(a)) {
             document.body.removeChild(a);
           }
         } catch (cleanupError) {
-          // Silent cleanup errors - don't crash the app
-          console.warn('Non-critical cleanup warning:', cleanupError);
+          // Silent cleanup - not critical
+          console.warn('Cleanup warning:', cleanupError);
         }
-      }, 1000);
+      }, 2000);
       
       console.log('Excel download completed successfully');
       
