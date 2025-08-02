@@ -267,6 +267,26 @@ export function MeasurementBlock({ questions, onChange, onAddError }: Measuremen
 
                               // BYPASS REACT - Add error directly to localStorage errors list instead of calling onAddError
                               const currentErrors = JSON.parse(localStorage.getItem('protocol-errors') || '[]');
+                              
+                              // Check if error already exists for this question to prevent duplicates
+                              const existingError = currentErrors.find((error: any) => 
+                                error.id.startsWith(`boundary-${question.id}-`) || 
+                                (error.title === errorTitle && error.description === errorDescription)
+                              );
+                              
+                              if (existingError) {
+                                console.log('⚠️ Error already exists, skipping duplicate:', existingError.id);
+                                // Show message that error already exists
+                                const toast = document.createElement('div');
+                                toast.textContent = language === 'de' 
+                                  ? 'Fehler bereits in der Liste vorhanden!'
+                                  : 'Hiba már szerepel a listában!';
+                                toast.style.cssText = 'position:fixed;top:20px;right:20px;background:#f59e0b;color:white;padding:12px 24px;border-radius:8px;z-index:9999;font-weight:500;';
+                                document.body.appendChild(toast);
+                                setTimeout(() => document.body.removeChild(toast), 2000);
+                                return;
+                              }
+                              
                               const newError = {
                                 id: `boundary-${question.id}-${Date.now()}`,
                                 title: errorTitle,
