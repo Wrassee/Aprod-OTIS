@@ -16,7 +16,6 @@ import { getAllStableInputValues } from '@/components/stable-input';
 import { getAllMeasurementValues } from '@/components/measurement-question';
 import { CalculatedResult } from '@/components/calculated-result';
 import { MeasurementBlock, getAllCalculatedValues } from '@/components/measurement-block';
-import { NiedervoltMeasurements } from '@/components/niedervolt-measurements';
 
 interface QuestionnaireProps {
   receptionDate: string;
@@ -428,34 +427,54 @@ const Questionnaire = memo(function Questionnaire({
             language={language}
           />
         )}
-        
-        {/* Special header for Niedervolt (last) page */}
-        {currentPage >= questionGroups.length && (
-          <QuestionGroupHeader
-            groupName={language === 'de' ? 'Niedervolt Installations Verordnung art.14' : 'Niedervolt Installations Verordnung art.14'}
-            questionCount={5}
-            totalGroups={totalPages}
-            currentGroupIndex={currentPage}
-            language={language}
-          />
-        )}
 
         {/* Question Content */}
         <div className="mb-8">
-          {/* Special handling for Niedervolt (last) page */}
-          {currentPage >= questionGroups.length ? (
-            /* Niedervolt Measurements Page */
-            <NiedervoltMeasurements
-              onAddError={handleAddError}
-              language={language}
-            />
+          {/* Force 2-column layout for pages 1 and 2 (currentPage 0 and 1) */}
+          {currentPage === 0 || currentPage === 1 ? (
+            /* Regular Question Grid (2x2 Layout) for pages 1 and 2 */
+            <div className="grid grid-cols-2 gap-8">
+              {(currentQuestions as Question[]).map((question: Question) => {
+                return (
+                  <IsolatedQuestion
+                    key={question.id}
+                    question={question}
+                    value={answers[question.id]}
+                    onChange={(value) => {
+                      onAnswerChange(question.id, value);
+                    }}
+                  />
+                );
+              })}
+            </div>
           ) : (
-            /* Regular questionnaire pages */
-            <>
-              {/* Force 2-column layout for pages 1 and 2 (currentPage 0 and 1) */}
-              {currentPage === 0 || currentPage === 1 ? (
-                /* Regular Question Grid (2x2 Layout) for pages 1 and 2 */
-                <div className="grid grid-cols-2 gap-8">
+            /* For other pages, use the original logic */
+            /* Check if current group has only true_false questions */
+            (currentQuestions as Question[]).length > 0 && (currentQuestions as Question[]).every((q: Question) => q.type === 'true_false') ? (
+              <TrueFalseGroup
+                questions={currentQuestions as Question[]}
+                values={answers}
+                onChange={onAnswerChange}
+                groupName={currentGroup?.name || 'Kérdések'}
+              />
+            ) : (
+              /* Check if current group has measurement or calculated questions */
+              (currentQuestions as Question[]).some((q: Question) => q.type === 'measurement' || q.type === 'calculated') ? (
+                <MeasurementBlock
+                  questions={(currentQuestions as Question[]).filter((q: Question) => q.type === 'measurement' || q.type === 'calculated')}
+                  values={answers}
+                  onChange={(questionId, value) => {
+                    onAnswerChange(questionId, value);
+                    // If this is a measurement question, also update measurementValues
+                    if (typeof value === 'number') {
+                      setMeasurementValues(prev => ({ ...prev, [questionId]: value }));
+                    }
+                  }}
+                  onAddError={handleAddError}
+                />
+              ) : (
+                /* Regular Question Grid (2x2 Layout) for other question types */
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   {(currentQuestions as Question[]).map((question: Question) => {
                     return (
                       <IsolatedQuestion
@@ -469,51 +488,8 @@ const Questionnaire = memo(function Questionnaire({
                     );
                   })}
                 </div>
-              ) : (
-                /* For other pages, use the original logic */
-                /* Check if current group has only true_false questions */
-                (currentQuestions as Question[]).length > 0 && (currentQuestions as Question[]).every((q: Question) => q.type === 'true_false') ? (
-                  <TrueFalseGroup
-                    questions={currentQuestions as Question[]}
-                    values={answers}
-                    onChange={onAnswerChange}
-                    groupName={currentGroup?.name || 'Kérdések'}
-                  />
-                ) : (
-                  /* Check if current group has measurement or calculated questions */
-                  (currentQuestions as Question[]).some((q: Question) => q.type === 'measurement' || q.type === 'calculated') ? (
-                    <MeasurementBlock
-                      questions={(currentQuestions as Question[]).filter((q: Question) => q.type === 'measurement' || q.type === 'calculated')}
-                      values={answers}
-                      onChange={(questionId, value) => {
-                        onAnswerChange(questionId, value);
-                        // If this is a measurement question, also update measurementValues
-                        if (typeof value === 'number') {
-                          setMeasurementValues(prev => ({ ...prev, [questionId]: value }));
-                        }
-                      }}
-                      onAddError={handleAddError}
-                    />
-                  ) : (
-                    /* Regular Question Grid (2x2 Layout) for other question types */
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                      {(currentQuestions as Question[]).map((question: Question) => {
-                        return (
-                          <IsolatedQuestion
-                            key={question.id}
-                            question={question}
-                            value={answers[question.id]}
-                            onChange={(value) => {
-                              onAnswerChange(question.id, value);
-                            }}
-                          />
-                        );
-                      })}
-                    </div>
-                  )
-                )
-              )}
-            </>
+              )
+            )
           )}
         </div>
 
