@@ -130,16 +130,70 @@ export function ErrorExport({ errors, protocolData }: ErrorExportProps) {
   if (allErrors.length === 0) {
     return (
       <Card className="bg-green-50 border-green-200">
-        <CardContent className="p-6 text-center">
-          <div className="text-green-600 mb-2">✅</div>
-          <h3 className="text-lg font-semibold text-green-800 mb-2">
-            {language === 'hu' ? 'Nincs jelentett hiba' : 'Keine Fehler gemeldet'}
-          </h3>
-          <p className="text-green-600">
-            {language === 'hu' 
-              ? 'Az átvételi protokoll hibamentesen befejezve.'
-              : 'Das Abnahmeprotokoll wurde fehlerfrei abgeschlossen.'}
-          </p>
+        <CardContent className="p-6">
+          <div className="text-center mb-6">
+            <div className="text-green-600 mb-2">✅</div>
+            <h3 className="text-lg font-semibold text-green-800 mb-2">
+              {language === 'hu' ? 'Nincs jelentett hiba' : 'Keine Fehler gemeldet'}
+            </h3>
+            <p className="text-green-600">
+              {language === 'hu' 
+                ? 'Az átvételi protokoll hibamentesen befejezve.'
+                : 'Das Abnahmeprotokoll wurde fehlerfrei abgeschlossen.'}
+            </p>
+          </div>
+          
+          {/* Still show export options for empty error list documentation */}
+          <div className="bg-white rounded-lg p-4">
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">
+              {language === 'hu' ? 'Hibalista exportálás (üres lista)' : 'Fehlerliste Export (leere Liste)'}
+            </h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <Button
+                onClick={generatePDF}
+                disabled={isGenerating}
+                size="sm"
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                <FileText className="h-3 w-3 mr-1" />
+                {isGenerating ? (language === 'hu' ? 'Generálás...' : 'Erstellen...') : 'PDF'}
+              </Button>
+
+              <Button
+                onClick={generateExcel}
+                disabled={isGenerating}
+                size="sm"
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <Download className="h-3 w-3 mr-1" />
+                {isGenerating ? (language === 'hu' ? 'Generálás...' : 'Erstellen...') : 'Excel'}
+              </Button>
+
+              <Button
+                onClick={sendEmail}
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Mail className="h-3 w-3 mr-1" />
+                {language === 'hu' ? 'Email' : 'E-Mail'}
+              </Button>
+
+              <Button
+                onClick={printReport}
+                size="sm"
+                variant="outline"
+                className="border-gray-300"
+              >
+                <Printer className="h-3 w-3 mr-1" />
+                {language === 'hu' ? 'Nyomtatás' : 'Drucken'}
+              </Button>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              {language === 'hu' 
+                ? 'Üres hibalista dokumentáció exportálása véglegesítéshez.'
+                : 'Export der leeren Fehlerliste zur Dokumentation der fehlerfreien Abnahme.'}
+            </p>
+          </div>
         </CardContent>
       </Card>
     );
