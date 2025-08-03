@@ -269,7 +269,7 @@ export function Admin({ onBack, onHome }: AdminProps) {
               <div className="flex items-center">
                 <span className="text-lg font-medium text-gray-800 mr-3">{t.admin}</span>
                 <Badge variant="outline" className="bg-gray-50 text-gray-600 font-mono text-xs">
-                  v0.4.5
+                  v0.4.8
                 </Badge>
               </div>
             </div>

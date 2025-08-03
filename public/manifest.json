@@ -1,7 +1,7 @@
 {
-  "name": "OTIS APROD - Átvételi Protokoll",
-  "short_name": "OTIS APROD",
-  "description": "OTIS lift inspection protocol application for technicians",
+  "name": "OTIS APROD v0.4.8 - Átvételi Protokoll",
+  "short_name": "OTIS APROD v0.4.8",
+  "description": "OTIS lift inspection protocol application v0.4.8 with enhanced measurement validation",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
