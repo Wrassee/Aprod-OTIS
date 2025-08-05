@@ -43,7 +43,7 @@ export class LocalStorageService {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    stmt.run(id, template.name, template.type, template.language, template.fileName, template.filePath, template.isActive, uploadedAt);
+    stmt.run(id, template.name, template.type, template.language, template.fileName, template.filePath, template.isActive ? 1 : 0, uploadedAt);
 
     console.log(`Template saved to local database: ${id}`);
     return id;
@@ -90,7 +90,7 @@ export class LocalStorageService {
 
   async setTemplateActive(id: string, isActive: boolean): Promise<void> {
     const stmt = sqlite.prepare('UPDATE templates SET is_active = ? WHERE id = ?');
-    stmt.run(isActive, id);
+    stmt.run(isActive ? 1 : 0, id); // Convert boolean to integer for SQLite
     console.log(`Template ${id} set to ${isActive ? 'active' : 'inactive'}`);
   }
 
