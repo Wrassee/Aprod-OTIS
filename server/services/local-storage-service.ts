@@ -28,8 +28,10 @@ interface QuestionConfig {
   id: string;
   templateId: string;
   questionId: string;
+  questionText: string;
+  questionType: string;
   cellReference: string;
-  type: string;
+  language: string;
 }
 
 export class LocalStorageService {
@@ -174,13 +176,40 @@ export class LocalStorageService {
     const id = `qc_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 
     const stmt = sqlite.prepare(`
-      INSERT INTO question_configs (id, template_id, question_id, cell_reference, type, created_at)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO question_configs (id, template_id, question_id, question_text, question_type, cell_reference, language, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    stmt.run(id, config.templateId, config.questionId, config.cellReference, config.type, new Date().toISOString());
+    stmt.run(
+      id, 
+      config.templateId, 
+      config.questionId, 
+      config.questionText,
+      config.questionType,
+      config.cellReference, 
+      config.language,
+      new Date().toISOString()
+    );
 
+    console.log(`Question config saved: ${id} - ${config.questionText}`);
     return id;
+  }
+
+  async getQuestionConfig(id: string): Promise<QuestionConfig | undefined> {
+    const stmt = sqlite.prepare('SELECT * FROM question_configs WHERE id = ?');
+    const row = stmt.get(id) as any;
+    
+    if (!row) return undefined;
+
+    return {
+      id: row.id,
+      templateId: row.template_id,
+      questionId: row.question_id,
+      questionText: row.question_text,
+      questionType: row.question_type,
+      cellReference: row.cell_reference,
+      language: row.language
+    };
   }
 
   async getQuestionConfigsByTemplate(templateId: string): Promise<QuestionConfig[]> {
@@ -191,8 +220,10 @@ export class LocalStorageService {
       id: row.id,
       templateId: row.template_id,
       questionId: row.question_id,
+      questionText: row.question_text,
+      questionType: row.question_type,
       cellReference: row.cell_reference,
-      type: row.type
+      language: row.language
     }));
   }
 

@@ -72,8 +72,10 @@ export function initializeTables() {
         id TEXT PRIMARY KEY,
         template_id TEXT NOT NULL,
         question_id TEXT NOT NULL,
+        question_text TEXT NOT NULL,
+        question_type TEXT NOT NULL,
         cell_reference TEXT,
-        type TEXT,
+        language TEXT DEFAULT 'hu',
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       )
     `);

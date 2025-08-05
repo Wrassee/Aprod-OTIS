@@ -414,11 +414,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If it's a questions template, parse and create question configs
       if (type === 'questions' || type === 'unified') {
         try {
-          // Skip parsing if excelParserService is not available
-          console.log('Question parsing temporarily disabled - manual configuration required');
+          // Use simple Excel parsing with analyze-template.js
+          const { spawn } = require('child_process');
+          const parseProcess = spawn('node', ['server/analyze-template.cjs', localFilePath]);
           
-          // Question configurations will be available through template management
-          // This allows templates to be uploaded and activated without parsing
+          let parseOutput = '';
+          parseProcess.stdout.on('data', (data) => {
+            parseOutput += data.toString();
+          });
+          
+          parseProcess.on('close', async (code) => {
+            if (code === 0 && parseOutput.trim()) {
+              try {
+                const questions = JSON.parse(parseOutput);
+                console.log(`Parsed ${questions.length} questions from template`);
+                
+                // Save question configurations to local storage
+                for (const question of questions) {
+                  await storage.createQuestionConfig({
+                    templateId: template.id,
+                    questionId: question.id,
+                    questionText: question.title,
+                    questionType: question.type,
+                    cellReference: question.cellReference,
+                    language: language
+                  });
+                }
+                console.log(`Question configs saved for template ${template.id}`);
+              } catch (jsonError) {
+                console.error("Error parsing question JSON:", jsonError);
+              }
+            } else {
+              console.log('Question parsing failed or no questions found');
+            }
+          });
+          
         } catch (parseError) {
           console.error("Error parsing questions:", parseError);
           // Template still created, but parsing failed
