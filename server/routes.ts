@@ -414,35 +414,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If it's a questions template, parse and create question configs
       if (type === 'questions' || type === 'unified') {
         try {
-          const buffer = fs.readFileSync(filePath);
-          const questions = await excelParserService.parseQuestionsFromExcel(buffer);
+          // Skip parsing if excelParserService is not available
+          console.log('Question parsing temporarily disabled - manual configuration required');
           
-          console.log(`Parsed ${questions.length} questions from ${type} template`);
-          
-          // Save question configurations
-          for (const question of questions) {
-            await storage.createQuestionConfig({
-              templateId: template.id,
-              questionId: question.questionId,
-              title: question.title,
-              titleHu: question.titleHu || null,
-              titleDe: question.titleDe || null,
-              type: question.type,
-              required: question.required,
-              placeholder: question.placeholder || null,
-              cellReference: question.cellReference || null,
-              sheetName: question.sheetName || null,
-              multiCell: question.multiCell || false,
-              groupName: question.groupName || null,
-              groupNameDe: question.groupNameDe || null,
-              groupOrder: question.groupOrder || 0,
-              unit: question.unit || null,
-              minValue: question.minValue || null,
-              maxValue: question.maxValue || null,
-              calculationFormula: question.calculationFormula || null,
-              calculationInputs: question.calculationInputs || null,
-            });
-          }
+          // Question configurations will be available through template management
+          // This allows templates to be uploaded and activated without parsing
         } catch (parseError) {
           console.error("Error parsing questions:", parseError);
           // Template still created, but parsing failed

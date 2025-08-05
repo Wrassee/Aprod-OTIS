@@ -585,7 +585,6 @@ function App() {
             onGoHome={handleGoHome}
             onSettings={handleSettings}
             onBackToSignature={handleBackToSignature}
-            onSettings={handleSettings}
             errors={formData.errors}
             protocolData={{
               buildingAddress: formData.answers['1'] as string || '',
