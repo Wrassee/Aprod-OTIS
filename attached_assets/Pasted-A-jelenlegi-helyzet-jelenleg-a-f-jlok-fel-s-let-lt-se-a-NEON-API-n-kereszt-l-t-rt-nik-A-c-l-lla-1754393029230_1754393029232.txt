@@ -1,0 +1,16 @@
+A jelenlegi helyzet: jelenleg a fájlok fel- és letöltése a NEON API-n keresztül történik.
+ A célállapot: A fájlkezelést helyivé szeretném tenni, ami azt jelenti, hogy a fájlokat a felhasználó gépén tárolja a program, és nem egy külső szerveren. Ez magában foglalja a fájlok írását, olvasását, és a felhasználó általi letöltéshez való előkészítését.
+Hosszú távú végső cél: Az applikáció önálló crossplatform futtatása akár offline állapotban is, adatkezelés helyben, függetlenül bármilyen harmadik fél szolgáltatásától.
+
+A programom jelenleg a NEON API-t használja az Excel fájlok fel- és letöltéséhez. Szeretném ezt a funkcionalitást módosítani, hogy a fájlkezelés helyben, a felhasználó eszközén történjen, ahelyett, hogy egy távoli szerverre csatlakozna.
+> A következőket kérem:
+>  * Fájl feltöltés: Ahelyett, hogy a fájlt a NEON API-ra küldené, a programnak a helyi fájlrendszerben kellene elmentenie a feltöltött fájlt. Használd mondjuk a Python standard könyvtárait (pl. os, shutil) ehhez. A programnak képesnek kell lennie kezelni a feltöltött Excel fájlt (pl. openpyxl segítségével), majd mentenie kell azt a megfelelő helyi mappába.
+>  * Fájl letöltés: Ahelyett, hogy a NEON API-tól kérné le a fájlt, a programnak a helyi fájlrendszerből kellene beolvasnia a megfelelő Excel vagy PDF fájlt, és felajánlania a felhasználónak letöltésre a böngészőből.
+>  * Adatkezelés: A programban lévő adatfeldolgozási logika (pl. az Excel táblázatok kitöltése) nem változik, csak a fájlok írása és olvasása történik meg helyben.
+> Kérlek, írd át a meglévő kódomat, vagy adj példakódot, ami megmutatja, hogyan lehet a NEON-specifikus kódot eltávolítani és a helyi fájlkezeléssel helyettesíteni.
+
+Ez után a measurement adatok calculated értékeinek számítàsát és kijelzését szeretném, hogy szintén helyben a programban történjen, valamint a hibalista generálása, vezetése, exportálása pdf illetve excel generálása mind az Appon belül történjen ne külső szerveren.
+
+A template excel fájl felépítéséről a belső szintaktikáról pedig szeretnék egy részletes leírást példával bemutatva melyik oszlopba milyen változó vagy paraméter kerül. Terjedjen ki az összes a programban érintett változó típusra tehát például: text, nummer, measurement, calculated, yes_no_na, true_false illetve bármi más.
+
+Ha mindez megtörtént az applikáció verziófrissítése és újbóli PWA konvertálása.

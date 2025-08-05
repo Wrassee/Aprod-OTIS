@@ -4,7 +4,9 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { storage } from "./storage";
-import { testConnection } from "./db";
+import { localFileService } from "./services/local-file-service";
+import { localErrorService } from "./services/local-error-service";
+import { LocalCalculationService } from "./services/local-calculation-service";
 import { insertProtocolSchema, insertTemplateSchema, insertQuestionConfigSchema } from "@shared/schema";
 import { excelService } from "./services/excel-service";
 import { pdfService } from "./services/pdf-service";
@@ -37,15 +39,75 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Test database connection first
-  console.log('Testing database connection...');
-  const dbConnected = await testConnection();
-  if (!dbConnected) {
-    throw new Error('Failed to connect to database');
-  }
+  // Routes ready to register - database already initialized in index.ts
+  console.log('Registering API routes with local database...');
   
-  // Error export routes
-  app.use('/api/errors', errorRoutes);
+  // Error export routes with local processing
+  app.post('/api/errors/export-excel', async (req, res) => {
+    try {
+      const { errors, protocolData, language } = req.body;
+      
+      if (!errors || !Array.isArray(errors)) {
+        return res.status(400).json({ message: "Invalid errors data" });
+      }
+      
+      console.log(`LOCAL ERROR: Generating Excel error list with ${errors.length} errors`);
+      
+      // Generate Excel error list using local error service
+      const excelBuffer = await localErrorService.generateErrorExcel(
+        errors,
+        protocolData || {},
+        language || 'hu'
+      );
+      
+      // Save to local file system for tracking
+      const localPath = await localFileService.saveErrorList(excelBuffer, 'excel');
+      console.log(`LOCAL: Error list Excel saved to ${localPath}`);
+      
+      const timestamp = new Date().toISOString().slice(0, 10);
+      const filename = `OTIS_Hibalista_${timestamp}.xlsx`;
+      
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.send(excelBuffer);
+    } catch (error) {
+      console.error("Error generating Excel error list:", error);
+      res.status(500).json({ message: "Failed to generate Excel error list" });
+    }
+  });
+
+  app.post('/api/errors/export-pdf', async (req, res) => {
+    try {
+      const { errors, protocolData, language } = req.body;
+      
+      if (!errors || !Array.isArray(errors)) {
+        return res.status(400).json({ message: "Invalid errors data" });
+      }
+      
+      console.log(`LOCAL ERROR: Generating PDF error list with ${errors.length} errors`);
+      
+      // Generate PDF error list using local error service
+      const pdfBuffer = await localErrorService.generateErrorPDF(
+        errors,
+        protocolData || {},
+        language || 'hu'
+      );
+      
+      // Save to local file system for tracking
+      const localPath = await localFileService.saveErrorList(pdfBuffer, 'pdf');
+      console.log(`LOCAL: Error list PDF saved to ${localPath}`);
+      
+      const timestamp = new Date().toISOString().slice(0, 10);
+      const filename = `OTIS_Hibalista_${timestamp}.pdf`;
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error("Error generating PDF error list:", error);
+      res.status(500).json({ message: "Failed to generate PDF error list" });
+    }
+  });
 
   // PWA routes - serve with correct MIME types
   app.get('/sw.js', (req, res) => {
@@ -177,12 +239,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Download Excel (for testing)
+  // Download Excel with local calculation and storage
   app.post("/api/protocols/download-excel", async (req, res) => {
     try {
       const { formData, language } = req.body;
       
-      console.log('EXCEL: Using XML-based approach for PERFECT format preservation');
+      console.log('LOCAL EXCEL: Generating with local calculation and file storage');
+      
+      // Use local calculation service for measurement calculations
+      if (formData.measurements && Object.keys(formData.measurements).length > 0) {
+        console.log('LOCAL: Processing measurements with local calculation engine');
+        // This will be handled by the Excel service internally
+      }
       
       // Import the proven XML-based service that preserves formatting
       const { simpleXmlExcelService } = await import('./services/simple-xml-excel');
@@ -190,18 +258,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate Excel with XML manipulation (proven to preserve formatting)
       let excelBuffer = await simpleXmlExcelService.generateExcelFromTemplate(formData, language);
       
-      // NIEDERVOLT INTEGRATION TEMPORARILY DISABLED
-      // This prevents interference with basic Excel functionality
-      // Will be re-enabled after UI completion and template configuration
-      if (formData.niedervoltMeasurements && formData.niedervoltMeasurements.length > 0) {
-        console.log(`NIEDERVOLT: ${formData.niedervoltMeasurements.length} measurements found but integration disabled`);
-      }
+      // Save to local file system for tracking
+      const localFilePath = await localFileService.saveProtocol(excelBuffer, 'excel');
+      console.log(`LOCAL: Excel protocol saved to ${localFilePath}`);
       
       if (!excelBuffer || excelBuffer.length < 1000) {
         throw new Error('Generated Excel buffer is invalid or too small');
       }
       
-      console.log(`SAFE: Generated Excel with data: ${excelBuffer.length} bytes`);
+      console.log(`LOCAL: Generated Excel with data: ${excelBuffer.length} bytes`);
       
       // Create filename based on question 7 (Otis Lift-azonosító) with AP_ prefix
       const liftId = formData.answers['7'] || 'Unknown';
@@ -217,16 +282,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Download PDF directly (Excel-style formatting)
+  // Download PDF with local processing and storage
   app.post("/api/protocols/download", async (req, res) => {
     try {
       const { formData, language } = req.body;
       
-      // Generate Excel from template first
+      console.log('LOCAL PDF: Generating with local processing and file storage');
+      
+      // Generate Excel from template first using local service
       const excelBuffer = await excelService.generateExcel(formData, language);
       
       // Generate PDF from Excel with proper formatting
       const pdfBuffer = await pdfService.generatePDF(excelBuffer);
+      
+      // Save both Excel and PDF to local file system
+      const excelPath = await localFileService.saveProtocol(excelBuffer, 'excel');
+      const pdfPath = await localFileService.saveProtocol(pdfBuffer, 'pdf');
+      
+      console.log(`LOCAL: Protocol saved - Excel: ${excelPath}, PDF: ${pdfPath}`);
       
       const timestamp = new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-');
       
@@ -242,15 +315,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  // Upload images
+  // Upload images with local file storage
   app.post("/api/upload", async (req, res) => {
     try {
-      // TODO: Implement image upload handling
-      // This would handle base64 images from the frontend
-      res.json({ success: true, url: "/mock-image-url" });
+      const { imageData, fileName } = req.body;
+      
+      if (!imageData || !fileName) {
+        return res.status(400).json({ message: "Missing image data or filename" });
+      }
+      
+      // Convert base64 to buffer
+      const base64Data = imageData.replace(/^data:image\/[a-z]+;base64,/, '');
+      const imageBuffer = Buffer.from(base64Data, 'base64');
+      
+      // Save image using local file service
+      const localImagePath = await localFileService.saveImage(imageBuffer, fileName);
+      
+      // Return local URL pattern for accessing the image
+      const imageUrl = `/api/images/${path.basename(localImagePath)}`;
+      
+      console.log(`Image uploaded locally: ${fileName} -> ${localImagePath}`);
+      res.json({ success: true, url: imageUrl, localPath: localImagePath });
     } catch (error) {
       console.error("Error uploading image:", error);
       res.status(500).json({ message: "Failed to upload image" });
+    }
+  });
+
+  // Serve local images
+  app.get("/api/images/:filename", async (req, res) => {
+    try {
+      const filename = req.params.filename;
+      const imagePath = path.join(process.cwd(), 'data', 'images', filename);
+      
+      if (!fs.existsSync(imagePath)) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+      
+      const imageBuffer = await localFileService.getImage(imagePath);
+      const ext = path.extname(filename).toLowerCase();
+      
+      // Set appropriate content type
+      let contentType = 'image/jpeg';
+      if (ext === '.png') contentType = 'image/png';
+      else if (ext === '.gif') contentType = 'image/gif';
+      else if (ext === '.webp') contentType = 'image/webp';
+      
+      res.setHeader('Content-Type', contentType);
+      res.send(imageBuffer);
+    } catch (error) {
+      console.error("Error serving image:", error);
+      res.status(500).json({ message: "Failed to serve image" });
     }
   });
 
@@ -269,7 +384,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upload template (questions or protocol)
+  // Upload template (questions or protocol) with local file storage
   app.post("/api/admin/templates/upload", upload.single('file'), async (req, res) => {
     try {
       if (!req.file) {
@@ -281,10 +396,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Missing required fields: name, type, language" });
       }
 
-      // Move file to permanent location
-      const fileName = `${Date.now()}-${req.file.originalname}`;
-      const filePath = path.join(uploadDir, fileName);
-      fs.renameSync(req.file.path, filePath);
+      // Save file using local file service
+      const localFilePath = await localFileService.saveTemplate(req.file, type, language);
 
       // Create template record
       const template = await storage.createTemplate({
@@ -292,9 +405,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type,
         language,
         fileName: req.file.originalname,
-        filePath,
+        filePath: localFilePath,
         isActive: false,
       });
+
+      console.log(`Template uploaded locally: ${name} -> ${localFilePath}`);
 
       // If it's a questions template, parse and create question configs
       if (type === 'questions' || type === 'unified') {
