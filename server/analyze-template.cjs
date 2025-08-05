@@ -24,22 +24,30 @@ if (fs.existsSync(templatePath)) {
     if (jsonData.length > 1) {
       const headers = jsonData[0];
       
-      // Look for standard question template structure
-      const idCol = headers.findIndex(h => h && h.toString().toLowerCase().includes('id'));
-      const questionCol = headers.findIndex(h => h && (h.toString().toLowerCase().includes('kérdés') || h.toString().toLowerCase().includes('question')));
-      const typeCol = headers.findIndex(h => h && (h.toString().toLowerCase().includes('típus') || h.toString().toLowerCase().includes('type')));
-      const cellCol = headers.findIndex(h => h && (h.toString().toLowerCase().includes('cella') || h.toString().toLowerCase().includes('cell')));
+      // Look for OTIS template structure (Title_Hun, Title_De, Type, Cell, etc.)
+      const titleHunCol = headers.findIndex(h => h && (h.toString().includes('Title_Hun') || h.toString().toLowerCase().includes('kérdés')));
+      const titleDeCol = headers.findIndex(h => h && h.toString().includes('Title_De'));
+      const typeCol = headers.findIndex(h => h && (h.toString().includes('Type') || h.toString().toLowerCase().includes('típus')));
+      const cellCol = headers.findIndex(h => h && (h.toString().includes('Cell') || h.toString().toLowerCase().includes('cella')));
+      const multiCellCol = headers.findIndex(h => h && h.toString().includes('MultiCell'));
       
-      if (idCol >= 0 && questionCol >= 0 && typeCol >= 0 && cellCol >= 0) {
-        // Parse structured template
+      if (titleHunCol >= 0 && typeCol >= 0 && cellCol >= 0) {
+        // Parse OTIS structured template
         for (let i = 1; i < jsonData.length; i++) {
           const row = jsonData[i];
-          if (row[idCol] && row[questionCol] && row[typeCol] && row[cellCol]) {
+          const titleHun = row[titleHunCol];
+          const titleDe = row[titleDeCol] || '';
+          const type = row[typeCol];
+          const cell = row[cellCol];
+          const multiCell = multiCellCol >= 0 ? row[multiCellCol] : '';
+          
+          if (titleHun && type && cell) {
             questions.push({
-              id: row[idCol].toString(),
-              title: row[questionCol].toString(),
-              type: row[typeCol].toString().toLowerCase().replace(/_/g, '_'),
-              cellReference: row[cellCol].toString(),
+              id: `Q${i}`,
+              title: titleHun.toString(),
+              titleDe: titleDe.toString(),
+              type: type.toString().toLowerCase(),
+              cellReference: (multiCell || cell).toString(),
               required: true
             });
           }

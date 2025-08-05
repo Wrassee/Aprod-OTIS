@@ -600,7 +600,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { language } = req.params;
       
-      // First try to find unified template (contains all question types)
+      // Find active unified template (contains all question types)
       let questionsTemplate = await storage.getActiveTemplate('unified', 'multilingual');
       if (!questionsTemplate) {
         questionsTemplate = await storage.getActiveTemplate('unified', language);
@@ -615,38 +615,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       if (!questionsTemplate) {
-        console.warn(`No active template found, using fallback questions`);
         return res.status(404).json({ message: "No active questions template found for this language" });
       }
 
       const questionConfigs = await storage.getQuestionConfigsByTemplate(questionsTemplate.id);
       
-      // Convert to frontend Question format with groups
+      // Convert to frontend Question format with proper grouping
       const questions = questionConfigs.map(config => {
-        let groupName = language === 'de' && config.groupNameDe ? config.groupNameDe : config.groupName;
+        let groupName = 'Általános kérdések';
         
-        // Fix measurement and calculated questions - assign them to "Mérési adatok" group
-        if (config.type === 'measurement' || config.type === 'calculated') {
+        // Assign measurement and calculated questions to "Mérési adatok" group
+        if (config.questionType === 'measurement' || config.questionType === 'calculated') {
           groupName = language === 'de' ? 'Messdaten' : 'Mérési adatok';
         }
         
         return {
           id: config.questionId,
-          title: language === 'hu' && config.titleHu ? config.titleHu : 
-                 language === 'de' && config.titleDe ? config.titleDe : 
-                 config.title,
-          type: config.type,
-          required: config.required,
-          placeholder: config.placeholder || undefined,
-          cellReference: config.cellReference || undefined,
-          sheetName: config.sheetName || undefined,
-          groupName: groupName || undefined,
-          groupOrder: config.groupOrder || 0,
-          unit: config.unit || undefined,
-          minValue: config.minValue || undefined,
-          maxValue: config.maxValue || undefined,
-          calculationFormula: config.calculationFormula || undefined,
-          calculationInputs: config.calculationInputs || undefined,
+          title: config.questionText,
+          type: config.questionType,
+          required: true,
+          cellReference: config.cellReference,
+          groupName: groupName,
+          groupOrder: config.questionType === 'measurement' || config.questionType === 'calculated' ? 1 : 0
         };
       });
 
