@@ -29,11 +29,22 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024, // 10MB limit
   },
   fileFilter: (req, file, cb) => {
-    if (file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-        file.mimetype === 'application/vnd.ms-excel') {
+    console.log('File upload:', file.originalname, 'MIME:', file.mimetype);
+    
+    const allowedMimeTypes = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel',
+      'application/octet-stream' // Sometimes Excel files come as octet-stream
+    ];
+    
+    const isExcelFile = allowedMimeTypes.includes(file.mimetype) || 
+                       file.originalname.toLowerCase().endsWith('.xlsx') ||
+                       file.originalname.toLowerCase().endsWith('.xls');
+    
+    if (isExcelFile) {
       cb(null, true);
     } else {
-      cb(new Error('Only Excel files are allowed'));
+      cb(new Error(`Only Excel files are allowed. Got: ${file.mimetype} for ${file.originalname}`));
     }
   },
 });
@@ -415,7 +426,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (type === 'questions' || type === 'unified') {
         try {
           // Use simple Excel parsing with analyze-template.js
-          const { spawn } = require('child_process');
+          const { spawn } = await import('child_process');
           const parseProcess = spawn('node', ['server/analyze-template.cjs', localFilePath]);
           
           let parseOutput = '';
@@ -424,6 +435,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
           
           parseProcess.on('close', async (code) => {
+            console.log(`Question parsing process exited with code: ${code}`);
+            console.log(`Parse output: ${parseOutput}`);
+            
             if (code === 0 && parseOutput.trim()) {
               try {
                 const questions = JSON.parse(parseOutput);
@@ -442,10 +456,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 }
                 console.log(`Question configs saved for template ${template.id}`);
               } catch (jsonError) {
-                console.error("Error parsing question JSON:", jsonError);
+                console.error("Error parsing question JSON:", jsonError, "Raw output:", parseOutput);
               }
             } else {
               console.log('Question parsing failed or no questions found');
+              console.log('Exit code:', code);
+              console.log('Output length:', parseOutput.length);
             }
           });
           

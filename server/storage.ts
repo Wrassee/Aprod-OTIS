@@ -157,8 +157,10 @@ export class LocalStorage implements IStorage {
     const id = await localStorage.saveQuestionConfig({
       templateId: insertConfig.templateId,
       questionId: insertConfig.questionId,
+      questionText: insertConfig.questionText,
+      questionType: insertConfig.questionType,
       cellReference: insertConfig.cellReference,
-      type: insertConfig.type
+      language: insertConfig.language
     });
     
     const savedConfig = await this.getQuestionConfig(id);
