@@ -14,12 +14,15 @@ import { Signature } from "@/pages/signature";
 import { Completion } from "@/pages/completion";
 import { Admin } from "@/pages/admin";
 import { ProtocolPreview } from "@/pages/protocol-preview";
+import { SmartHelpWizard } from "@/components/smart-help-wizard";
 import { FormData, MeasurementRow } from "@/lib/types";
 import { AnswerValue, ProtocolError } from "@shared/schema";
 import NotFound from "@/pages/not-found";
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState<'start' | 'questionnaire' | 'niedervolt' | 'signature' | 'completion' | 'admin' | 'protocol-preview'>('start');
+  const [currentQuestionnaireePage, setCurrentQuestionnairePage] = useState(0);
+  const [currentQuestionId, setCurrentQuestionId] = useState<string>('');
   const [language, setLanguage] = useState<'hu' | 'de'>('hu');
   const [formData, setFormData] = useState<FormData>({
     receptionDate: new Date().toISOString().split('T')[0], // Always keep as ISO format for HTML date input
@@ -545,6 +548,8 @@ function App() {
             onAdminAccess={handleAdminAccess}
             onHome={handleHome}
             onStartNew={handleStartNew}
+            onPageChange={setCurrentQuestionnairePage}
+            onQuestionChange={setCurrentQuestionId}
           />
         );
       case 'niedervolt':
@@ -585,7 +590,6 @@ function App() {
             onGoHome={handleGoHome}
             onSettings={handleSettings}
             onBackToSignature={handleBackToSignature}
-            onSettings={handleSettings}
             errors={formData.errors}
             protocolData={{
               buildingAddress: formData.answers['1'] as string || '',
@@ -611,6 +615,18 @@ function App() {
           <Toaster />
           {/* PWA components temporarily disabled for stability */}
           {renderCurrentScreen()}
+          
+          {/* Smart Help Wizard - Show on protocol screens */}
+          {(currentScreen === 'questionnaire' || currentScreen === 'niedervolt' || currentScreen === 'signature') && (
+            <SmartHelpWizard
+              currentPage={currentScreen === 'questionnaire' ? currentQuestionnaireePage + 1 : 
+                          currentScreen === 'niedervolt' ? 5 : 
+                          currentScreen === 'signature' ? 6 : 1}
+              formData={formData}
+              currentQuestionId={currentQuestionId}
+              errors={formData.errors}
+            />
+          )}
         </TooltipProvider>
       </LanguageProvider>
     </QueryClientProvider>

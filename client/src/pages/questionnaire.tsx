@@ -30,6 +30,8 @@ interface QuestionnaireProps {
   onAdminAccess?: () => void;
   onHome?: () => void;
   onStartNew?: () => void;
+  onPageChange?: (page: number) => void;
+  onQuestionChange?: (questionId: string) => void;
 }
 
 const Questionnaire = memo(function Questionnaire({
@@ -45,6 +47,8 @@ const Questionnaire = memo(function Questionnaire({
   onAdminAccess,
   onHome,
   onStartNew,
+  onPageChange,
+  onQuestionChange,
 }: QuestionnaireProps) {
   const { t, language: contextLanguage } = useLanguageContext();
   
@@ -79,11 +83,12 @@ const Questionnaire = memo(function Questionnaire({
   const [calculatedResults, setCalculatedResults] = useState<Record<string, any>>({});
   const [measurementErrors, setMeasurementErrors] = useState<ProtocolError[]>([]);
 
-  // Save current page to localStorage - immediate with ref update
+  // Save current page to localStorage and notify parent component
   useEffect(() => {
     currentPageRef.current = currentPage;
     localStorage.setItem('questionnaire-current-page', currentPage.toString());
-  }, [currentPage]);
+    onPageChange?.(currentPage);
+  }, [currentPage, onPageChange]);
 
   // Load questions ONCE on mount only - no dependency array to prevent re-runs
   useEffect(() => {
@@ -442,6 +447,7 @@ const Questionnaire = memo(function Questionnaire({
                     value={answers[question.id]}
                     onChange={(value) => {
                       onAnswerChange(question.id, value);
+                      onQuestionChange?.(question.id);
                     }}
                   />
                 );
@@ -483,6 +489,7 @@ const Questionnaire = memo(function Questionnaire({
                         value={answers[question.id]}
                         onChange={(value) => {
                           onAnswerChange(question.id, value);
+                          onQuestionChange?.(question.id);
                         }}
                       />
                     );
