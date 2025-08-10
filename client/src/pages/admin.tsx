@@ -74,62 +74,40 @@ export function Admin({ onBack, onHome }: AdminProps) {
     if (!uploadForm.file || !uploadForm.name) {
       toast({
         title: t.error,
-        description: 'Kérjük töltse ki az összes kötelező mezőt',
+        description: 'Please provide a name and select a file',
         variant: 'destructive',
       });
       return;
     }
 
     setLoading(true);
+    const formData = new FormData();
+    formData.append('file', uploadForm.file);
+    formData.append('name', uploadForm.name);
+    formData.append('type', uploadForm.type);
+    formData.append('language', uploadForm.language);
+
     try {
-      const formData = new FormData();
-      formData.append('file', uploadForm.file);
-      formData.append('name', uploadForm.name);
-      formData.append('type', uploadForm.type);
-      formData.append('language', uploadForm.language);
-
-      console.log('Uploading template:', {
-        name: uploadForm.name,
-        type: uploadForm.type,
-        language: uploadForm.language,
-        fileName: uploadForm.file.name
-      });
-
       const response = await fetch('/api/admin/templates/upload', {
         method: 'POST',
         body: formData,
       });
 
-      const result = await response.json();
-
       if (response.ok) {
         toast({
-          title: 'Siker',
-          description: `Template sikeresen feltöltve: ${uploadForm.name}`,
+          title: t.success,
+          description: 'Template uploaded successfully',
         });
-        
-        // Reset form
-        setUploadForm({
-          name: '',
-          type: 'unified',
-          language: 'multilingual',
-          file: null,
-        });
-        
-        // Reset file input
-        const fileInput = document.getElementById('template-file') as HTMLInputElement;
-        if (fileInput) fileInput.value = '';
-        
-        // Refresh templates
-        await fetchTemplates();
+        setUploadForm({ name: '', type: 'unified', language: 'multilingual', file: null });
+        fetchTemplates();
       } else {
-        throw new Error(result.message || 'Upload failed');
+        throw new Error('Upload failed');
       }
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('Error uploading template:', error);
       toast({
         title: t.error,
-        description: 'Template feltöltése sikertelen',
+        description: 'Failed to upload template',
         variant: 'destructive',
       });
     } finally {

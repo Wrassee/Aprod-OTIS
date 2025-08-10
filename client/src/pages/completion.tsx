@@ -177,18 +177,20 @@ export function Completion({
           </div>
         </div>
 
-        {/* Error Export Section - always show for error list management */}
-        <div className="mt-8">
-          <ErrorExport 
-            errors={errors.length > 0 ? errors : JSON.parse(localStorage.getItem('protocol-errors') || '[]')}
-            protocolData={protocolData || {
-              buildingAddress: '',
-              liftId: '',
-              inspectorName: '',
-              inspectionDate: new Date().toISOString().split('T')[0]
-            }}
-          />
-        </div>
+        {/* Error Export Section - only show if there are errors */}
+        {(errors.length > 0 || JSON.parse(localStorage.getItem('protocol-errors') || '[]').length > 0) && (
+          <div className="mt-8">
+            <ErrorExport 
+              errors={errors.length > 0 ? errors : JSON.parse(localStorage.getItem('protocol-errors') || '[]')}
+              protocolData={protocolData || {
+                buildingAddress: '',
+                liftId: '',
+                inspectorName: '',
+                inspectionDate: new Date().toISOString().split('T')[0]
+              }}
+            />
+          </div>
+        )}
       </main>
     </div>
   );
