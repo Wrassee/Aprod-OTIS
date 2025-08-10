@@ -175,16 +175,31 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 
 **STATUS: MEASUREMENT PERSISTENCE CONFIRMED WORKING - User confirmed both input validation and data persistence work perfectly. Measurement values are preserved across page navigation while maintaining strict numeric validation. Application ready for production use with bulletproof data integrity and persistence!**
 
-## DEPLOYMENT & MOBILE PUBLICATION ROADMAP
+## DEPLOYMENT & MIGRATION ROADMAP
 
-### Phase 1: Web Deployment (Current) ✅
-- **Replit Autoscale Deployment**: Optimális választás a OTIS APROD számára
-- **Automatic HTTPS**: Biztonságos kapcsolat minden eszközön
-- **PostgreSQL Integration**: Teljes adatbázis támogatás deployment alatt
-- **PWA Features**: Azonnali telepíthetőség minden modern böngészőben
+### Phase 1: Vercel Migration (Current) ✅
+- **Vercel Deployment Ready**: Teljes migráció Replit-ről Vercel-re elkészítve
+- **Serverless Architecture**: API routes optimalizálva Vercel serverless functions-höz
+- **PWA Support**: Teljes PWA funkciók megtartva (service worker, manifest, offline)
+- **Build Configuration**: vercel.json és build scriptek konfigurálva
+- **Environment Setup**: Production environment változók dokumentálva
+
+### Phase 1.5: Vercel Go-Live (1-2 days)  
+- **GitHub Repository**: Kód feltöltése GitHub-ra deployment-hez
+- **Vercel Project Setup**: Projekt létrehozása és konfigurálása
+- **Database Migration**: PostgreSQL connection string frissítése
+- **Custom Domain**: OTIS branded domain beállítása (opcionális)
 
 ### Phase 2: Mobile App Distribution (1-2 weeks)
 - **PWA → Capacitor**: Natív app wrapper fejlesztése Play Store publikáláshoz
 - **Native Camera Integration**: Hibafotók készítése natív kamera hozzáféréssel  
 - **Background Sync**: Offline protokoll automatikus szinkronizálása
 - **Push Notifications**: Értesítések új verziókról és fontos frissítésekről
+
+### Vercel Migration Files Created ✅
+- `vercel.json` - Vercel deployment configuration
+- `api/index.ts` - Serverless API handler
+- `README-VERCEL.md` - Complete migration documentation
+- `deploy-vercel.sh` - Automated deployment script
+- `scripts/build-vercel.js` - Production build script
+- `.gitignore` - Git ignore rules for deployment
