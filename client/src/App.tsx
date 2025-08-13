@@ -9,7 +9,7 @@ import { LanguageProvider } from "@/components/language-provider";
 // import { PWAInstallBanner, OfflineIndicator } from "@/components/pwa-install-banner";
 import { StartScreen } from "@/pages/start-screen";
 import Questionnaire from "@/pages/questionnaire";
-import { NiedervoltMeasurements } from "@/pages/niedervolt-measurements";
+import { NiedervoltTable } from "@/pages/niedervolt-table";
 import { Signature } from "@/pages/signature";
 import { Completion } from "@/pages/completion";
 import { Admin } from "@/pages/admin";
@@ -31,6 +31,7 @@ function App() {
     signature: '',
     signatureName: '',
     niedervoltMeasurements: [],
+    niedervoltTableMeasurements: {},
   });
   const formDataRef = useRef(formData);
   
@@ -554,10 +555,10 @@ function App() {
         );
       case 'niedervolt':
         return (
-          <NiedervoltMeasurements
-            key="stable-niedervolt"
-            measurements={formData.niedervoltMeasurements || []}
-            onMeasurementsChange={handleMeasurementsChange}
+          <NiedervoltTable
+            key="stable-niedervolt-table"
+            measurements={formData.niedervoltTableMeasurements || {}}
+            onMeasurementsChange={(measurements) => setFormData(prev => ({ ...prev, niedervoltTableMeasurements: measurements }))}
             onBack={handleNiedervoltBack}
             onNext={handleNiedervoltNext}
             receptionDate={formData.receptionDate}

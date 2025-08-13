@@ -18,6 +18,7 @@ export interface FormData {
   signature?: string;
   signatureName?: string;
   niedervoltMeasurements?: MeasurementRow[];
+  niedervoltTableMeasurements?: Record<string, any>;
 }
 
 export interface QuestionPage {
