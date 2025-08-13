@@ -5,7 +5,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLanguageContext } from '@/components/language-provider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, ArrowRight, Save, Settings, Home, RotateCcw, Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Save, Settings, Home, RotateCcw, Check, Plus, Trash2, Filter } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { FIELD_LABELS, type NiedervoltMeasurement } from '@/types/niedervolt-devices';
 import { useQuery } from '@tanstack/react-query';
@@ -20,6 +22,12 @@ interface NiedervoltTableProps {
   onAdminAccess?: () => void;
   onHome?: () => void;
   onStartNew?: () => void;
+}
+
+interface CustomDevice {
+  id: string;
+  name: { de: string; hu: string };
+  isCustom: true;
 }
 
 export function NiedervoltTable({
@@ -53,10 +61,19 @@ export function NiedervoltTable({
   
   // Save status states
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  
+  // Device selection and custom devices
+  const [selectedDevices, setSelectedDevices] = useState<Set<string>>(new Set());
+  const [customDevices, setCustomDevices] = useState<CustomDevice[]>([]);
+  const [showDeviceSelector, setShowDeviceSelector] = useState(false);
+  const [newDeviceName, setNewDeviceName] = useState({ de: '', hu: '' });
 
   // Load measurements from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem('niedervolt-table-measurements');
+    const savedDeviceSelection = localStorage.getItem('niedervolt-selected-devices');
+    const savedCustomDevices = localStorage.getItem('niedervolt-custom-devices');
+    
     if (saved && Object.keys(measurements).length === 0) {
       try {
         const savedMeasurements = JSON.parse(saved);
@@ -65,7 +82,28 @@ export function NiedervoltTable({
         console.error('Error loading saved measurements:', e);
       }
     }
-  }, [measurements, onMeasurementsChange]);
+    
+    if (savedDeviceSelection) {
+      try {
+        const deviceIds = JSON.parse(savedDeviceSelection);
+        setSelectedDevices(new Set(deviceIds));
+      } catch (e) {
+        console.error('Error loading device selection:', e);
+      }
+    } else {
+      // Default: select all devices
+      setSelectedDevices(new Set(devices.map(d => d.id)));
+    }
+    
+    if (savedCustomDevices) {
+      try {
+        const custom = JSON.parse(savedCustomDevices);
+        setCustomDevices(custom);
+      } catch (e) {
+        console.error('Error loading custom devices:', e);
+      }
+    }
+  }, [devices, measurements, onMeasurementsChange]);
 
   // Auto-save to localStorage whenever measurements change
   useEffect(() => {
@@ -75,6 +113,15 @@ export function NiedervoltTable({
       setTimeout(() => setSaveStatus('idle'), 2000);
     }
   }, [measurements]);
+
+  // Save device selection and custom devices
+  useEffect(() => {
+    localStorage.setItem('niedervolt-selected-devices', JSON.stringify([...selectedDevices]));
+  }, [selectedDevices]);
+
+  useEffect(() => {
+    localStorage.setItem('niedervolt-custom-devices', JSON.stringify(customDevices));
+  }, [customDevices]);
 
   // Update specific measurement field
   const updateMeasurement = useCallback((deviceId: string, field: keyof NiedervoltMeasurement, value: string) => {
@@ -127,15 +174,63 @@ export function NiedervoltTable({
   const handleStartNew = useCallback(() => {
     localStorage.removeItem('niedervolt-table-measurements');
     localStorage.removeItem('niedervolt-reception-date');
+    localStorage.removeItem('niedervolt-selected-devices');
+    localStorage.removeItem('niedervolt-custom-devices');
     onMeasurementsChange({});
+    setSelectedDevices(new Set(devices.map(d => d.id)));
+    setCustomDevices([]);
     onStartNew?.();
-  }, [onMeasurementsChange, onStartNew]);
+  }, [onMeasurementsChange, onStartNew, devices]);
+
+  // Device management functions
+  const toggleDeviceSelection = (deviceId: string) => {
+    const newSelection = new Set(selectedDevices);
+    if (newSelection.has(deviceId)) {
+      newSelection.delete(deviceId);
+      // Remove measurements for unselected device
+      const newMeasurements = { ...measurements };
+      delete newMeasurements[deviceId];
+      onMeasurementsChange(newMeasurements);
+    } else {
+      newSelection.add(deviceId);
+    }
+    setSelectedDevices(newSelection);
+  };
+
+  const addCustomDevice = () => {
+    if (newDeviceName.de.trim() && newDeviceName.hu.trim()) {
+      const customId = `custom-${Date.now()}`;
+      const newDevice: CustomDevice = {
+        id: customId,
+        name: { de: newDeviceName.de.trim(), hu: newDeviceName.hu.trim() },
+        isCustom: true
+      };
+      setCustomDevices([...customDevices, newDevice]);
+      setSelectedDevices(new Set([...selectedDevices, customId]));
+      setNewDeviceName({ de: '', hu: '' });
+    }
+  };
+
+  const removeCustomDevice = (deviceId: string) => {
+    setCustomDevices(customDevices.filter(d => d.id !== deviceId));
+    const newSelection = new Set(selectedDevices);
+    newSelection.delete(deviceId);
+    setSelectedDevices(newSelection);
+    // Remove measurements for deleted custom device
+    const newMeasurements = { ...measurements };
+    delete newMeasurements[deviceId];
+    onMeasurementsChange(newMeasurements);
+  };
+
+  // Get combined device list
+  const allDevices = [...devices, ...customDevices];
+  const activeDevices = allDevices.filter(device => selectedDevices.has(device.id));
 
   // Calculate statistics
-  const totalDevices = devices.length;
+  const totalDevices = activeDevices.length;
   const filledDevices = Object.keys(measurements).filter(deviceId => {
     const measurement = measurements[deviceId];
-    return measurement && Object.values(measurement).some(value => value && value !== deviceId);
+    return measurement && selectedDevices.has(deviceId) && Object.values(measurement).some(value => value && value !== deviceId);
   }).length;
   const completionPercentage = totalDevices > 0 ? Math.round((filledDevices / totalDevices) * 100) : 0;
 
@@ -185,6 +280,99 @@ export function NiedervoltTable({
             </div>
 
             <div className="flex items-center space-x-3">
+              {/* Device Selection Button */}
+              <Dialog open={showDeviceSelector} onOpenChange={setShowDeviceSelector}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Filter className="h-4 w-4 mr-2" />
+                    {language === 'hu' ? 'Eszközök' : 'Geräte'} ({activeDevices.length})
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>
+                      {language === 'hu' ? 'Eszközök Kiválasztása' : 'Geräteauswahl'}
+                    </DialogTitle>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4">
+                    {/* Predefined Devices */}
+                    <div>
+                      <h4 className="font-medium mb-3">
+                        {language === 'hu' ? 'Standard Eszközök' : 'Standard Geräte'}
+                      </h4>
+                      <div className="space-y-2 max-h-60 overflow-y-auto">
+                        {devices.map((device) => (
+                          <div key={device.id} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={device.id}
+                              checked={selectedDevices.has(device.id)}
+                              onCheckedChange={() => toggleDeviceSelection(device.id)}
+                            />
+                            <Label htmlFor={device.id} className="flex-1 cursor-pointer">
+                              {getDeviceName(device)}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Custom Devices */}
+                    <div>
+                      <h4 className="font-medium mb-3">
+                        {language === 'hu' ? 'Egyedi Eszközök' : 'Individuelle Geräte'}
+                      </h4>
+                      
+                      {/* Add New Custom Device */}
+                      <div className="grid grid-cols-2 gap-2 mb-3">
+                        <Input
+                          placeholder={language === 'hu' ? 'Név (német)' : 'Name (Deutsch)'}
+                          value={newDeviceName.de}
+                          onChange={(e) => setNewDeviceName(prev => ({ ...prev, de: e.target.value }))}
+                        />
+                        <Input
+                          placeholder={language === 'hu' ? 'Név (magyar)' : 'Name (Ungarisch)'}
+                          value={newDeviceName.hu}
+                          onChange={(e) => setNewDeviceName(prev => ({ ...prev, hu: e.target.value }))}
+                        />
+                        <Button
+                          onClick={addCustomDevice}
+                          disabled={!newDeviceName.de.trim() || !newDeviceName.hu.trim()}
+                          className="col-span-2"
+                          size="sm"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          {language === 'hu' ? 'Hozzáadás' : 'Hinzufügen'}
+                        </Button>
+                      </div>
+
+                      {/* Custom Device List */}
+                      <div className="space-y-2">
+                        {customDevices.map((device) => (
+                          <div key={device.id} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={device.id}
+                              checked={selectedDevices.has(device.id)}
+                              onCheckedChange={() => toggleDeviceSelection(device.id)}
+                            />
+                            <Label htmlFor={device.id} className="flex-1 cursor-pointer">
+                              {getDeviceName(device)}
+                            </Label>
+                            <Button
+                              onClick={() => removeCustomDevice(device.id)}
+                              variant="ghost"
+                              size="sm"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
               {/* Save Button */}
               <Button
                 onClick={handleManualSave}
@@ -327,10 +515,16 @@ export function NiedervoltTable({
                     <th className="border border-gray-300 dark:border-gray-600 p-3 text-center font-semibold">
                       {getFieldLabel('fiTest')}
                     </th>
+                    <th className="border border-gray-300 dark:border-gray-600 p-3 text-center font-semibold">
+                      {getFieldLabel('fiIn')}
+                    </th>
+                    <th className="border border-gray-300 dark:border-gray-600 p-3 text-center font-semibold">
+                      {getFieldLabel('fiDin')}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {devices.map((device: any) => {
+                  {activeDevices.map((device: any) => {
                     const measurement = measurements[device.id] || { deviceId: device.id };
                     return (
                       <tr key={device.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
@@ -420,6 +614,24 @@ export function NiedervoltTable({
                               ))}
                             </SelectContent>
                           </Select>
+                        </td>
+                        <td className="border border-gray-300 dark:border-gray-600 p-2">
+                          <Input
+                            type="text"
+                            placeholder="mA"
+                            value={measurement.fiIn || ''}
+                            onChange={(e) => updateMeasurement(device.id, 'fiIn', e.target.value)}
+                            className="w-full text-center"
+                          />
+                        </td>
+                        <td className="border border-gray-300 dark:border-gray-600 p-2">
+                          <Input
+                            type="text"
+                            placeholder="ms"
+                            value={measurement.fiDin || ''}
+                            onChange={(e) => updateMeasurement(device.id, 'fiDin', e.target.value)}
+                            className="w-full text-center"
+                          />
                         </td>
                       </tr>
                     );

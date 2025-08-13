@@ -60,20 +60,20 @@ export interface FieldLabels {
 }
 
 export const FIELD_LABELS: FieldLabels = {
-  nennstrom: { de: 'Nennstrom (In) Amper', hu: 'Névleges áram (In) Amper' },
-  sicherung: { de: 'Sicherung', hu: 'Olvadóbetét' },
-  ls: { de: 'LS', hu: 'Kismegszakító' },
+  nennstrom: { de: 'Nennstrom (In) A', hu: 'Névleges áram (In) A' },
+  sicherung: { de: 'Sicherung', hu: 'Biztosíték' },
+  ls: { de: 'LS', hu: 'LS-kapcsoló' },
   merkmal: { de: 'Merkmal', hu: 'Típusjelzés' },
   ltv: { de: 'L-T-V..', hu: 'L-T-V..' },
-  nPe: { de: 'N-PE', hu: 'N-PE' },
-  l1Pe: { de: 'L1-PE', hu: 'L1-PE' },
-  l2Pe: { de: 'L2-PE', hu: 'L2-PE' },
-  l3Pe: { de: 'L3-PE', hu: 'L3-PE' },
-  lN: { de: 'L-N', hu: 'L-N' },
-  lPe: { de: 'L-PE', hu: 'L-PE' },
-  fiIn: { de: 'FI In (mA)', hu: 'FI In (mA)' },
-  fiDin: { de: 'FI DIn (ms)', hu: 'FI DIn (ms)' },
-  fiTest: { de: 'FI Test', hu: 'FI Test' }
+  nPe: { de: 'N-PE Ω', hu: 'N-PE Ω' },
+  l1Pe: { de: 'L1-PE Ω', hu: 'L1-PE Ω' },
+  l2Pe: { de: 'L2-PE Ω', hu: 'L2-PE Ω' },
+  l3Pe: { de: 'L3-PE Ω', hu: 'L3-PE Ω' },
+  lN: { de: 'L-N Ω', hu: 'L-N Ω' },
+  lPe: { de: 'L-PE Ω', hu: 'L-PE Ω' },
+  fiIn: { de: 'FI In mA', hu: 'FI In mA' },
+  fiDin: { de: 'FI DIn ms', hu: 'FI DIn ms' },
+  fiTest: { de: 'FI Test', hu: 'FI Teszt' }
 };
 
 // Dropdown options for common values

@@ -32,6 +32,7 @@ Preferred communication style: Simple, everyday language (Hungarian preferred).
 - **Error Documentation**: Allows adding, editing, and deleting protocol errors with image attachments.
 - **Digital Signature**: Canvas-based signature capture with printed name functionality.
 - **Measurement & Calculation**: Supports 'measurement' and 'calculated' question types with a dedicated engine and automatic error detection for out-of-range values.
+- **Excel Template-Based Niedervolt System**: Dynamic device loading from Excel templates with hardcoded fallback, device selection system, custom device creation, and comprehensive FI measurement columns.
 - **Deployment**: Configured for Vercel with serverless API, PWA functionality, and automated deployment scripts.
 
 ## External Dependencies
