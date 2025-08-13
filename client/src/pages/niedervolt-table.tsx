@@ -40,6 +40,8 @@ export function NiedervoltTable({
     queryKey: ['/api/niedervolt/devices'],
     retry: 1,
   });
+
+
   const { toast } = useToast();
   
   // Save status states
