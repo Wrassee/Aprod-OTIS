@@ -92,7 +92,7 @@ export function NiedervoltTable({
       }
     } else {
       // Default: select all devices
-      setSelectedDevices(new Set(devices.map(d => d.id)));
+      setSelectedDevices(new Set(devices.map((d: any) => d.id)));
     }
     
     if (savedCustomDevices) {
@@ -116,7 +116,7 @@ export function NiedervoltTable({
 
   // Save device selection and custom devices
   useEffect(() => {
-    localStorage.setItem('niedervolt-selected-devices', JSON.stringify([...selectedDevices]));
+    localStorage.setItem('niedervolt-selected-devices', JSON.stringify(Array.from(selectedDevices)));
   }, [selectedDevices]);
 
   useEffect(() => {
@@ -136,11 +136,6 @@ export function NiedervoltTable({
       }
     });
   }, [measurements, onMeasurementsChange]);
-
-  // Get device name based on language
-  const getDeviceName = (device: any) => {
-    return language === 'hu' ? device.name?.hu : device.name?.de;
-  };
 
   // Get field label based on language
   const getFieldLabel = (field: keyof typeof FIELD_LABELS) => {
@@ -177,7 +172,7 @@ export function NiedervoltTable({
     localStorage.removeItem('niedervolt-selected-devices');
     localStorage.removeItem('niedervolt-custom-devices');
     onMeasurementsChange({});
-    setSelectedDevices(new Set(devices.map(d => d.id)));
+    setSelectedDevices(new Set(devices.map((d: any) => d.id)));
     setCustomDevices([]);
     onStartNew?.();
   }, [onMeasurementsChange, onStartNew, devices]);
@@ -225,6 +220,14 @@ export function NiedervoltTable({
   // Get combined device list
   const allDevices = [...devices, ...customDevices];
   const activeDevices = allDevices.filter(device => selectedDevices.has(device.id));
+
+  // Helper function to get device name based on language
+  const getDeviceName = (device: any) => {
+    if (device.name && typeof device.name === 'object') {
+      return language === 'hu' ? device.name.hu : device.name.de;
+    }
+    return language === 'hu' ? device.nameHU : device.nameDE;
+  };
 
   // Calculate statistics
   const totalDevices = activeDevices.length;
@@ -302,7 +305,7 @@ export function NiedervoltTable({
                         {language === 'hu' ? 'Standard Eszközök' : 'Standard Geräte'}
                       </h4>
                       <div className="space-y-2 max-h-60 overflow-y-auto">
-                        {devices.map((device) => (
+                        {devices.map((device: any) => (
                           <div key={device.id} className="flex items-center space-x-2">
                             <Checkbox
                               id={device.id}
