@@ -537,6 +537,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get niedervolt devices from template with fallback
+  app.get("/api/niedervolt/devices", async (req, res) => {
+    try {
+      const { niedervoltService } = await import("./services/niedervolt-service");
+      const devices = await niedervoltService.getNiedervoltDevices();
+      const dropdownOptions = niedervoltService.getDropdownOptions();
+      
+      res.json({
+        devices,
+        dropdownOptions
+      });
+    } catch (error) {
+      console.error("Error fetching niedervolt devices:", error);
+      res.status(500).json({ message: "Failed to fetch niedervolt devices" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

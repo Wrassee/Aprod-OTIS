@@ -7,7 +7,8 @@ import { useLanguageContext } from '@/components/language-provider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, ArrowRight, Save, Settings, Home, RotateCcw, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { GERMAN_DEVICES, FIELD_LABELS, DROPDOWN_OPTIONS, type NiedervoltMeasurement } from '@/types/niedervolt-devices';
+import { FIELD_LABELS, type NiedervoltMeasurement } from '@/types/niedervolt-devices';
+import { useQuery } from '@tanstack/react-query';
 
 interface NiedervoltTableProps {
   measurements: Record<string, NiedervoltMeasurement>;
@@ -33,6 +34,12 @@ export function NiedervoltTable({
   onStartNew,
 }: NiedervoltTableProps) {
   const { t, language } = useLanguageContext();
+  
+  // Fetch devices and dropdown options from backend
+  const { data: niedervoltData, isLoading: isLoadingDevices, error: deviceError } = useQuery({
+    queryKey: ['/api/niedervolt/devices'],
+    retry: 1,
+  });
   const { toast } = useToast();
   
   // Save status states
@@ -75,8 +82,8 @@ export function NiedervoltTable({
   }, [measurements, onMeasurementsChange]);
 
   // Get device name based on language
-  const getDeviceName = (device: typeof GERMAN_DEVICES[0]) => {
-    return language === 'hu' ? device.nameHU : device.nameDE;
+  const getDeviceName = (device: any) => {
+    return language === 'hu' ? device.name?.hu : device.name?.de;
   };
 
   // Get field label based on language
@@ -116,11 +123,42 @@ export function NiedervoltTable({
   }, [onMeasurementsChange, onStartNew]);
 
   // Calculate statistics
-  const totalDevices = GERMAN_DEVICES.length;
+  const totalDevices = devices.length;
   const filledDevices = Object.keys(measurements).filter(deviceId => {
     const measurement = measurements[deviceId];
     return measurement && Object.values(measurement).some(value => value && value !== deviceId);
   }).length;
+  const completionPercentage = totalDevices > 0 ? Math.round((filledDevices / totalDevices) * 100) : 0;
+
+  // Show loading state while fetching devices
+  if (isLoadingDevices) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-lg text-gray-600 dark:text-gray-300">
+            {language === 'hu' ? 'Eszközök betöltése...' : 'Geräte werden geladen...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if devices failed to load
+  if (deviceError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg text-red-600 dark:text-red-400 mb-4">
+            {language === 'hu' ? 'Hiba az eszközök betöltésekor' : 'Fehler beim Laden der Geräte'}
+          </p>
+          <Button onClick={onBack} variant="outline">
+            {language === 'hu' ? 'Vissza' : 'Zurück'}
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700">
@@ -283,7 +321,7 @@ export function NiedervoltTable({
                   </tr>
                 </thead>
                 <tbody>
-                  {GERMAN_DEVICES.map((device) => {
+                  {devices.map((device: any) => {
                     const measurement = measurements[device.id] || { deviceId: device.id };
                     return (
                       <tr key={device.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
@@ -309,7 +347,7 @@ export function NiedervoltTable({
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="-">-</SelectItem>
-                              {DROPDOWN_OPTIONS.sicherung.map((option) => (
+                              {dropdownOptions.sicherung.map((option: string) => (
                                 <SelectItem key={option} value={option}>{option}</SelectItem>
                               ))}
                             </SelectContent>
@@ -325,7 +363,7 @@ export function NiedervoltTable({
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="-">-</SelectItem>
-                              {DROPDOWN_OPTIONS.ls.map((option) => (
+                              {dropdownOptions.ls.map((option: string) => (
                                 <SelectItem key={option} value={option}>{option}</SelectItem>
                               ))}
                             </SelectContent>
@@ -368,7 +406,7 @@ export function NiedervoltTable({
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="-">-</SelectItem>
-                              {DROPDOWN_OPTIONS.fiTest.map((option) => (
+                              {dropdownOptions.fiTest.map((option: string) => (
                                 <SelectItem key={option} value={option}>{option}</SelectItem>
                               ))}
                             </SelectContent>
