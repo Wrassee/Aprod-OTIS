@@ -62,12 +62,14 @@ export function NiedervoltTable({
 
   // Update specific measurement field
   const updateMeasurement = useCallback((deviceId: string, field: keyof NiedervoltMeasurement, value: string) => {
+    // Convert "-" to empty string for internal storage
+    const cleanValue = value === "-" ? "" : value;
     onMeasurementsChange({
       ...measurements,
       [deviceId]: {
         ...measurements[deviceId],
         deviceId,
-        [field]: value
+        [field]: cleanValue
       }
     });
   }, [measurements, onMeasurementsChange]);
@@ -299,14 +301,14 @@ export function NiedervoltTable({
                         </td>
                         <td className="border border-gray-300 dark:border-gray-600 p-2">
                           <Select
-                            value={measurement.sicherung || ''}
+                            value={measurement.sicherung || '-'}
                             onValueChange={(value) => updateMeasurement(device.id, 'sicherung', value)}
                           >
                             <SelectTrigger className="w-full">
                               <SelectValue placeholder="-" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="">-</SelectItem>
+                              <SelectItem value="-">-</SelectItem>
                               {DROPDOWN_OPTIONS.sicherung.map((option) => (
                                 <SelectItem key={option} value={option}>{option}</SelectItem>
                               ))}
@@ -315,14 +317,14 @@ export function NiedervoltTable({
                         </td>
                         <td className="border border-gray-300 dark:border-gray-600 p-2">
                           <Select
-                            value={measurement.ls || ''}
+                            value={measurement.ls || '-'}
                             onValueChange={(value) => updateMeasurement(device.id, 'ls', value)}
                           >
                             <SelectTrigger className="w-full">
                               <SelectValue placeholder="-" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="">-</SelectItem>
+                              <SelectItem value="-">-</SelectItem>
                               {DROPDOWN_OPTIONS.ls.map((option) => (
                                 <SelectItem key={option} value={option}>{option}</SelectItem>
                               ))}
@@ -358,14 +360,14 @@ export function NiedervoltTable({
                         </td>
                         <td className="border border-gray-300 dark:border-gray-600 p-2">
                           <Select
-                            value={measurement.fiTest || ''}
+                            value={measurement.fiTest || '-'}
                             onValueChange={(value) => updateMeasurement(device.id, 'fiTest', value)}
                           >
                             <SelectTrigger className="w-full">
                               <SelectValue placeholder="-" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="">-</SelectItem>
+                              <SelectItem value="-">-</SelectItem>
                               {DROPDOWN_OPTIONS.fiTest.map((option) => (
                                 <SelectItem key={option} value={option}>{option}</SelectItem>
                               ))}
