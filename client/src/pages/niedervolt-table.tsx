@@ -41,6 +41,13 @@ export function NiedervoltTable({
     retry: 1,
   });
 
+  // Use devices from API or fallback
+  const devices = niedervoltData?.devices || [];
+  const dropdownOptions = niedervoltData?.dropdownOptions || {
+    sicherung: ['6A', '10A', '13A', '16A', '20A', '25A', '32A', '40A', '50A', '63A'],
+    ls: ['B6', 'B10', 'B13', 'B16', 'B20', 'B25', 'B32', 'C6', 'C10', 'C13', 'C16', 'C20', 'C25', 'C32'],
+    fiTest: ['OK', 'NOK']
+  };
 
   const { toast } = useToast();
   
