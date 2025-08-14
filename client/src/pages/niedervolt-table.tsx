@@ -178,19 +178,21 @@ export function NiedervoltTable({
   }, [onMeasurementsChange, onStartNew, devices]);
 
   // Device management functions
-  const toggleDeviceSelection = (deviceId: string) => {
-    const newSelection = new Set(selectedDevices);
-    if (newSelection.has(deviceId)) {
-      newSelection.delete(deviceId);
-      // Remove measurements for unselected device
-      const newMeasurements = { ...measurements };
-      delete newMeasurements[deviceId];
-      onMeasurementsChange(newMeasurements);
-    } else {
-      newSelection.add(deviceId);
-    }
-    setSelectedDevices(newSelection);
-  };
+  const toggleDeviceSelection = useCallback((deviceId: string) => {
+    setSelectedDevices(prev => {
+      const newSelection = new Set(prev);
+      if (newSelection.has(deviceId)) {
+        newSelection.delete(deviceId);
+        // Remove measurements for unselected device
+        const newMeasurements = { ...measurements };
+        delete newMeasurements[deviceId];
+        onMeasurementsChange(newMeasurements);
+      } else {
+        newSelection.add(deviceId);
+      }
+      return newSelection;
+    });
+  }, [measurements, onMeasurementsChange]);
 
   const addCustomDevice = () => {
     if (newDeviceName.de.trim() && newDeviceName.hu.trim()) {
@@ -277,14 +279,40 @@ export function NiedervoltTable({
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                 {language === 'hu' ? 'Niedervolt Installációk Mérései' : 'Niedervolt Installationen Messungen'}
               </h1>
-              
-              {/* Device Selection Button - moved next to title */}
+              <span className="text-gray-500 dark:text-gray-400">
+                {language === 'hu' ? 'Oldal 5/5' : 'Seite 5/5'}
+              </span>
+            </div>
+
+            <div className="flex items-center space-x-3">
+              {/* Admin Access Button */}
+              {onAdminAccess && (
+                <Button variant="outline" size="sm" onClick={onAdminAccess}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  {language === 'hu' ? 'Admin' : 'Admin'}
+                </Button>
+              )}
+
+              {/* Home Button */}
+              {onHome && (
+                <Button variant="outline" size="sm" onClick={onHome}>
+                  <Home className="h-4 w-4 mr-2" />
+                  {language === 'hu' ? 'Főoldal' : 'Startseite'}
+                </Button>
+              )}
+
+              {/* Start New Button */}
+              {onStartNew && (
+                <Button variant="outline" size="sm" onClick={onStartNew}>
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  {language === 'hu' ? 'Új kezdés' : 'Neu beginnen'}
+                </Button>
+              )}
+
+              {/* Hidden Device Selection Dialog */}
               <Dialog open={showDeviceSelector} onOpenChange={setShowDeviceSelector}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Filter className="h-4 w-4 mr-2" />
-                    {language === 'hu' ? 'Eszközök' : 'Geräte'} ({activeDevices.length})
-                  </Button>
+                  <div style={{ display: 'none' }} />
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                   <DialogHeader>
@@ -305,7 +333,21 @@ export function NiedervoltTable({
                             <Checkbox
                               id={device.id}
                               checked={selectedDevices.has(device.id)}
-                              onCheckedChange={() => toggleDeviceSelection(device.id)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedDevices(prev => new Set([...prev, device.id]));
+                                } else {
+                                  setSelectedDevices(prev => {
+                                    const newSet = new Set(prev);
+                                    newSet.delete(device.id);
+                                    // Remove measurements for unselected device
+                                    const newMeasurements = { ...measurements };
+                                    delete newMeasurements[device.id];
+                                    onMeasurementsChange(newMeasurements);
+                                    return newSet;
+                                  });
+                                }
+                              }}
                             />
                             <Label htmlFor={device.id} className="flex-1 cursor-pointer">
                               {getDeviceName(device)}
@@ -351,7 +393,21 @@ export function NiedervoltTable({
                             <Checkbox
                               id={device.id}
                               checked={selectedDevices.has(device.id)}
-                              onCheckedChange={() => toggleDeviceSelection(device.id)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedDevices(prev => new Set([...prev, device.id]));
+                                } else {
+                                  setSelectedDevices(prev => {
+                                    const newSet = new Set(prev);
+                                    newSet.delete(device.id);
+                                    // Remove measurements for unselected device
+                                    const newMeasurements = { ...measurements };
+                                    delete newMeasurements[device.id];
+                                    onMeasurementsChange(newMeasurements);
+                                    return newSet;
+                                  });
+                                }
+                              }}
                             />
                             <Label htmlFor={device.id} className="flex-1 cursor-pointer">
                               {getDeviceName(device)}
@@ -376,13 +432,7 @@ export function NiedervoltTable({
                   </div>
                 </DialogContent>
               </Dialog>
-              
-              <span className="text-gray-500 dark:text-gray-400">
-                {language === 'hu' ? 'Oldal 5/5' : 'Seite 5/5'}
-              </span>
-            </div>
 
-            <div className="flex items-center space-x-3">
               {/* Save Button */}
               <Button
                 onClick={handleManualSave}
@@ -492,9 +542,21 @@ export function NiedervoltTable({
         {/* Measurements Table */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl">
-              {language === 'hu' ? 'Niedervolt Installációk Mérései' : 'Niedervolt Installations Messungen'}
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl">
+                {language === 'hu' ? 'Niedervolt Installációk Mérései' : 'Niedervolt Installations Messungen'}
+              </CardTitle>
+              
+              {/* Device Selection Button - moved here below the stats cards */}
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowDeviceSelector(true)}
+              >
+                <Filter className="h-4 w-4 mr-2" />
+                {language === 'hu' ? 'Eszközök' : 'Geräte'} ({activeDevices.length})
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
