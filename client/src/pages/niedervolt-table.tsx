@@ -333,19 +333,22 @@ export function NiedervoltTable({
                             <Checkbox
                               id={device.id}
                               checked={selectedDevices.has(device.id)}
-                              onCheckedChange={(checked) => {
-                                if (checked) {
-                                  setSelectedDevices(prev => new Set([...prev, device.id]));
-                                } else {
+                              onCheckedChange={() => {
+                                const isCurrentlySelected = selectedDevices.has(device.id);
+                                if (isCurrentlySelected) {
+                                  // Remove device from selection
                                   setSelectedDevices(prev => {
                                     const newSet = new Set(prev);
                                     newSet.delete(device.id);
-                                    // Remove measurements for unselected device
-                                    const newMeasurements = { ...measurements };
-                                    delete newMeasurements[device.id];
-                                    onMeasurementsChange(newMeasurements);
                                     return newSet;
                                   });
+                                  // Remove measurements for unselected device
+                                  const newMeasurements = { ...measurements };
+                                  delete newMeasurements[device.id];
+                                  onMeasurementsChange(newMeasurements);
+                                } else {
+                                  // Add device to selection
+                                  setSelectedDevices(prev => new Set([...prev, device.id]));
                                 }
                               }}
                             />
@@ -393,19 +396,22 @@ export function NiedervoltTable({
                             <Checkbox
                               id={device.id}
                               checked={selectedDevices.has(device.id)}
-                              onCheckedChange={(checked) => {
-                                if (checked) {
-                                  setSelectedDevices(prev => new Set([...prev, device.id]));
-                                } else {
+                              onCheckedChange={() => {
+                                const isCurrentlySelected = selectedDevices.has(device.id);
+                                if (isCurrentlySelected) {
+                                  // Remove custom device from selection
                                   setSelectedDevices(prev => {
                                     const newSet = new Set(prev);
                                     newSet.delete(device.id);
-                                    // Remove measurements for unselected device
-                                    const newMeasurements = { ...measurements };
-                                    delete newMeasurements[device.id];
-                                    onMeasurementsChange(newMeasurements);
                                     return newSet;
                                   });
+                                  // Remove measurements for unselected device
+                                  const newMeasurements = { ...measurements };
+                                  delete newMeasurements[device.id];
+                                  onMeasurementsChange(newMeasurements);
+                                } else {
+                                  // Add custom device to selection
+                                  setSelectedDevices(prev => new Set([...prev, device.id]));
                                 }
                               }}
                             />
