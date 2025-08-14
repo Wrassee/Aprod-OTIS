@@ -202,6 +202,9 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
                               currentErrors.push(newError);
                               localStorage.setItem('protocol-errors', JSON.stringify(currentErrors));
                               
+                              // Dispatch custom event to notify ErrorList component
+                              window.dispatchEvent(new CustomEvent('protocol-error-added'));
+                              
                               const toast = document.createElement('div');
                               toast.textContent = language === 'de' 
                                 ? 'Fehler zur Fehlerliste hinzugefügt!'
