@@ -70,6 +70,23 @@ const IsolatedQuestionComponent = memo(({
             // onValueChange={(newValue) => onChange(parseFloat(newValue) || 0)}
             placeholder={question.placeholder || '0'}
             className="w-full"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                // Find next focusable element
+                const focusableElements = document.querySelectorAll(
+                  'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                );
+                const currentIndex = Array.from(focusableElements).indexOf(e.currentTarget);
+                const nextElement = focusableElements[currentIndex + 1] as HTMLElement;
+                if (nextElement) {
+                  nextElement.focus();
+                  if (nextElement.tagName === 'INPUT') {
+                    (nextElement as HTMLInputElement).select();
+                  }
+                }
+              }
+            }}
           />
         );
         
@@ -104,6 +121,23 @@ const IsolatedQuestionComponent = memo(({
             // onValueChange={(newValue) => onChange(newValue)}
             placeholder={question.placeholder || t.enterText || 'Szöveg megadása'}
             className="w-full"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                // Find next focusable element
+                const focusableElements = document.querySelectorAll(
+                  'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                );
+                const currentIndex = Array.from(focusableElements).indexOf(e.currentTarget);
+                const nextElement = focusableElements[currentIndex + 1] as HTMLElement;
+                if (nextElement) {
+                  nextElement.focus();
+                  if (nextElement.tagName === 'INPUT') {
+                    (nextElement as HTMLInputElement).select();
+                  }
+                }
+              }
+            }}
           />
         );
     }
