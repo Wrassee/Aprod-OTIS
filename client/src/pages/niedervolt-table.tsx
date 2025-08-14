@@ -484,13 +484,36 @@ export function NiedervoltTable({
                             type="text"
                             placeholder="-"
                             value={measurement.nennstrom || ''}
-                            onChange={(e) => updateMeasurement(device.id, 'nennstrom', e.target.value)}
+                            onChange={(e) => {
+                              // Only allow numbers, decimals, and basic formatting
+                              const value = e.target.value.replace(/[^0-9.,\-]/g, '');
+                              updateMeasurement(device.id, 'nennstrom', value);
+                            }}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
-                                const nextCell = e.currentTarget.closest('td')?.nextElementSibling?.querySelector('input') as HTMLInputElement;
-                                if (nextCell) {
-                                  nextCell.focus();
-                                  nextCell.select();
+                                e.preventDefault();
+                                const currentRow = e.currentTarget.closest('tr');
+                                const currentCell = e.currentTarget.closest('td');
+                                const nextCell = currentCell?.nextElementSibling;
+                                const nextInput = nextCell?.querySelector('input, select') as HTMLInputElement;
+                                
+                                if (nextInput) {
+                                  nextInput.focus();
+                                  if (nextInput.tagName === 'INPUT') {
+                                    nextInput.select();
+                                  }
+                                } else {
+                                  // Move to next row's first input
+                                  const nextRow = currentRow?.nextElementSibling as HTMLTableRowElement;
+                                  if (nextRow) {
+                                    const firstInput = nextRow.querySelector('input, select') as HTMLInputElement;
+                                    if (firstInput) {
+                                      firstInput.focus();
+                                      if (firstInput.tagName === 'INPUT') {
+                                        firstInput.select();
+                                      }
+                                    }
+                                  }
                                 }
                               }
                             }}
@@ -505,10 +528,29 @@ export function NiedervoltTable({
                             onChange={(e) => updateMeasurement(device.id, 'merkmal', e.target.value)}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
-                                const nextCell = e.currentTarget.closest('td')?.nextElementSibling?.querySelector('input') as HTMLInputElement;
-                                if (nextCell) {
-                                  nextCell.focus();
-                                  nextCell.select();
+                                e.preventDefault();
+                                const currentRow = e.currentTarget.closest('tr');
+                                const currentCell = e.currentTarget.closest('td');
+                                const nextCell = currentCell?.nextElementSibling;
+                                const nextInput = nextCell?.querySelector('input, select') as HTMLInputElement;
+                                
+                                if (nextInput) {
+                                  nextInput.focus();
+                                  if (nextInput.tagName === 'INPUT') {
+                                    nextInput.select();
+                                  }
+                                } else {
+                                  // Move to next row's first input
+                                  const nextRow = currentRow?.nextElementSibling as HTMLTableRowElement;
+                                  if (nextRow) {
+                                    const firstInput = nextRow.querySelector('input, select') as HTMLInputElement;
+                                    if (firstInput) {
+                                      firstInput.focus();
+                                      if (firstInput.tagName === 'INPUT') {
+                                        firstInput.select();
+                                      }
+                                    }
+                                  }
                                 }
                               }
                             }}
@@ -537,13 +579,36 @@ export function NiedervoltTable({
                             type="text"
                             placeholder="-"
                             value={measurement.fiIn || ''}
-                            onChange={(e) => updateMeasurement(device.id, 'fiIn', e.target.value)}
+                            onChange={(e) => {
+                              // Only allow numbers, decimals, and basic formatting
+                              const value = e.target.value.replace(/[^0-9.,\-]/g, '');
+                              updateMeasurement(device.id, 'fiIn', value);
+                            }}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
-                                const nextCell = e.currentTarget.closest('td')?.nextElementSibling?.querySelector('input') as HTMLInputElement;
-                                if (nextCell) {
-                                  nextCell.focus();
-                                  nextCell.select();
+                                e.preventDefault();
+                                const currentRow = e.currentTarget.closest('tr');
+                                const currentCell = e.currentTarget.closest('td');
+                                const nextCell = currentCell?.nextElementSibling;
+                                const nextInput = nextCell?.querySelector('input, select') as HTMLInputElement;
+                                
+                                if (nextInput) {
+                                  nextInput.focus();
+                                  if (nextInput.tagName === 'INPUT') {
+                                    nextInput.select();
+                                  }
+                                } else {
+                                  // Move to next row's first input
+                                  const nextRow = currentRow?.nextElementSibling as HTMLTableRowElement;
+                                  if (nextRow) {
+                                    const firstInput = nextRow.querySelector('input, select') as HTMLInputElement;
+                                    if (firstInput) {
+                                      firstInput.focus();
+                                      if (firstInput.tagName === 'INPUT') {
+                                        firstInput.select();
+                                      }
+                                    }
+                                  }
                                 }
                               }
                             }}
@@ -555,17 +620,24 @@ export function NiedervoltTable({
                             type="text"
                             placeholder="-"
                             value={measurement.fiDin || ''}
-                            onChange={(e) => updateMeasurement(device.id, 'fiDin', e.target.value)}
+                            onChange={(e) => {
+                              // Only allow numbers, decimals, and basic formatting
+                              const value = e.target.value.replace(/[^0-9.,\-]/g, '');
+                              updateMeasurement(device.id, 'fiDin', value);
+                            }}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
-                                // Move to next row's first input cell
+                                e.preventDefault();
+                                // Move to next row's first input
                                 const currentRow = e.currentTarget.closest('tr');
                                 const nextRow = currentRow?.nextElementSibling as HTMLTableRowElement;
                                 if (nextRow) {
-                                  const firstInput = nextRow.querySelector('input') as HTMLInputElement;
+                                  const firstInput = nextRow.querySelector('input, select') as HTMLInputElement;
                                   if (firstInput) {
                                     firstInput.focus();
-                                    firstInput.select();
+                                    if (firstInput.tagName === 'INPUT') {
+                                      firstInput.select();
+                                    }
                                   }
                                 }
                               }
@@ -584,16 +656,16 @@ export function NiedervoltTable({
 
         {/* Navigation */}
         <div className="flex justify-between items-center mt-8">
+          <Button
+            variant="outline"
+            onClick={onBack}
+            className="flex items-center"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            {language === 'hu' ? 'Előző' : 'Zurück'}
+          </Button>
+
           <div className="flex items-center space-x-3">
-            <Button
-              variant="outline"
-              onClick={onBack}
-              className="flex items-center"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              {language === 'hu' ? 'Előző' : 'Zurück'}
-            </Button>
-            
             <Button
               onClick={handleManualSave}
               className={`transition-all duration-300 ${
@@ -613,15 +685,15 @@ export function NiedervoltTable({
                saveStatus === 'saved' ? (language === 'hu' ? 'Mentve' : 'Gespeichert') :
                (language === 'hu' ? 'Mentés' : 'Speichern')}
             </Button>
-          </div>
 
-          <Button
-            onClick={onNext}
-            className="flex items-center"
-          >
-            {language === 'hu' ? 'Következő' : 'Weiter'}
-            <ArrowRight className="h-4 w-4 ml-2" />
-          </Button>
+            <Button
+              onClick={onNext}
+              className="flex items-center"
+            >
+              {language === 'hu' ? 'Következő' : 'Weiter'}
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
         </div>
       </main>
 
