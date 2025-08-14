@@ -73,6 +73,13 @@ export interface Translation {
   // Common
   loading: string;
   error: string;
+  
+  // Measurement and calculation components
+  measurementData: string;
+  calculatedValues: string;
+  calculatedValuesValidated: string;
+  outOfRange: string;
+  errorRecordingRequired: string;
   success: string;
   
   // Admin Interface
@@ -95,6 +102,15 @@ export interface Translation {
   questionConfiguration: string;
   uploadExcelFile: string;
   selectExcelFile: string;
+  
+  // Page specific translations
+  generalData: string;
+  machineRoom: string;
+  modernizationAffected: string;
+  questionsInGroup: string;
+  groupOf: string;
+  viewErrors: string;
+  downloadErrorList: string;
 }
 
 export const translations: Record<string, Translation> = {
@@ -195,6 +211,20 @@ export const translations: Record<string, Translation> = {
     questionConfiguration: "Kérdés konfiguráció",
     uploadExcelFile: "Excel fájl feltöltése",
     selectExcelFile: "Excel fájl kiválasztása",
+    
+    // Page specific translations
+    generalData: "Általános adatok",
+    machineRoom: "Gépház",
+    modernizationAffected: "Modernizációban érintett",
+    measurementData: "Mérési adatok",
+    questionsInGroup: "kérdés ebben a csoportban",
+    groupOf: "csoport",
+    calculatedValuesValidated: "A számított értékek automatikusan validálva vannak. A határértéken kívüli értékek pirossal jelennek meg.",
+    calculatedValues: "Számított értékek",
+    errorRecordingRequired: "Hiba rögzítése szükséges",
+    outOfRange: "Határértéken kívül (700-9000 mm)",
+    viewErrors: "Hibák megtekintése",
+    downloadErrorList: "Hibalista letöltése",
   },
   de: {
     // Start Screen
@@ -293,5 +323,19 @@ export const translations: Record<string, Translation> = {
     questionConfiguration: "Fragenkonfiguration",
     uploadExcelFile: "Excel-Datei hochladen",
     selectExcelFile: "Excel-Datei auswählen",
+    
+    // Page specific translations
+    generalData: "Allgemeine Daten",
+    machineRoom: "Maschinenraum",
+    modernizationAffected: "Von Modernisierung betroffen",
+    measurementData: "Messdaten",
+    questionsInGroup: "Fragen in dieser Gruppe",
+    groupOf: "Gruppe",
+    calculatedValuesValidated: "Die berechneten Werte werden automatisch validiert. Werte außerhalb der Grenzwerte werden rot angezeigt.",
+    calculatedValues: "Berechnete Werte",
+    errorRecordingRequired: "Dokumentation erforderlich",
+    outOfRange: "Außerhalb der Grenzwerte (700-9000 mm)",
+    viewErrors: "Fehler anzeigen",
+    downloadErrorList: "Fehlerliste herunterladen",
   },
 };

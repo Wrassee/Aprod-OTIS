@@ -570,7 +570,21 @@ export function NiedervoltTable({
                     <Checkbox
                       id={device.id}
                       checked={selectedDevices.has(device.id)}
-                      onCheckedChange={() => toggleDeviceSelection(device.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedDevices(prev => new Set([...prev, device.id]));
+                        } else {
+                          setSelectedDevices(prev => {
+                            const newSet = new Set(prev);
+                            newSet.delete(device.id);
+                            return newSet;
+                          });
+                          // Remove measurements for unselected device
+                          const newMeasurements = { ...measurements };
+                          delete newMeasurements[device.id];
+                          onMeasurementsChange(newMeasurements);
+                        }
+                      }}
                     />
                     <Label htmlFor={device.id} className="flex-1 cursor-pointer">
                       {getDeviceName(device)}
@@ -616,7 +630,21 @@ export function NiedervoltTable({
                     <Checkbox
                       id={device.id}
                       checked={selectedDevices.has(device.id)}
-                      onCheckedChange={() => toggleDeviceSelection(device.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedDevices(prev => new Set([...prev, device.id]));
+                        } else {
+                          setSelectedDevices(prev => {
+                            const newSet = new Set(prev);
+                            newSet.delete(device.id);
+                            return newSet;
+                          });
+                          // Remove measurements for unselected device
+                          const newMeasurements = { ...measurements };
+                          delete newMeasurements[device.id];
+                          onMeasurementsChange(newMeasurements);
+                        }
+                      }}
                     />
                     <Label htmlFor={device.id} className="flex-1 cursor-pointer">
                       {getDeviceName(device)}
