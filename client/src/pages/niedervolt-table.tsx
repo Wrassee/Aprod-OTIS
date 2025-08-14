@@ -589,6 +589,7 @@ export function NiedervoltTable({
                       checked={selectedDevices.has(device.id)}
                       onCheckedChange={(checked) => {
                         console.log(`Standard device ${device.id} checked: ${checked}`);
+                        if (checked === "indeterminate") return;
                         toggleDeviceSelection(device.id, checked);
                       }}
                     />
@@ -638,6 +639,7 @@ export function NiedervoltTable({
                       checked={selectedDevices.has(device.id)}
                       onCheckedChange={(checked) => {
                         console.log(`Custom device ${device.id} checked: ${checked}`);
+                        if (checked === "indeterminate") return;
                         toggleDeviceSelection(device.id, checked);
                       }}
                     />
