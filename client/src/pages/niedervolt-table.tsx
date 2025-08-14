@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLanguageContext } from '@/components/language-provider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, ArrowRight, Save, Settings, Home, RotateCcw, Check, Plus, Trash2, Filter } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Save, Settings, Home, RotateCcw, Check, Plus, Trash2, Filter, Zap, Shield, Wrench, Calculator, AlertTriangle } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
@@ -275,15 +275,10 @@ export function NiedervoltTable({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {language === 'hu' ? 'Niedervolt Mérések' : 'Niedervolt Messungen'}
+                {language === 'hu' ? 'Niedervolt Installációk Mérései' : 'Niedervolt Installationen Messungen'}
               </h1>
-              <span className="text-gray-500 dark:text-gray-400">
-                {language === 'hu' ? 'Oldal 5/5' : 'Seite 5/5'}
-              </span>
-            </div>
-
-            <div className="flex items-center space-x-3">
-              {/* Device Selection Button */}
+              
+              {/* Device Selection Button - moved next to title */}
               <Dialog open={showDeviceSelector} onOpenChange={setShowDeviceSelector}>
                 <DialogTrigger asChild>
                   <Button variant="outline" size="sm">
@@ -373,9 +368,21 @@ export function NiedervoltTable({
                       </div>
                     </div>
                   </div>
+                  
+                  <div className="flex justify-end space-x-2 mt-4">
+                    <Button variant="outline" onClick={() => setShowDeviceSelector(false)}>
+                      {language === 'hu' ? 'Bezárás' : 'Schließen'}
+                    </Button>
+                  </div>
                 </DialogContent>
               </Dialog>
+              
+              <span className="text-gray-500 dark:text-gray-400">
+                {language === 'hu' ? 'Oldal 5/5' : 'Seite 5/5'}
+              </span>
+            </div>
 
+            <div className="flex items-center space-x-3">
               {/* Save Button */}
               <Button
                 onClick={handleManualSave}
@@ -498,31 +505,58 @@ export function NiedervoltTable({
                       {language === 'hu' ? 'Eszköz / Baugruppe' : 'Gerät / Baugruppe'}
                     </th>
                     <th className="border border-gray-300 dark:border-gray-600 p-3 text-center font-semibold">
-                      {getFieldLabel('nennstrom')}
+                      <div className="flex items-center justify-center space-x-2">
+                        <Zap className="h-4 w-4 text-yellow-500" />
+                        <span>{getFieldLabel('nennstrom')}</span>
+                      </div>
                     </th>
                     <th className="border border-gray-300 dark:border-gray-600 p-3 text-center font-semibold">
-                      {getFieldLabel('sicherung')}
+                      <div className="flex items-center justify-center space-x-2">
+                        <Shield className="h-4 w-4 text-blue-500" />
+                        <span>{getFieldLabel('sicherung')}</span>
+                      </div>
                     </th>
                     <th className="border border-gray-300 dark:border-gray-600 p-3 text-center font-semibold">
-                      {getFieldLabel('ls')}
+                      <div className="flex items-center justify-center space-x-2">
+                        <Settings className="h-4 w-4 text-gray-500" />
+                        <span>{getFieldLabel('ls')}</span>
+                      </div>
                     </th>
                     <th className="border border-gray-300 dark:border-gray-600 p-3 text-center font-semibold">
-                      {getFieldLabel('merkmal')}
+                      <div className="flex items-center justify-center space-x-2">
+                        <Wrench className="h-4 w-4 text-orange-500" />
+                        <span>{getFieldLabel('merkmal')}</span>
+                      </div>
                     </th>
                     <th className="border border-gray-300 dark:border-gray-600 p-3 text-center font-semibold">
-                      {getFieldLabel('nPe')}
+                      <div className="flex items-center justify-center space-x-2">
+                        <Calculator className="h-4 w-4 text-green-500" />
+                        <span>{getFieldLabel('nPe')}</span>
+                      </div>
                     </th>
                     <th className="border border-gray-300 dark:border-gray-600 p-3 text-center font-semibold">
-                      {getFieldLabel('l1Pe')}
+                      <div className="flex items-center justify-center space-x-2">
+                        <Calculator className="h-4 w-4 text-green-600" />
+                        <span>{getFieldLabel('l1Pe')}</span>
+                      </div>
                     </th>
                     <th className="border border-gray-300 dark:border-gray-600 p-3 text-center font-semibold">
-                      {getFieldLabel('fiTest')}
+                      <div className="flex items-center justify-center space-x-2">
+                        <AlertTriangle className="h-4 w-4 text-red-500" />
+                        <span>{getFieldLabel('fiTest')}</span>
+                      </div>
                     </th>
                     <th className="border border-gray-300 dark:border-gray-600 p-3 text-center font-semibold">
-                      {getFieldLabel('fiIn')}
+                      <div className="flex items-center justify-center space-x-2">
+                        <Zap className="h-4 w-4 text-purple-500" />
+                        <span>{getFieldLabel('fiIn')}</span>
+                      </div>
                     </th>
                     <th className="border border-gray-300 dark:border-gray-600 p-3 text-center font-semibold">
-                      {getFieldLabel('fiDin')}
+                      <div className="flex items-center justify-center space-x-2">
+                        <Zap className="h-4 w-4 text-indigo-500" />
+                        <span>{getFieldLabel('fiDin')}</span>
+                      </div>
                     </th>
                   </tr>
                 </thead>
