@@ -220,7 +220,7 @@ export function SmartHelpWizard({ currentPage, formData, currentQuestionId, erro
         <Button
           variant="outline"
           size="sm"
-          className="fixed bottom-20 right-4 z-50 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300"
+          className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300"
         >
           <Brain className="h-4 w-4 mr-2" />
           {language === 'hu' ? 'AI Segítő' : 'AI Hilfe'}

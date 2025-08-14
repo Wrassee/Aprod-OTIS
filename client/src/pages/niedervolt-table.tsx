@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
@@ -484,6 +485,15 @@ export function NiedervoltTable({
                             placeholder="-"
                             value={measurement.nennstrom || ''}
                             onChange={(e) => updateMeasurement(device.id, 'nennstrom', e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                const nextCell = e.currentTarget.closest('td')?.nextElementSibling?.querySelector('input') as HTMLInputElement;
+                                if (nextCell) {
+                                  nextCell.focus();
+                                  nextCell.select();
+                                }
+                              }
+                            }}
                             className="w-full text-center"
                           />
                         </td>
@@ -493,6 +503,15 @@ export function NiedervoltTable({
                             placeholder="-"
                             value={measurement.merkmal || ''}
                             onChange={(e) => updateMeasurement(device.id, 'merkmal', e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                const nextCell = e.currentTarget.closest('td')?.nextElementSibling?.querySelector('input') as HTMLInputElement;
+                                if (nextCell) {
+                                  nextCell.focus();
+                                  nextCell.select();
+                                }
+                              }
+                            }}
                             className="w-full text-center"
                           />
                         </td>
@@ -519,6 +538,15 @@ export function NiedervoltTable({
                             placeholder="-"
                             value={measurement.fiIn || ''}
                             onChange={(e) => updateMeasurement(device.id, 'fiIn', e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                const nextCell = e.currentTarget.closest('td')?.nextElementSibling?.querySelector('input') as HTMLInputElement;
+                                if (nextCell) {
+                                  nextCell.focus();
+                                  nextCell.select();
+                                }
+                              }
+                            }}
                             className="w-full text-center bg-blue-50"
                           />
                         </td>
@@ -528,6 +556,20 @@ export function NiedervoltTable({
                             placeholder="-"
                             value={measurement.fiDin || ''}
                             onChange={(e) => updateMeasurement(device.id, 'fiDin', e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                // Move to next row's first input cell
+                                const currentRow = e.currentTarget.closest('tr');
+                                const nextRow = currentRow?.nextElementSibling as HTMLTableRowElement;
+                                if (nextRow) {
+                                  const firstInput = nextRow.querySelector('input') as HTMLInputElement;
+                                  if (firstInput) {
+                                    firstInput.focus();
+                                    firstInput.select();
+                                  }
+                                }
+                              }
+                            }}
                             className="w-full text-center bg-blue-50"
                           />
                         </td>
@@ -542,34 +584,36 @@ export function NiedervoltTable({
 
         {/* Navigation */}
         <div className="flex justify-between items-center mt-8">
-          <Button
-            variant="outline"
-            onClick={onBack}
-            className="flex items-center"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            {language === 'hu' ? 'Előző' : 'Zurück'}
-          </Button>
-          
-          <Button
-            onClick={handleManualSave}
-            className={`transition-all duration-300 ${
-              saveStatus === 'saved' 
-                ? 'bg-green-100 text-green-700 border-green-300' 
-                : 'bg-white hover:bg-gray-50'
-            }`}
-            variant="outline"
-            disabled={saveStatus === 'saving'}
-          >
-            {saveStatus === 'saving' && (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
-            )}
-            {saveStatus === 'saved' && <Check className="h-4 w-4 mr-2" />}
-            {saveStatus !== 'saving' && saveStatus !== 'saved' && <Save className="h-4 w-4 mr-2" />}
-            {saveStatus === 'saving' ? (language === 'hu' ? 'Mentés...' : 'Speichern...') :
-             saveStatus === 'saved' ? (language === 'hu' ? 'Mentve' : 'Gespeichert') :
-             (language === 'hu' ? 'Mentés' : 'Speichern')}
-          </Button>
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="outline"
+              onClick={onBack}
+              className="flex items-center"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              {language === 'hu' ? 'Előző' : 'Zurück'}
+            </Button>
+            
+            <Button
+              onClick={handleManualSave}
+              className={`transition-all duration-300 ${
+                saveStatus === 'saved' 
+                  ? 'bg-green-100 text-green-700 border-green-300' 
+                  : 'bg-white hover:bg-gray-50'
+              }`}
+              variant="outline"
+              disabled={saveStatus === 'saving'}
+            >
+              {saveStatus === 'saving' && (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
+              )}
+              {saveStatus === 'saved' && <Check className="h-4 w-4 mr-2" />}
+              {saveStatus !== 'saving' && saveStatus !== 'saved' && <Save className="h-4 w-4 mr-2" />}
+              {saveStatus === 'saving' ? (language === 'hu' ? 'Mentés...' : 'Speichern...') :
+               saveStatus === 'saved' ? (language === 'hu' ? 'Mentve' : 'Gespeichert') :
+               (language === 'hu' ? 'Mentés' : 'Speichern')}
+            </Button>
+          </div>
 
           <Button
             onClick={onNext}
@@ -602,18 +646,21 @@ export function NiedervoltTable({
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {devices.map((device: any) => (
                   <div key={device.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={device.id}
-                      checked={selectedDevices.has(device.id)}
-                      onCheckedChange={(checked) => {
-                        console.log(`Standard device ${device.id} checked: ${checked}`);
-                        if (checked === "indeterminate") return;
-                        toggleDeviceSelection(device.id, checked);
-                      }}
-                    />
-                    <Label htmlFor={device.id} className="flex-1 cursor-pointer">
-                      {getDeviceName(device)}
-                    </Label>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id={device.id}
+                        checked={selectedDevices.has(device.id)}
+                        onChange={(e) => {
+                          console.log(`Standard device ${device.id} checked: ${e.target.checked}`);
+                          toggleDeviceSelection(device.id, e.target.checked);
+                        }}
+                        className="h-4 w-4 rounded-full border border-input bg-background checked:bg-primary checked:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
+                      />
+                      <Label htmlFor={device.id} className="flex-1 cursor-pointer">
+                        {getDeviceName(device)}
+                      </Label>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -652,14 +699,15 @@ export function NiedervoltTable({
               <div className="space-y-2">
                 {customDevices.map((device) => (
                   <div key={device.id} className="flex items-center space-x-2">
-                    <Checkbox
+                    <input
+                      type="checkbox"
                       id={device.id}
                       checked={selectedDevices.has(device.id)}
-                      onCheckedChange={(checked) => {
-                        console.log(`Custom device ${device.id} checked: ${checked}`);
-                        if (checked === "indeterminate") return;
-                        toggleDeviceSelection(device.id, checked);
+                      onChange={(e) => {
+                        console.log(`Custom device ${device.id} checked: ${e.target.checked}`);
+                        toggleDeviceSelection(device.id, e.target.checked);
                       }}
+                      className="h-4 w-4 rounded-full border border-input bg-background checked:bg-primary checked:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
                     />
                     <Label htmlFor={device.id} className="flex-1 cursor-pointer">
                       {getDeviceName(device)}
