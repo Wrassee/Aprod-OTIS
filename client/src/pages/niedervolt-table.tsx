@@ -84,38 +84,51 @@ export function NiedervoltTable({
   const [showDeviceSelector, setShowDeviceSelector] = useState(false);
   const [newDeviceName, setNewDeviceName] = useState({ de: '', hu: '' });
 
-  // Load saved data
+  // Separate initialization flag to prevent loops
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Load saved data - only run once when devices are available
   useEffect(() => {
-    const savedMeasurements = localStorage.getItem('niedervolt-table-measurements');
-    const savedDeviceSelection = localStorage.getItem('niedervolt-selected-devices');
-    const savedCustomDevices = localStorage.getItem('niedervolt-custom-devices');
-    
-    if (savedMeasurements && Object.keys(measurements).length === 0) {
-      try {
-        onMeasurementsChange(JSON.parse(savedMeasurements));
-      } catch (e) {
-        console.error('Error loading measurements:', e);
+    if (devices.length > 0 && !isInitialized) {
+      console.log('Initializing device data...');
+      
+      const savedMeasurements = localStorage.getItem('niedervolt-table-measurements');
+      const savedDeviceSelection = localStorage.getItem('niedervolt-selected-devices');
+      const savedCustomDevices = localStorage.getItem('niedervolt-custom-devices');
+      
+      if (savedMeasurements && Object.keys(measurements).length === 0) {
+        try {
+          onMeasurementsChange(JSON.parse(savedMeasurements));
+        } catch (e) {
+          console.error('Error loading measurements:', e);
+        }
       }
-    }
-    
-    if (savedDeviceSelection) {
-      try {
-        setSelectedDevices(new Set(JSON.parse(savedDeviceSelection)));
-      } catch (e) {
+      
+      if (savedDeviceSelection) {
+        try {
+          const savedSet = new Set(JSON.parse(savedDeviceSelection));
+          console.log('Loading saved device selection:', Array.from(savedSet));
+          setSelectedDevices(savedSet);
+        } catch (e) {
+          console.log('Error loading saved selection, using default');
+          setSelectedDevices(new Set(devices.map((d: any) => d.id)));
+        }
+      } else {
+        console.log('No saved selection, selecting all devices');
         setSelectedDevices(new Set(devices.map((d: any) => d.id)));
       }
-    } else {
-      setSelectedDevices(new Set(devices.map((d: any) => d.id)));
-    }
-    
-    if (savedCustomDevices) {
-      try {
-        setCustomDevices(JSON.parse(savedCustomDevices));
-      } catch (e) {
-        console.error('Error loading custom devices:', e);
+      
+      if (savedCustomDevices) {
+        try {
+          setCustomDevices(JSON.parse(savedCustomDevices));
+        } catch (e) {
+          console.error('Error loading custom devices:', e);
+        }
       }
+      
+      setIsInitialized(true);
     }
-  }, [devices, measurements, onMeasurementsChange]);
+  }, [devices.length, isInitialized, measurements, onMeasurementsChange]);
 
   // Auto-save measurements
   useEffect(() => {
@@ -168,30 +181,35 @@ export function NiedervoltTable({
     return language === 'hu' ? labels[field]?.hu || field : labels[field]?.de || field;
   };
 
-  // Device management
+  // Device management - simplified to prevent loops
   const toggleDeviceSelection = useCallback((deviceId: string, forceState?: boolean) => {
-    console.log(`toggleDeviceSelection called for ${deviceId}, current state: ${selectedDevices.has(deviceId)}, forceState: ${forceState}`);
+    console.log(`toggleDeviceSelection called for ${deviceId}, forceState: ${forceState}`);
     
     setSelectedDevices(prev => {
       const newSet = new Set(prev);
       const isCurrentlySelected = newSet.has(deviceId);
       
-      // If forceState is provided, use that; otherwise toggle
+      // Determine target state
       const shouldBeSelected = forceState !== undefined ? forceState : !isCurrentlySelected;
       
+      console.log(`Device ${deviceId}: currently ${isCurrentlySelected}, should be ${shouldBeSelected}`);
+      
       if (shouldBeSelected && !isCurrentlySelected) {
-        // Add device
         newSet.add(deviceId);
-        console.log(`Added device ${deviceId}, new Set size: ${newSet.size}`);
+        console.log(`✓ Added device ${deviceId}`);
       } else if (!shouldBeSelected && isCurrentlySelected) {
-        // Remove device
         newSet.delete(deviceId);
-        console.log(`Removed device ${deviceId}, new Set size: ${newSet.size}`);
-        // Remove measurements
-        const newMeasurements = { ...measurements };
-        delete newMeasurements[deviceId];
-        console.log(`Removed measurements for device ${deviceId}`);
-        onMeasurementsChange(newMeasurements);
+        console.log(`✗ Removed device ${deviceId}`);
+        
+        // Remove measurements in separate effect to prevent loops
+        setTimeout(() => {
+          const newMeasurements = { ...measurements };
+          if (newMeasurements[deviceId]) {
+            delete newMeasurements[deviceId];
+            console.log(`🗑️ Removed measurements for device ${deviceId}`);
+            onMeasurementsChange(newMeasurements);
+          }
+        }, 0);
       }
       
       return newSet;
