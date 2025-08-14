@@ -3,6 +3,18 @@
 ## Overview
 This full-stack TypeScript application digitalizes the OTIS elevator acceptance protocol process. It guides users through a step-by-step questionnaire, enables error documentation with images, generates PDFs, and supports sharing. The system operates in both Hungarian and German, aiming to streamline and standardize the acceptance process, reduce manual errors, and improve efficiency for OTIS technicians. The project envisions a future of fully digitized and seamlessly integrated elevator inspection and acceptance procedures within existing OTIS systems.
 
+## Recent Changes (2025-01-14)
+### ✅ STABLE VERSION - Ready for Deployment
+- **Enter Navigation**: Complete implementation across all input types
+  - First page (IsolatedQuestion): text and number inputs now support Enter navigation
+  - Measurement blocks: horizontal and vertical navigation working
+  - Niedervolt table: Enter navigation functional
+- **Input Validation**: Number fields now completely block invalid characters
+  - Real-time character filtering (no letters, only numbers, decimals, minus)
+  - Input-level prevention (not just post-validation)
+- **Component Fixes**: UltraStableInput, StableInput, QuestionBlock, MeasurementBlock all updated
+- **User Testing**: Confirmed working by user - all navigation and validation functional
+
 ## User Preferences
 Preferred communication style: Simple, everyday language (Hungarian preferred).
 
