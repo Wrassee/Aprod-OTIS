@@ -9,6 +9,7 @@ interface UltraStableInputProps {
   style?: React.CSSProperties;
   rows?: number;
   multiline?: boolean;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 }
 
 const UltraStableInputComponent = ({ 
@@ -19,7 +20,8 @@ const UltraStableInputComponent = ({
   className,
   style,
   rows = 4,
-  multiline = false
+  multiline = false,
+  onKeyDown
 }: UltraStableInputProps) => {
   const [localValue, setLocalValue] = useState(value?.toString() || '');
   const [isFocused, setIsFocused] = useState(false);
@@ -38,7 +40,13 @@ const UltraStableInputComponent = ({
   }, [value, isFocused, localValue]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const newValue = e.target.value;
+    let newValue = e.target.value;
+    
+    // For number inputs, filter out invalid characters immediately
+    if (type === 'number') {
+      newValue = newValue.replace(/[^0-9.,\-]/g, '');
+    }
+    
     setLocalValue(newValue);
 
     // Clear existing timeout
@@ -72,8 +80,10 @@ const UltraStableInputComponent = ({
       // Only sync if value actually changed
       let finalValue: string | number;
       if (type === 'number') {
-        const numVal = parseFloat(localValue);
+        const filteredValue = localValue.replace(/[^0-9.,\-]/g, '');
+        const numVal = parseFloat(filteredValue);
         finalValue = isNaN(numVal) ? '' : numVal;
+        setLocalValue(filteredValue); // Update displayed value to filtered version
       } else {
         finalValue = localValue;
       }
@@ -84,6 +94,27 @@ const UltraStableInputComponent = ({
         onChange(finalValue);
       }
     }, 100); // Small delay to prevent conflicts
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    // For number inputs, prevent typing invalid characters
+    if (type === 'number') {
+      const allowedKeys = [
+        'Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'Home', 'End',
+        'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Clear', 'Copy', 'Paste'
+      ];
+      const allowedChars = '0123456789.,\-';
+      
+      if (!allowedKeys.includes(e.key) && !allowedChars.includes(e.key)) {
+        e.preventDefault();
+        return;
+      }
+    }
+    
+    // Call parent onKeyDown if provided
+    if (onKeyDown) {
+      onKeyDown(e);
+    }
   };
 
   // Cleanup timeout on unmount
@@ -104,6 +135,7 @@ const UltraStableInputComponent = ({
         onChange={handleChange}
         onFocus={handleFocus}
         onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
         className={className}
         style={{ ...style, fontSize: '16px' }}
         autoComplete="off"
@@ -116,12 +148,14 @@ const UltraStableInputComponent = ({
   return (
     <input
       ref={inputRef}
-      type={type}
+      type="text"
+      inputMode={type === 'number' ? 'numeric' : 'text'}
       placeholder={placeholder}
       value={localValue}
       onChange={handleChange}
       onFocus={handleFocus}
       onBlur={handleBlur}
+      onKeyDown={handleKeyDown}
       className={className}
       style={{ ...style, fontSize: '16px' }}
       autoComplete="off"

@@ -113,6 +113,23 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
                       className="text-center font-mono border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 w-20"
                       min={question.minValue}
                       max={question.maxValue}
+                      onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          // Find next focusable element
+                          const focusableElements = document.querySelectorAll(
+                            'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                          );
+                          const currentIndex = Array.from(focusableElements).indexOf(e.currentTarget);
+                          const nextElement = focusableElements[currentIndex + 1] as HTMLElement;
+                          if (nextElement) {
+                            nextElement.focus();
+                            if (nextElement.tagName === 'INPUT') {
+                              (nextElement as HTMLInputElement).select();
+                            }
+                          }
+                        }
+                      }}
                       initialValue={(() => {
                         const cachedValue = (window as any).measurementValues?.[question.id] || 
                                           (window as any).stableInputValues?.[question.id];

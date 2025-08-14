@@ -71,6 +71,23 @@ const QuestionBlockComponent = ({
             placeholder={question.placeholder || "Enter number"}
             value={value || ''}
             onChange={onChange}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                // Find next focusable element
+                const focusableElements = document.querySelectorAll(
+                  'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                );
+                const currentIndex = Array.from(focusableElements).indexOf(e.currentTarget);
+                const nextElement = focusableElements[currentIndex + 1] as HTMLElement;
+                if (nextElement) {
+                  nextElement.focus();
+                  if (nextElement.tagName === 'INPUT') {
+                    (nextElement as HTMLInputElement).select();
+                  }
+                }
+              }
+            }}
             className="w-full text-lg py-3 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-otis-blue"
             style={{ fontSize: '16px' }}
           />
@@ -83,6 +100,23 @@ const QuestionBlockComponent = ({
             value={value || ''}
             onChange={onChange}
             multiline={true}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                // Find next focusable element
+                const focusableElements = document.querySelectorAll(
+                  'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                );
+                const currentIndex = Array.from(focusableElements).indexOf(e.currentTarget);
+                const nextElement = focusableElements[currentIndex + 1] as HTMLElement;
+                if (nextElement) {
+                  nextElement.focus();
+                  if (nextElement.tagName === 'INPUT') {
+                    (nextElement as HTMLInputElement).select();
+                  }
+                }
+              }
+            }}
             className="w-full resize-none px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-otis-blue"
             style={{ fontSize: '16px' }}
             rows={4}

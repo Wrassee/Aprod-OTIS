@@ -10,9 +10,10 @@ interface StableInputProps {
   min?: number;
   max?: number;  
   step?: string | number;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
 }
 
-export function StableInput({ questionId, type = 'text', placeholder, initialValue, onValueChange, className, min, max, step }: StableInputProps) {
+export function StableInput({ questionId, type = 'text', placeholder, initialValue, onValueChange, className, min, max, step, onKeyDown }: StableInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const mountedRef = useRef(false);
 
@@ -117,34 +118,29 @@ export function StableInput({ questionId, type = 'text', placeholder, initialVal
       type={type}
       onChange={handleChange}
       onKeyDown={(e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          e.stopPropagation();
-          return false;
-        }
-        
-        // Additional prevention for measurement fields - block non-numeric keys
-        if (questionId && questionId.startsWith('m')) {
+        // For number inputs, filter character input
+        if (type === 'number' || (questionId && questionId.startsWith('m'))) {
           const allowedKeys = [
-            'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
-            'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
-            'Home', 'End', 'Minus'
+            'Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'Home', 'End',
+            'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Clear', 'Copy', 'Paste'
           ];
+          const allowedChars = '0123456789.,\-';
           
-          const isNumber = /^[0-9]$/.test(e.key);
-          const isDecimal = e.key === '.';
-          const isMinus = e.key === '-';
-          const isAllowed = allowedKeys.includes(e.key);
           const isCtrlA = e.ctrlKey && e.key === 'a';
           const isCtrlC = e.ctrlKey && e.key === 'c';
           const isCtrlV = e.ctrlKey && e.key === 'v';
           const isCtrlX = e.ctrlKey && e.key === 'x';
           const isCtrlZ = e.ctrlKey && e.key === 'z';
           
-          if (!isNumber && !isDecimal && !isMinus && !isAllowed && !isCtrlA && !isCtrlC && !isCtrlV && !isCtrlX && !isCtrlZ) {
+          if (!allowedKeys.includes(e.key) && !allowedChars.includes(e.key) && !isCtrlA && !isCtrlC && !isCtrlV && !isCtrlX && !isCtrlZ) {
             e.preventDefault();
             return false;
           }
+        }
+        
+        // Call parent onKeyDown if provided
+        if (onKeyDown) {
+          onKeyDown(e);
         }
       }}
       placeholder={placeholder}
