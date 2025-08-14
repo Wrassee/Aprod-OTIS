@@ -169,18 +169,31 @@ export function NiedervoltTable({
   };
 
   // Device management
-  const toggleDeviceSelection = useCallback((deviceId: string) => {
+  const toggleDeviceSelection = useCallback((deviceId: string, forceState?: boolean) => {
+    console.log(`toggleDeviceSelection called for ${deviceId}, current state: ${selectedDevices.has(deviceId)}, forceState: ${forceState}`);
+    
     setSelectedDevices(prev => {
       const newSet = new Set(prev);
-      if (newSet.has(deviceId)) {
+      const isCurrentlySelected = newSet.has(deviceId);
+      
+      // If forceState is provided, use that; otherwise toggle
+      const shouldBeSelected = forceState !== undefined ? forceState : !isCurrentlySelected;
+      
+      if (shouldBeSelected && !isCurrentlySelected) {
+        // Add device
+        newSet.add(deviceId);
+        console.log(`Added device ${deviceId}, new Set size: ${newSet.size}`);
+      } else if (!shouldBeSelected && isCurrentlySelected) {
+        // Remove device
         newSet.delete(deviceId);
+        console.log(`Removed device ${deviceId}, new Set size: ${newSet.size}`);
         // Remove measurements
         const newMeasurements = { ...measurements };
         delete newMeasurements[deviceId];
+        console.log(`Removed measurements for device ${deviceId}`);
         onMeasurementsChange(newMeasurements);
-      } else {
-        newSet.add(deviceId);
       }
+      
       return newSet;
     });
   }, [measurements, onMeasurementsChange]);
@@ -576,7 +589,7 @@ export function NiedervoltTable({
                       checked={selectedDevices.has(device.id)}
                       onCheckedChange={(checked) => {
                         console.log(`Standard device ${device.id} checked: ${checked}`);
-                        toggleDeviceSelection(device.id);
+                        toggleDeviceSelection(device.id, checked);
                       }}
                     />
                     <Label htmlFor={device.id} className="flex-1 cursor-pointer">
@@ -625,7 +638,7 @@ export function NiedervoltTable({
                       checked={selectedDevices.has(device.id)}
                       onCheckedChange={(checked) => {
                         console.log(`Custom device ${device.id} checked: ${checked}`);
-                        toggleDeviceSelection(device.id);
+                        toggleDeviceSelection(device.id, checked);
                       }}
                     />
                     <Label htmlFor={device.id} className="flex-1 cursor-pointer">
