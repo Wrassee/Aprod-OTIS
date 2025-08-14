@@ -193,7 +193,11 @@ export function NiedervoltTable({
         name: { de: newDeviceName.de.trim(), hu: newDeviceName.hu.trim() }
       };
       setCustomDevices(prev => [...prev, device]);
-      setSelectedDevices(prev => new Set([...prev, id]));
+      setSelectedDevices(prev => {
+        const newSet = new Set(prev);
+        newSet.add(id);
+        return newSet;
+      });
       setNewDeviceName({ de: '', hu: '' });
     }
   };
@@ -571,17 +575,25 @@ export function NiedervoltTable({
                       id={device.id}
                       checked={selectedDevices.has(device.id)}
                       onCheckedChange={(checked) => {
+                        console.log(`Standard device ${device.id} checked: ${checked}`);
                         if (checked) {
-                          setSelectedDevices(prev => new Set([...prev, device.id]));
+                          setSelectedDevices(prev => {
+                            const newSet = new Set(prev);
+                            newSet.add(device.id);
+                            console.log(`Added device ${device.id}, new size:`, newSet.size);
+                            return newSet;
+                          });
                         } else {
                           setSelectedDevices(prev => {
                             const newSet = new Set(prev);
                             newSet.delete(device.id);
+                            console.log(`Removed device ${device.id}, new size:`, newSet.size);
                             return newSet;
                           });
                           // Remove measurements for unselected device
                           const newMeasurements = { ...measurements };
                           delete newMeasurements[device.id];
+                          console.log(`Removed measurements for device ${device.id}`);
                           onMeasurementsChange(newMeasurements);
                         }
                       }}
@@ -631,17 +643,25 @@ export function NiedervoltTable({
                       id={device.id}
                       checked={selectedDevices.has(device.id)}
                       onCheckedChange={(checked) => {
+                        console.log(`Custom device ${device.id} checked: ${checked}`);
                         if (checked) {
-                          setSelectedDevices(prev => new Set([...prev, device.id]));
+                          setSelectedDevices(prev => {
+                            const newSet = new Set(prev);
+                            newSet.add(device.id);
+                            console.log(`Added custom device ${device.id}, new size:`, newSet.size);
+                            return newSet;
+                          });
                         } else {
                           setSelectedDevices(prev => {
                             const newSet = new Set(prev);
                             newSet.delete(device.id);
+                            console.log(`Removed custom device ${device.id}, new size:`, newSet.size);
                             return newSet;
                           });
                           // Remove measurements for unselected device
                           const newMeasurements = { ...measurements };
                           delete newMeasurements[device.id];
+                          console.log(`Removed measurements for custom device ${device.id}`);
                           onMeasurementsChange(newMeasurements);
                         }
                       }}
