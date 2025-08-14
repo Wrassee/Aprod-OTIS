@@ -96,6 +96,7 @@ const QuestionBlockComponent = ({
       case 'text':
         return (
           <UltraStableInput
+            type="text"
             placeholder={question.placeholder || "Enter text"}
             value={value || ''}
             onChange={onChange}
