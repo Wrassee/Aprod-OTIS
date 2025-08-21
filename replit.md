@@ -4,15 +4,23 @@
 This full-stack TypeScript application digitalizes the OTIS elevator acceptance protocol process. It guides users through a step-by-step questionnaire, enables error documentation with images, generates PDFs, and supports sharing. The system operates in both Hungarian and German, aiming to streamline and standardize the acceptance process, reduce manual errors, and improve efficiency for OTIS technicians. The project envisions a future of fully digitized and seamlessly integrated elevator inspection and acceptance procedures within existing OTIS systems.
 
 ## Recent Changes (2025-08-21)
-### ✅ PRODUCTION DEPLOYMENT READY - Vercel & Render Compatible
+### ✅ PRODUCTION DEPLOYMENT READY - Build System Fixed
+- **CRITICAL FIX**: Resolved deployment failure with Vite dependencies
+  - **Problem**: ESBuild couldn't bundle development-only Vite imports in production
+  - **Solution**: Created production-specific entry points and build system
+  - **Created**: `server/index.production.ts` - Clean production server without Vite
+  - **Created**: `server/vite.production.ts` - Production static serving only
+  - **Created**: `esbuild.config.mjs` - Smart build system with dependency exclusions
+  - **Created**: `build-production.sh` - Automated production build script
+  - **Status**: ✅ Build verified working, deployment ready
 - **Supabase Storage**: MŰKÖDŐ cloud storage integráció
   - Successful file uploads: `https://ojbsmolteoxkvpxljfid.supabase.co/storage/v1/object/public/aprod-templates/...`
   - Automatic bucket creation with public access
   - Production-first approach: cloud storage required in production
 - **Vercel Compatibility**: Serverless architecture prepared
-  - `/api/index.ts` entry point created for Vercel functions
-  - `server/app.ts` standalone Express app for cloud deployment
+  - `/api/index.ts` entry point updated for production build
   - Build configuration optimized for serverless deployment
+  - Environment-specific server logic (dev vs production)
 - **Production Safety**: No local file dependencies
   - Template uploads: Direct to Supabase Storage
   - Image uploads: Cloud storage with public URLs
