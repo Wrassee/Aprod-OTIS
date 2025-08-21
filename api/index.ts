@@ -1,7 +1,5 @@
-// Vercel serverless function entry point
-import { VercelRequest, VercelResponse } from '@vercel/node';
+// Serverless deployment entry point - uses production-safe server
 import app from '../server/production-entry';
 
-export default (req: VercelRequest, res: VercelResponse) => {
-  return app(req, res);
-};
+// Export for Vercel serverless functions
+export default app;

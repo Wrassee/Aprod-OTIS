@@ -14,7 +14,7 @@ npx vite build
 echo "⚙️ Building backend with production entry point (excludes Vite)..."
 mkdir -p dist
 
-# Use production entry point that completely avoids Vite dependencies
+# Update build command to exclude Vite dependencies from production bundle
 npx esbuild server/production-entry.ts \
   --platform=node \
   --packages=external \
@@ -26,6 +26,9 @@ npx esbuild server/production-entry.ts \
   --define:process.env.NODE_ENV='"production"' \
   --external:vite \
   --external:@vitejs/* \
+  --external:server/vite.ts \
+  --external:./vite \
+  --external:./server/vite \
   --log-level=info
 
 echo "✅ Production build completed successfully!"
