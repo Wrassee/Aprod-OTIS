@@ -11,8 +11,8 @@ NODE_ENV=production npx vite build
 echo "⚙️ Building backend..."
 mkdir -p dist
 
-# Build production entry point that completely avoids Vite dependencies
-npx esbuild server/production-entry.ts \
+# Build minimal production server with zero Vite dependencies
+npx esbuild server/minimal-production.ts \
   --platform=node \
   --packages=external \
   --bundle \
@@ -22,7 +22,8 @@ npx esbuild server/production-entry.ts \
   --target=node18 \
   --define:process.env.NODE_ENV='"production"'
 
-echo "✅ Production build uses clean entry point without Vite dependencies"
+echo "✅ Production build complete - minimal bundle without Vite dependencies"
+echo "📦 Bundle size: $(du -h dist/index.js | cut -f1)"
 
 echo "✅ Build completed successfully!"
 echo "🚀 Ready for deployment"

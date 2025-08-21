@@ -1,6 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { log, serveStatic } from "./static-server";
+import { setupVite, serveStatic, log } from "./safe-vite";
 
 const app = express();
 
@@ -56,9 +56,7 @@ app.use((req, res, next) => {
     // Setup development or production serving
     if (process.env.NODE_ENV === "development") {
       console.log('Setting up Vite in development mode...');
-      // Dynamic import to prevent bundling in production
-      const { setupViteDev } = await import("./vite-dev");
-      await setupViteDev(app, server);
+      await setupVite(app, server);
     } else {
       console.log('Serving static files in production mode...');
       serveStatic(app);
