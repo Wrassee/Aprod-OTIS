@@ -10,11 +10,11 @@ export NODE_ENV=production
 echo "📦 Building frontend..."
 npx vite build
 
-# Build backend using minimal production server (bypasses Vite issues)
-echo "⚙️ Building backend with minimal production server..."
+# Build backend using production-safe server (completely excludes Vite)
+echo "⚙️ Building backend with production-safe server..."
 mkdir -p dist
 
-npx esbuild server/minimal-production.ts \
+npx esbuild server/production-safe.ts \
   --platform=node \
   --packages=external \
   --bundle \

@@ -22,11 +22,23 @@ export async function setupVite(app: Express, server: Server) {
     return;
   }
 
+  // Environment check to prevent production bundling
+  if (typeof process !== 'undefined' && process.env.NODE_ENV === 'production') {
+    console.log('Production environment detected, skipping Vite setup');
+    return;
+  }
+
   try {
-    // Dynamic import to prevent bundling in production
-    const vite = await import("vite");
-    const { nanoid } = await import("nanoid");
-    const viteConfig = (await import("../vite.config")).default;
+    // Dynamic import to prevent bundling in production - wrapped in try/catch
+    const vite = await import("vite").catch(() => {
+      console.log('Vite not available, skipping setup');
+      return null;
+    });
+    
+    if (!vite) return;
+    
+    const { nanoid } = await import("nanoid").catch(() => ({ nanoid: () => 'dev' }));
+    const viteConfig = await import("../vite.config").then(m => m.default).catch(() => ({}));
     
     const viteLogger = vite.createLogger();
 

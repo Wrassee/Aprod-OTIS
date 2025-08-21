@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./safe-vite";
+// Use conditional imports to prevent bundling issues
+import { serveStatic, log } from "./safe-vite";
 
 const app = express();
 
@@ -56,7 +57,14 @@ app.use((req, res, next) => {
     // Setup development or production serving
     if (process.env.NODE_ENV === "development") {
       console.log('Setting up Vite in development mode...');
-      await setupVite(app, server);
+      // Dynamic import to prevent bundling in production
+      try {
+        const { setupVite } = await import("./safe-vite");
+        await setupVite(app, server);
+      } catch (error) {
+        console.log('Vite setup failed, falling back to static serving:', error.message);
+        serveStatic(app);
+      }
     } else {
       console.log('Serving static files in production mode...');
       serveStatic(app);

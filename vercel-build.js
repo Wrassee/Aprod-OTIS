@@ -20,9 +20,9 @@ try {
     fs.mkdirSync('dist', { recursive: true });
   }
   
-  // Build backend using minimal production server
-  console.log('⚙️ Building backend with minimal production server...');
-  execSync(`npx esbuild server/minimal-production.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js --minify --target=node18 --define:process.env.NODE_ENV='"production"'`, { stdio: 'inherit' });
+  // Build backend using production-safe server (excludes Vite dependencies)
+  console.log('⚙️ Building backend with production-safe server...');
+  execSync(`npx esbuild server/production-safe.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js --minify --target=node18 --define:process.env.NODE_ENV='"production"'`, { stdio: 'inherit' });
   
   // Verify build
   const bundleContent = fs.readFileSync('dist/index.js', 'utf8');
