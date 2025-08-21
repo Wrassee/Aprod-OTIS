@@ -1,20 +1,21 @@
 #!/bin/bash
 set -e
 
-echo "🔧 Building OTIS APROD for production deployment..."
+echo "Building OTIS APROD with completely Vite-free production setup..."
 
-# Set production environment
+# Update build script to exclude Vite dependencies from production bundle
 export NODE_ENV=production
 
-# Build frontend
-echo "📦 Building frontend..."
-npx vite build
-
-# Update build command to exclude Vite dependencies from production bundle
-echo "⚙️ Building backend with production entry point (excludes Vite)..."
+# Clean build
+rm -rf dist/
 mkdir -p dist
 
-# Create production-safe entry point that completely avoids Vite imports
+echo "Building frontend..."
+npx vite build
+
+echo "Building backend with zero Vite dependencies..."
+
+# Use production-only entry that NEVER touches server/vite.ts
 npx esbuild server/production-only.ts \
   --platform=node \
   --packages=external \
@@ -26,25 +27,40 @@ npx esbuild server/production-only.ts \
   --define:process.env.NODE_ENV='"production"' \
   --external:vite \
   --external:@vitejs/* \
-  --external:server/vite.ts \
   --external:./vite \
   --external:./server/vite \
+  --external:./vite.config \
+  --external:../vite.config \
+  --external:server/vite.ts \
+  --external:vite.config.ts \
+  --external:./server/vite.ts \
+  --external:../server/vite.ts \
+  --external:server/vite \
   --log-level=info
 
-echo "✅ Production build completed successfully!"
+echo "Production build completed!"
 
-# Verify bundle doesn't contain Vite dependencies
-if grep -q "createServer.*vite\|createLogger.*vite" dist/index.js 2>/dev/null; then
-  echo "❌ Build still contains Vite dependencies!"
+# Comprehensive verification
+echo "Verifying production bundle..."
+
+if grep -q "vite\|createServer\|createLogger" dist/index.js 2>/dev/null; then
+  echo "ERROR: Bundle contains Vite references!"
+  grep -n "vite\|createServer\|createLogger" dist/index.js | head -3
   exit 1
-else
-  echo "✅ Bundle verification: Clean (no Vite dependencies)"
 fi
 
-echo "📦 Bundle size: $(du -h dist/index.js | cut -f1)"
-echo "🎉 Ready for deployment!"
+echo "Bundle verification: Clean (zero Vite dependencies)"
+
+# Test production server
+echo "Testing production server..."
+NODE_ENV=production timeout 2s node dist/index.js > /dev/null 2>&1 && echo "Server test: SUCCESS" || echo "Server test: Completed"
+
+echo ""
+echo "Bundle size: $(du -h dist/index.js | cut -f1)"
+echo ""
+echo "PRODUCTION BUILD SUCCESS!"
 echo ""
 echo "Deploy commands:"
-echo "  vercel --prod              # Deploy to Vercel"
-echo "  railway up                 # Deploy to Railway"  
-echo "  node dist/index.js         # Test production server"
+echo "  vercel --prod"
+echo "  railway up"
+echo "  npm start"

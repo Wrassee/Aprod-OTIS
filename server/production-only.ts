@@ -1,28 +1,20 @@
-// PRODUCTION-ONLY server - ZERO Vite dependencies
+// Production-only server entry - NEVER imports vite.ts or any Vite dependencies
 import express, { type Request, Response, NextFunction } from "express";
-import { createServer } from "http";
+import { registerRoutes } from "./routes";
 import fs from "fs";
 import path from "path";
-import { storage } from "./storage";
-import { testConnection } from "./db";
 
-const app = express();
-const PORT = process.env.PORT || 5000;
+function log(message: string, source = "express") {
+  const formattedTime = new Date().toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
+  console.log(`${formattedTime} [${source}] ${message}`);
+}
 
-// JSON middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-
-// Error handling middleware
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  const status = err.statusCode || err.status || 500;
-  const message = err.message || "Internal Server Error";
-  console.error('Express error:', err);
-  res.status(status).json({ message });
-});
-
-// Static file serving for production
-function serveStatic() {
+function serveStatic(app: express.Express) {
   const distPath = path.resolve(process.cwd(), "dist", "public");
   
   if (!fs.existsSync(distPath)) {
@@ -36,101 +28,94 @@ function serveStatic() {
   });
 }
 
-// Routes setup
-async function setupRoutes() {
+const app = express();
+
+// Export for Vercel
+export default app;
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+app.use((req, res, next) => {
+  const start = Date.now();
+  const path = req.path;
+  let capturedJsonResponse: Record<string, any> | undefined = undefined;
+
+  const originalResJson = res.json;
+  res.json = function (bodyJson, ...args) {
+    capturedJsonResponse = bodyJson;
+    return originalResJson.apply(res, [bodyJson, ...args]);
+  };
+
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    if (path.startsWith("/api")) {
+      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+      if (capturedJsonResponse) {
+        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+      }
+
+      if (logLine.length > 80) {
+        logLine = logLine.slice(0, 79) + "…";
+      }
+
+      log(logLine);
+    }
+  });
+
+  next();
+});
+
+(async () => {
   try {
-    // Test database
+    console.log('Starting production server initialization...');
+    
+    // Test database connection
     console.log('Testing database connection...');
+    const { testConnection } = await import("./db");
     await testConnection();
     console.log('Database connection successful');
-
-    // API Routes
-    app.get('/api/health', (req, res) => {
-      res.json({ status: 'ok', timestamp: new Date().toISOString() });
-    });
-
-    // Protocol routes
-    app.get('/api/protocols', async (req, res) => {
-      try {
-        const protocols = await storage.getAllProtocols();
-        res.json(protocols);
-      } catch (error: any) {
-        res.status(500).json({ error: error.message });
-      }
-    });
-
-    app.post('/api/protocols', async (req, res) => {
-      try {
-        const protocol = await storage.createProtocol(req.body);
-        res.json(protocol);
-      } catch (error: any) {
-        res.status(500).json({ error: error.message });
-      }
-    });
-
-    app.get('/api/protocols/:id', async (req, res) => {
-      try {
-        const protocol = await storage.getProtocol(req.params.id);
-        if (!protocol) {
-          return res.status(404).json({ error: 'Protocol not found' });
-        }
-        res.json(protocol);
-      } catch (error: any) {
-        res.status(500).json({ error: error.message });
-      }
-    });
-
-    app.put('/api/protocols/:id', async (req, res) => {
-      try {
-        const protocol = await storage.updateProtocol(req.params.id, req.body);
-        res.json(protocol);
-      } catch (error: any) {
-        res.status(500).json({ error: error.message });
-      }
-    });
-
-    app.delete('/api/protocols/:id', async (req, res) => {
-      try {
-        await storage.updateProtocol(req.params.id, { completed: false });
-        res.json({ success: true });
-      } catch (error: any) {
-        res.status(500).json({ error: error.message });
-      }
-    });
-
+    
+    // Register API routes
+    registerRoutes(app);
     console.log('Routes registered successfully');
+    
+    // Always serve static files in production
+    console.log('Setting up static file serving...');
+    serveStatic(app);
+    console.log('Static serving configured');
+    
   } catch (error) {
-    console.error('Failed to setup routes:', error);
-    throw error;
-  }
-}
-
-// Server initialization
-async function startServer() {
-  try {
-    console.log('Starting production server...');
-    
-    await setupRoutes();
-    serveStatic();
-    
-    const server = createServer(app);
-    
-    server.listen(Number(PORT), '0.0.0.0', () => {
-      console.log(`Production server running on port ${PORT}`);
-    });
-    
-    return server;
-  } catch (error) {
-    console.error('Failed to start server:', error);
+    console.error('Server initialization failed:', error);
     process.exit(1);
   }
-}
+})();
 
-// Start if running directly  
-if (process.argv[1] && process.argv[1].endsWith('production-only.ts')) {
-  startServer();
-}
+const PORT = process.env.PORT || 5000;
 
-// Export for serverless
-export default app;
-export { startServer };
+if (process.env.NODE_ENV !== "test") {
+  const server = app.listen(PORT, "0.0.0.0", () => {
+    log(`serving on port ${PORT}`);
+  });
+
+  server.on("error", (error: any) => {
+    if (error.syscall !== "listen") {
+      throw error;
+    }
+
+    const bind = typeof PORT === "string" ? "Pipe " + PORT : "Port " + PORT;
+
+    switch (error.code) {
+      case "EACCES":
+        console.error(bind + " requires elevated privileges");
+        process.exit(1);
+        break;
+      case "EADDRINUSE":
+        console.error(bind + " is already in use");
+        process.exit(1);
+        break;
+      default:
+        throw error;
+    }
+  });
+}
