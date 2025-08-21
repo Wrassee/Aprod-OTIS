@@ -8,16 +8,15 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const bucketName = process.env.SUPABASE_BUCKET!;
 
 if (!supabaseUrl || !supabaseServiceKey || !bucketName) {
-  console.error('Supabase config:', { 
-    url: supabaseUrl ? 'Set' : 'Missing', 
-    key: supabaseServiceKey ? `${supabaseServiceKey.substring(0, 10)}...` : 'Missing',
-    bucket: bucketName ? 'Set' : 'Missing'
-  });
   throw new Error('Missing Supabase configuration. Please check SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and SUPABASE_BUCKET environment variables.');
 }
 
-console.log('Initializing Supabase client with URL:', supabaseUrl);
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  }
+});
 
 export class SupabaseStorageService {
   
@@ -29,6 +28,30 @@ export class SupabaseStorageService {
    */
   async uploadFile(filePath: string, storagePath: string): Promise<string> {
     try {
+      console.log(`📤 Uploading ${filePath} to ${bucketName}/${storagePath}`);
+      
+      // Test bucket access first
+      const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
+      if (bucketError) {
+        throw new Error(`Bucket access failed: ${bucketError.message}`);
+      }
+      
+      // Check if bucket exists
+      const bucketExists = buckets?.find(b => b.name === bucketName);
+      if (!bucketExists) {
+        // Try to create bucket
+        const { data: newBucket, error: createError } = await supabase.storage.createBucket(bucketName, {
+          public: true,
+          allowedMimeTypes: ['image/*', 'application/*'],
+          fileSizeLimit: 50 * 1024 * 1024 // 50MB
+        });
+        
+        if (createError) {
+          throw new Error(`Failed to create bucket: ${createError.message}`);
+        }
+        console.log(`✅ Created bucket: ${bucketName}`);
+      }
+      
       // Read file content
       const fileBuffer = fs.readFileSync(filePath);
       const fileName = path.basename(storagePath);

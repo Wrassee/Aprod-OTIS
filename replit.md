@@ -4,18 +4,17 @@
 This full-stack TypeScript application digitalizes the OTIS elevator acceptance protocol process. It guides users through a step-by-step questionnaire, enables error documentation with images, generates PDFs, and supports sharing. The system operates in both Hungarian and German, aiming to streamline and standardize the acceptance process, reduce manual errors, and improve efficiency for OTIS technicians. The project envisions a future of fully digitized and seamlessly integrated elevator inspection and acceptance procedures within existing OTIS systems.
 
 ## Recent Changes (2025-08-21)
-### ✅ SUPABASE STORAGE INTEGRATION - Vercel Ready
-- **File Storage Migration**: Complete transition from local file storage to Supabase Storage
-  - SupabaseStorageService: Comprehensive file upload/download functionality
-  - TemplateLoaderService: Unified template loading from storage
-  - All Excel/PDF services updated to use cloud storage
-- **Backend Routes Updated**: File upload/download endpoints migrated to Supabase
-  - Template upload: Files stored in cloud with public URLs
-  - Image upload: Base64 processing with cloud storage
-  - Template download: Dynamic file retrieval from storage
-- **Service Layer Modernization**: Excel and PDF services use new template loader
-- **Vercel Compatibility**: No local file dependencies, serverless-ready architecture
-- **Error Handling**: MetaMask browser extension conflicts resolved (not app-related)
+### 🔄 SUPABASE STORAGE INTEGRATION - In Progress  
+- **Cloud Storage Implementation**: Supabase Storage service created with fallback system
+  - SupabaseStorageService: File upload/download with automatic bucket creation
+  - Hybrid storage: Supabase primary, local storage fallback
+  - SERVICE_ROLE_KEY provided but JWT authentication issues persist
+- **Routes Updated**: All file operations support both cloud and local storage
+  - Image upload: Attempts Supabase, falls back to local temp storage
+  - Template management: Dual storage path support
+- **Service Layer**: Template loader supports both storage backends
+- **Current Status**: Authentication issue under investigation - app fully functional with local fallback
+- **MetaMask Issue**: Browser extension conflict resolved (disabled)
 
 ## User Preferences
 Preferred communication style: Simple, everyday language (Hungarian preferred).
