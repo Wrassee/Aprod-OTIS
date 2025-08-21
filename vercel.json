@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "buildCommand": "node vercel-build.js",
   "builds": [
     {
       "src": "client/**/*",
