@@ -22,6 +22,12 @@ export async function setupVite(app: Express, server: Server) {
     return;
   }
 
+  // Environment check to prevent production bundling
+  if (typeof process !== 'undefined' && process.env.NODE_ENV === 'production') {
+    console.log('Production environment detected, skipping Vite setup');
+    return;
+  }
+
   try {
     // Remove direct Vite imports and use dynamic imports with environment checks
     const vite = await import("vite").catch((error) => {
@@ -89,6 +95,7 @@ export async function setupVite(app: Express, server: Server) {
     console.log('Falling back to static file serving');
     // Don't throw error, allow fallback to static serving
   }
+}
 }
 
 export function serveStatic(app: Express) {

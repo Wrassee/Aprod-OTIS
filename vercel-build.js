@@ -20,9 +20,9 @@ try {
     fs.mkdirSync('dist', { recursive: true });
   }
   
-  // Build backend using production-safe server (excludes Vite dependencies)
-  console.log('⚙️ Building backend with production-safe server...');
-  execSync(`npx esbuild server/production-entry.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js --minify --target=node18 --define:process.env.NODE_ENV='"production"'`, { stdio: 'inherit' });
+  // Update build command to exclude Vite dependencies from production bundle
+  console.log('⚙️ Building backend with production entry point (excludes Vite)...');
+  execSync(`npx esbuild server/production-entry.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js --minify --target=node18 --define:process.env.NODE_ENV='"production"' --external:vite --external:@vitejs/* --log-level=info`, { stdio: 'inherit' });
   
   // Verify build
   const bundleContent = fs.readFileSync('dist/index.js', 'utf8');

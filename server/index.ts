@@ -57,12 +57,14 @@ app.use((req, res, next) => {
     // Setup development or production serving
     if (process.env.NODE_ENV === "development") {
       console.log('Setting up Vite in development mode...');
-      // Dynamic import to prevent bundling in production
+      // Update server/index.ts to handle Vite setup failures gracefully
       try {
         const { setupVite } = await import("./safe-vite");
         await setupVite(app, server);
+        console.log('Vite setup completed successfully');
       } catch (error: any) {
         console.log('Vite setup failed, falling back to static serving:', error.message);
+        console.log('This is normal in production-like environments');
         serveStatic(app);
       }
     } else {

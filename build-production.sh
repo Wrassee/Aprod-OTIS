@@ -1,30 +1,47 @@
 #!/bin/bash
 set -e
 
-echo "🚀 Building production application..."
+echo "🔧 Building OTIS APROD for production deployment..."
 
-# Build the frontend
-echo "📦 Building frontend with Vite..."
-NODE_ENV=production npx vite build
+# Set production environment
+export NODE_ENV=production
 
-# Create the dist directory structure
-echo "📁 Creating dist directory structure..."
+# Build frontend
+echo "📦 Building frontend..."
+npx vite build
+
+# Update build command to exclude Vite dependencies from production bundle
+echo "⚙️ Building backend with production entry point (excludes Vite)..."
 mkdir -p dist
 
-# Build the backend using our ESBuild config
-echo "⚙️ Building backend for production..."
-NODE_ENV=production node esbuild.config.mjs
-
-# Copy any additional assets if needed
-echo "📋 Copying assets..."
-if [ -d "shared" ]; then
-  cp -r shared dist/ 2>/dev/null || echo "No shared directory to copy"
-fi
+# Use production entry point that completely avoids Vite dependencies
+npx esbuild server/production-entry.ts \
+  --platform=node \
+  --packages=external \
+  --bundle \
+  --format=esm \
+  --outfile=dist/index.js \
+  --minify \
+  --target=node18 \
+  --define:process.env.NODE_ENV='"production"' \
+  --external:vite \
+  --external:@vitejs/* \
+  --log-level=info
 
 echo "✅ Production build completed successfully!"
+
+# Verify bundle doesn't contain Vite dependencies
+if grep -q "createServer.*vite\|createLogger.*vite" dist/index.js 2>/dev/null; then
+  echo "❌ Build still contains Vite dependencies!"
+  exit 1
+else
+  echo "✅ Bundle verification: Clean (no Vite dependencies)"
+fi
+
+echo "📦 Bundle size: $(du -h dist/index.js | cut -f1)"
+echo "🎉 Ready for deployment!"
 echo ""
-echo "🎯 To start production server:"
-echo "   NODE_ENV=production node dist/index.production.js"
-echo ""
-echo "🚀 To deploy to Vercel:"
-echo "   vercel --prod"
+echo "Deploy commands:"
+echo "  vercel --prod              # Deploy to Vercel"
+echo "  railway up                 # Deploy to Railway"  
+echo "  node dist/index.js         # Test production server"
