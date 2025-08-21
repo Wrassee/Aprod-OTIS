@@ -33,6 +33,7 @@ This full-stack TypeScript application digitalizes the OTIS elevator acceptance 
 
 ## User Preferences
 Preferred communication style: Simple, everyday language (Hungarian preferred).
+Frustrated with Vite complexity - prefers solutions that avoid Vite whenever possible.
 
 ## System Architecture
 ### Frontend
