@@ -1,25 +1,17 @@
 import JSZip from 'jszip';
 import * as fs from 'fs';
 import { storage } from '../storage';
+import { templateLoader } from './template-loader';
 import type { FormData } from '../../shared/types';
 
 class SimpleXmlExcelService {
   async generateExcelFromTemplate(formData: FormData, language: string): Promise<Buffer> {
     try {
-      // Get the active protocol template - try multilingual first, then language-specific
-      let protocolTemplate = await storage.getActiveTemplate('protocol', 'multilingual');
-      if (!protocolTemplate) {
-        protocolTemplate = await storage.getActiveTemplate('protocol', language);
-      }
+      console.log('XML: Loading protocol template via Supabase Storage...');
       
-      if (!protocolTemplate) {
-        throw new Error('No active protocol template found');
-      }
-
-      console.log(`Using XML approach for template: ${protocolTemplate.name}`);
-      
-      // Read template file
-      const templateBuffer = fs.readFileSync(protocolTemplate.filePath);
+      // Load template buffer via the new template loader
+      const templateBuffer = await templateLoader.loadTemplateBuffer('protocol', language);
+      console.log(`Using XML approach with loaded template (${templateBuffer.length} bytes)`);
       
       // Get question configs for cell mapping - try multilingual first, then unified, then language-specific
       let questionsTemplate = await storage.getActiveTemplate('questions', 'multilingual');

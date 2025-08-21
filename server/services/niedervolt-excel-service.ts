@@ -1,6 +1,7 @@
 import JSZip from 'jszip';
 import fs from 'fs';
 import { storage } from '../storage';
+import { templateLoader } from './template-loader';
 
 interface MeasurementRow {
   id: string;
@@ -24,16 +25,11 @@ export class NiedervoltExcelService {
    */
   async integrateMeasurements({ measurements, language }: NiedervoltExcelServiceOptions): Promise<Buffer> {
     try {
-      // Get active protocol template
-      const protocolTemplate = await storage.getActiveTemplate('protocol', language);
-      if (!protocolTemplate) {
-        throw new Error(`No active protocol template found for language: ${language}`);
-      }
+      console.log(`NIEDERVOLT: Loading template via Supabase Storage for language: ${language}`);
 
-      console.log(`NIEDERVOLT: Using template: ${protocolTemplate.name}`);
-
-      // Read template file
-      const templateBuffer = fs.readFileSync(protocolTemplate.filePath);
+      // Load template buffer via the new template loader
+      const templateBuffer = await templateLoader.loadTemplateBuffer('protocol', language);
+      console.log(`NIEDERVOLT: Using loaded template (${templateBuffer.length} bytes)`);
       
       // Load the Excel template using JSZip
       const zip = new JSZip();

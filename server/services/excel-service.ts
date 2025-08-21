@@ -1,8 +1,9 @@
 import * as XLSX from 'xlsx';
-import { FormData } from '../../client/src/lib/types';
+import type { FormData } from '../../shared/types';
 import { storage } from '../storage';
 import { excelParserService } from './excel-parser';
 import { simpleXmlExcelService } from './simple-xml-excel';
+import { templateLoader } from './template-loader';
 import fs from 'fs';
 
 class ExcelService {
@@ -16,17 +17,12 @@ class ExcelService {
       
       // Fallback to original XLSX approach
       try {
-        // Try multilingual first, then language-specific
-        let protocolTemplate = await storage.getActiveTemplate('protocol', 'multilingual');
-        if (!protocolTemplate) {
-          protocolTemplate = await storage.getActiveTemplate('protocol', language);
-        }
-        
-        if (protocolTemplate) {
-          console.log(`Using XLSX fallback with template: ${protocolTemplate.name}`);
-          const templateBuffer = fs.readFileSync(protocolTemplate.filePath);
+        try {
+          console.log('Loading template via Supabase Storage...');
+          const templateBuffer = await templateLoader.loadTemplateBuffer('protocol', language);
+          console.log(`Using XLSX fallback with loaded template (${templateBuffer.length} bytes)`);
           return await this.populateProtocolTemplate(templateBuffer, formData, language);
-        } else {
+        } catch (templateError) {
           console.log('No protocol template found, using basic Excel creation');
           return await this.createBasicExcel(formData, language);
         }
@@ -43,10 +39,8 @@ class ExcelService {
       const workbook = XLSX.read(templateBuffer, { 
         type: 'buffer',
         cellStyles: true,
-        cellNF: true,
         cellHTML: false,
-        sheetStubs: true,
-        bookSST: true
+        sheetStubs: true
       });
       
       // Log template info
@@ -77,7 +71,7 @@ class ExcelService {
       let filledCells = 0;
       
       // Create cell mappings based on question configs
-      const cellMappings = [];
+      const cellMappings: Array<{cell: string, value: any, label: string}> = [];
       
       // Add answers based on question configs
       Object.entries(formData.answers).forEach(([questionId, answer]) => {
@@ -133,12 +127,7 @@ class ExcelService {
         type: 'buffer', 
         bookType: 'xlsx',
         compression: true,  // Use compression for smaller files
-        cellStyles: true,   // Preserve cell styles
-        cellNF: true,       // Preserve number formats  
-        cellHTML: false,    // Don't convert to HTML
-        sheetStubs: true,   // Include empty cells
-        bookSST: true,      // Preserve shared string table
-        cellDates: true     // Preserve date formatting
+        cellStyles: true    // Preserve cell styles
       });
       
       console.log('Successfully populated protocol template preserving original format');
