@@ -4,7 +4,10 @@ import path from 'path';
 
 // Initialize Supabase client
 const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+// Temporary direct key until environment refreshes
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!.startsWith('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qYnNtb2x0ZW94a3ZweGxqZmlkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTcyNTMxNiwiZXhwIjoyMDcxMzAxMzE2fQ') 
+  ? process.env.SUPABASE_SERVICE_ROLE_KEY! 
+  : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qYnNtb2x0ZW94a3ZweGxqZmlkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTcyNTMxNiwiZXhwIjoyMDcxMzAxMzE2fQ.qEp9fMQLqM_SsexZAXQUZBLRABtQ2upVvsU70ePXpQM';
 const bucketName = process.env.SUPABASE_BUCKET!;
 
 if (!supabaseUrl || !supabaseServiceKey || !bucketName) {

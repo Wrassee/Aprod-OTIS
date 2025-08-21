@@ -346,7 +346,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const publicUrl = await supabaseStorage.uploadFile(req.file.path, storagePath);
         
         // Create template record with storage URL
-        const newTemplate = await storage.createTemplate({
+        var newTemplate = await storage.createTemplate({
           name,
           type,
           language,
@@ -368,7 +368,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         fs.renameSync(req.file.path, filePath);
 
         // Create template record with local path
-        const newTemplate = await storage.createTemplate({
+        var newTemplate = await storage.createTemplate({
           name,
           type,
           language,
