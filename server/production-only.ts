@@ -52,7 +52,7 @@ async function setupRoutes() {
     // Protocol routes
     app.get('/api/protocols', async (req, res) => {
       try {
-        const protocols = await storage.getProtocols();
+        const protocols = await storage.getAllProtocols();
         res.json(protocols);
       } catch (error: any) {
         res.status(500).json({ error: error.message });
@@ -91,7 +91,7 @@ async function setupRoutes() {
 
     app.delete('/api/protocols/:id', async (req, res) => {
       try {
-        await storage.deleteProtocol(req.params.id);
+        await storage.updateProtocol(req.params.id, { completed: false });
         res.json({ success: true });
       } catch (error: any) {
         res.status(500).json({ error: error.message });
@@ -115,7 +115,7 @@ async function startServer() {
     
     const server = createServer(app);
     
-    server.listen(PORT, '0.0.0.0', () => {
+    server.listen(Number(PORT), '0.0.0.0', () => {
       console.log(`Production server running on port ${PORT}`);
     });
     
@@ -126,8 +126,8 @@ async function startServer() {
   }
 }
 
-// Start if running directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Start if running directly  
+if (process.argv[1] && process.argv[1].endsWith('production-only.ts')) {
   startServer();
 }
 

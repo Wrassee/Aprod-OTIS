@@ -16,14 +16,14 @@ export function log(message: string, source = "express") {
 }
 
 export async function setupVite(app: Express, server: Server) {
-  // Only setup Vite in development environment
+  // Add environment check and error handling to setupVite function
   if (process.env.NODE_ENV !== "development") {
     console.log('Skipping Vite setup in production mode');
     return;
   }
 
   try {
-    // Remove direct Vite imports and use dynamic imports with environment checks
+    // Replace direct Vite imports with dynamic imports to prevent bundling issues
     const vite = await import("vite").catch((error) => {
       console.log('Vite not available, skipping setup:', error.message);
       return null;
@@ -84,10 +84,11 @@ export async function setupVite(app: Express, server: Server) {
       }
     });
   } catch (error) {
-    // Add error handling and close the try-catch block in setupVite function
+    // Add catch block and error handling for Vite setup failures
     console.error('Failed to setup Vite in development:', error);
     console.log('Falling back to static file serving');
     // Don't throw error, allow fallback to static serving
+    return;
   }
 }
 

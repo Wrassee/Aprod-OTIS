@@ -57,7 +57,7 @@ app.use((req, res, next) => {
     // Setup development or production serving
     if (process.env.NODE_ENV === "development") {
       console.log('Setting up Vite in development mode...');
-      // Add environment check in server/index.ts to prevent Vite setup in production
+      // Ensure server/index.ts uses safe Vite imports with proper fallback
       try {
         // Only import safe-vite in development, never the original vite.ts
         const { setupVite } = await import("./safe-vite");
