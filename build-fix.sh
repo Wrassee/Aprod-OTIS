@@ -11,22 +11,18 @@ NODE_ENV=production npx vite build
 echo "⚙️ Building backend..."
 mkdir -p dist
 
-# Use esbuild with explicit exclusions for Vite and development files
-npx esbuild server/index.ts \
+# Build production entry point that completely avoids Vite dependencies
+npx esbuild server/production-entry.ts \
   --platform=node \
   --packages=external \
   --bundle \
   --format=esm \
-  --outdir=dist \
-  --external:vite \
-  --external:@replit/vite-plugin-cartographer \
-  --external:@replit/vite-plugin-runtime-error-modal \
-  --external:@vitejs/plugin-react \
-  --external:./vite-dev \
-  --external:../vite.config \
+  --outfile=dist/index.js \
   --minify \
   --target=node18 \
   --define:process.env.NODE_ENV='"production"'
+
+echo "✅ Production build uses clean entry point without Vite dependencies"
 
 echo "✅ Build completed successfully!"
 echo "🚀 Ready for deployment"
