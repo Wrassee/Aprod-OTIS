@@ -61,7 +61,7 @@ app.use((req, res, next) => {
       try {
         const { setupVite } = await import("./safe-vite");
         await setupVite(app, server);
-      } catch (error) {
+      } catch (error: any) {
         console.log('Vite setup failed, falling back to static serving:', error.message);
         serveStatic(app);
       }

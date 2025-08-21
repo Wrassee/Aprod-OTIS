@@ -14,7 +14,7 @@ npx vite build
 echo "⚙️ Building backend with production-safe server..."
 mkdir -p dist
 
-npx esbuild server/production-safe.ts \
+npx esbuild server/production-entry.ts \
   --platform=node \
   --packages=external \
   --bundle \
