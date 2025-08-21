@@ -1,7 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 // Use conditional imports to prevent bundling issues
-import { serveStatic, log } from "./vite-safe-wrapper";
+import { serveStatic, log } from "./vite-dynamic";
 
 const app = express();
 
@@ -60,7 +60,7 @@ app.use((req, res, next) => {
       // Add environment check in server startup to prevent Vite setup in production
       try {
         // Use completely safe Vite wrapper that prevents all bundling issues
-        const { setupVite } = await import("./vite-safe-wrapper");
+        const { setupVite } = await import("./vite-dynamic");
         await setupVite(app, server);
         console.log('Vite setup completed successfully');
       } catch (error: any) {
