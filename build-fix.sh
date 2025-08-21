@@ -11,7 +11,7 @@ NODE_ENV=production npx vite build
 echo "⚙️ Building backend..."
 mkdir -p dist
 
-# Use esbuild with explicit exclusions for Vite
+# Use esbuild with explicit exclusions for Vite and development files
 npx esbuild server/index.ts \
   --platform=node \
   --packages=external \
@@ -22,6 +22,8 @@ npx esbuild server/index.ts \
   --external:@replit/vite-plugin-cartographer \
   --external:@replit/vite-plugin-runtime-error-modal \
   --external:@vitejs/plugin-react \
+  --external:./vite-dev \
+  --external:../vite.config \
   --minify \
   --target=node18 \
   --define:process.env.NODE_ENV='"production"'

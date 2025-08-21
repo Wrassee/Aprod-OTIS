@@ -1,6 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite-handler";
+import { log, serveStatic } from "./static-server";
 
 const app = express();
 
@@ -53,12 +53,12 @@ app.use((req, res, next) => {
       res.status(status).json({ message });
     });
 
-    // importantly only setup vite in development and after
-    // setting up all the other routes so the catch-all route
-    // doesn't interfere with the other routes
-    if (app.get("env") === "development") {
+    // Setup development or production serving
+    if (process.env.NODE_ENV === "development") {
       console.log('Setting up Vite in development mode...');
-      await setupVite(app, server);
+      // Dynamic import to prevent bundling in production
+      const { setupViteDev } = await import("./vite-dev");
+      await setupViteDev(app, server);
     } else {
       console.log('Serving static files in production mode...');
       serveStatic(app);
