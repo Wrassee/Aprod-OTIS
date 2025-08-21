@@ -337,16 +337,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Missing required fields: name, type, language" });
       }
 
-      // Upload to Supabase Storage
+      // Upload to Supabase Storage (required for production)
       const timestamp = Date.now();
       const fileName = `${timestamp}-${req.file.originalname}`;
       const storagePath = `templates/${fileName}`;
+      
+      let newTemplate;
       
       try {
         const publicUrl = await supabaseStorage.uploadFile(req.file.path, storagePath);
         
         // Create template record with storage URL
-        var newTemplate = await storage.createTemplate({
+        newTemplate = await storage.createTemplate({
           name,
           type,
           language,
@@ -356,19 +358,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
         // Clean up temp file
-        fs.unlinkSync(req.file.path);
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
         
         console.log(`✅ Template uploaded to Supabase: ${publicUrl}`);
       } catch (supabaseError) {
-        console.error("Supabase upload failed, using local storage:", supabaseError);
+        console.error("❌ Supabase upload failed:", supabaseError instanceof Error ? supabaseError.message : supabaseError);
         
-        // Fallback to local storage
+        // In production (Vercel/Render), we MUST use cloud storage
+        if (process.env.NODE_ENV === 'production') {
+          return res.status(500).json({ 
+            message: "Cloud storage required for production. Please check Supabase configuration.",
+            error: supabaseError instanceof Error ? supabaseError.message : String(supabaseError) 
+          });
+        }
+        
+        // Local development fallback only
         const localFileName = `${Date.now()}-${req.file.originalname}`;
         const filePath = path.join(uploadDir, localFileName);
         fs.renameSync(req.file.path, filePath);
 
-        // Create template record with local path
-        var newTemplate = await storage.createTemplate({
+        newTemplate = await storage.createTemplate({
           name,
           type,
           language,
