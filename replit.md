@@ -3,17 +3,19 @@
 ## Overview
 This full-stack TypeScript application digitalizes the OTIS elevator acceptance protocol process. It guides users through a step-by-step questionnaire, enables error documentation with images, generates PDFs, and supports sharing. The system operates in both Hungarian and German, aiming to streamline and standardize the acceptance process, reduce manual errors, and improve efficiency for OTIS technicians. The project envisions a future of fully digitized and seamlessly integrated elevator inspection and acceptance procedures within existing OTIS systems.
 
-## Recent Changes (2025-01-14)
-### ✅ STABLE VERSION - Ready for Deployment
-- **Enter Navigation**: Complete implementation across all input types
-  - First page (IsolatedQuestion): text and number inputs now support Enter navigation
-  - Measurement blocks: horizontal and vertical navigation working
-  - Niedervolt table: Enter navigation functional
-- **Input Validation**: Number fields now completely block invalid characters
-  - Real-time character filtering (no letters, only numbers, decimals, minus)
-  - Input-level prevention (not just post-validation)
-- **Component Fixes**: UltraStableInput, StableInput, QuestionBlock, MeasurementBlock all updated
-- **User Testing**: Confirmed working by user - all navigation and validation functional
+## Recent Changes (2025-08-21)
+### ✅ SUPABASE STORAGE INTEGRATION - Vercel Ready
+- **File Storage Migration**: Complete transition from local file storage to Supabase Storage
+  - SupabaseStorageService: Comprehensive file upload/download functionality
+  - TemplateLoaderService: Unified template loading from storage
+  - All Excel/PDF services updated to use cloud storage
+- **Backend Routes Updated**: File upload/download endpoints migrated to Supabase
+  - Template upload: Files stored in cloud with public URLs
+  - Image upload: Base64 processing with cloud storage
+  - Template download: Dynamic file retrieval from storage
+- **Service Layer Modernization**: Excel and PDF services use new template loader
+- **Vercel Compatibility**: No local file dependencies, serverless-ready architecture
+- **Error Handling**: MetaMask browser extension conflicts resolved (not app-related)
 
 ## User Preferences
 Preferred communication style: Simple, everyday language (Hungarian preferred).

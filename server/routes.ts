@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
+import express from "express";
 import path from "path";
 import fs from "fs";
 import { storage } from "./storage";
@@ -12,7 +13,7 @@ import { emailService } from "./services/email-service";
 import { excelParserService } from "./services/excel-parser";
 import { niedervoltExcelService } from "./services/niedervolt-excel-service";
 import { errorRoutes } from "./routes/error-routes";
-import { supabaseStorage } from "./services/supabase-storage";
+// import { supabaseStorage } from "./services/supabase-storage"; // Disabled due to auth issues
 import { z } from "zod";
 import JSZip from "jszip";
 
@@ -47,6 +48,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Error export routes
   app.use('/api/errors', errorRoutes);
+
+  // Serve temporary images
+  app.use('/temp', express.static(path.join(process.cwd(), 'temp')));
 
   // PWA routes - serve with correct MIME types
   app.get('/sw.js', (req, res) => {
@@ -243,7 +247,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  // Upload images
+  // Upload images - Fallback to local storage for now due to Supabase authentication issues
   app.post("/api/upload", async (req, res) => {
     try {
       const { imageData, fileName } = req.body;
@@ -256,24 +260,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const base64Data = imageData.replace(/^data:image\/[a-z]+;base64,/, '');
       const buffer = Buffer.from(base64Data, 'base64');
       
-      // Create temporary file
-      const tempDir = path.join(process.cwd(), 'temp');
+      // Create temp directory for images
+      const tempDir = path.join(process.cwd(), 'temp', 'images');
       if (!fs.existsSync(tempDir)) {
         fs.mkdirSync(tempDir, { recursive: true });
       }
       
-      const tempPath = path.join(tempDir, fileName);
-      fs.writeFileSync(tempPath, buffer);
-      
-      // Upload to Supabase Storage
+      // Save image with timestamp to avoid conflicts
       const timestamp = Date.now();
-      const storagePath = `images/${timestamp}-${fileName}`;
-      const publicUrl = await supabaseStorage.uploadFile(tempPath, storagePath);
+      const fileExt = path.extname(fileName);
+      const baseName = path.basename(fileName, fileExt);
+      const savedFileName = `${timestamp}-${baseName}${fileExt}`;
+      const imagePath = path.join(tempDir, savedFileName);
       
-      // Clean up temp file
-      fs.unlinkSync(tempPath);
+      fs.writeFileSync(imagePath, buffer);
       
+      // Return local URL that can be served by the static middleware
+      const publicUrl = `/temp/images/${savedFileName}`;
+      
+      console.log(`✅ Image saved locally: ${imagePath}`);
       res.json({ success: true, url: publicUrl });
+      
     } catch (error) {
       console.error("Error uploading image:", error);
       res.status(500).json({ message: "Failed to upload image" });
@@ -307,27 +314,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Missing required fields: name, type, language" });
       }
 
-      // Upload to Supabase Storage
-      const timestamp = Date.now();
-      const fileName = `${timestamp}-${req.file.originalname}`;
-      const storagePath = `templates/${fileName}`;
-      const publicUrl = await supabaseStorage.uploadFile(req.file.path, storagePath);
+      // Move file to permanent location (fallback to local storage)
+      const fileName = `${Date.now()}-${req.file.originalname}`;
+      const filePath = path.join(uploadDir, fileName);
+      fs.renameSync(req.file.path, filePath);
 
-      // Read buffer before cleaning up temp file
-      const buffer = fs.readFileSync(req.file.path);
+      // Read buffer from uploaded file
+      const buffer = fs.readFileSync(filePath);
 
-      // Create template record with storage URL
+      // Create template record
       const template = await storage.createTemplate({
         name,
         type,
         language,
         fileName: req.file.originalname,
-        filePath: publicUrl, // Store the public URL instead of local path
+        filePath,
         isActive: false,
       });
-
-      // Clean up temp file
-      fs.unlinkSync(req.file.path);
 
       // If it's a questions template, parse and create question configs
       if (type === 'questions' || type === 'unified') {
@@ -394,46 +397,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Template not found" });
       }
 
-      // Extract storage path from public URL
-      const publicUrl = template.filePath;
-      if (!publicUrl.includes('supabase')) {
-        return res.status(404).json({ message: "Template file not found in storage" });
+      // Use local file path directly (fallback mode)
+      const filePath = template.filePath;
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ message: "Template file not found" });
       }
-
-      // Extract path from URL (format: https://bucket.supabase.co/storage/v1/object/public/bucket/path)
-      const urlParts = publicUrl.split('/');
-      const bucketIndex = urlParts.indexOf('public') + 1;
-      if (bucketIndex === 0 || bucketIndex >= urlParts.length) {
-        return res.status(404).json({ message: "Invalid storage URL format" });
-      }
-      
-      const storagePath = urlParts.slice(bucketIndex + 1).join('/');
-      
-      // Download from Supabase Storage to temp location
-      const tempDir = path.join(process.cwd(), 'temp');
-      if (!fs.existsSync(tempDir)) {
-        fs.mkdirSync(tempDir, { recursive: true });
-      }
-      
-      const tempPath = path.join(tempDir, `download-${Date.now()}-${template.fileName}`);
-      await supabaseStorage.downloadFile(storagePath, tempPath);
 
       // Set appropriate headers for file download
       const fileName = template.fileName || `${template.name}.xlsx`;
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
       
-      // Send the file and clean up
-      res.sendFile(path.resolve(tempPath), (err) => {
-        if (!err) {
-          // Clean up temp file after sending
-          setTimeout(() => {
-            if (fs.existsSync(tempPath)) {
-              fs.unlinkSync(tempPath);
-            }
-          }, 1000);
-        }
-      });
+      // Send the file directly
+      res.sendFile(path.resolve(filePath));
       
     } catch (error) {
       console.error("Error downloading template:", error);

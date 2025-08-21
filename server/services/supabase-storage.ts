@@ -8,9 +8,15 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const bucketName = process.env.SUPABASE_BUCKET!;
 
 if (!supabaseUrl || !supabaseServiceKey || !bucketName) {
+  console.error('Supabase config:', { 
+    url: supabaseUrl ? 'Set' : 'Missing', 
+    key: supabaseServiceKey ? `${supabaseServiceKey.substring(0, 10)}...` : 'Missing',
+    bucket: bucketName ? 'Set' : 'Missing'
+  });
   throw new Error('Missing Supabase configuration. Please check SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and SUPABASE_BUCKET environment variables.');
 }
 
+console.log('Initializing Supabase client with URL:', supabaseUrl);
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export class SupabaseStorageService {
