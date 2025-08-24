@@ -1,7 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-// Use conditional imports to prevent bundling issues
-import { serveStatic, log } from "./production-wrapper";
+import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 
@@ -54,20 +53,12 @@ app.use((req, res, next) => {
       res.status(status).json({ message });
     });
 
-    // Setup development or production serving
-    if (process.env.NODE_ENV === "development") {
+    // importantly only setup vite in development and after
+    // setting up all the other routes so the catch-all route
+    // doesn't interfere with the other routes
+    if (app.get("env") === "development") {
       console.log('Setting up Vite in development mode...');
-      // Add environment check in server startup to prevent Vite setup in production
-      try {
-        // Use completely safe Vite wrapper that prevents all bundling issues
-        const { setupVite } = await import("./production-wrapper");
-        await setupVite(app, server);
-        console.log('Vite setup completed successfully');
-      } catch (error: any) {
-        console.log('Vite setup failed, falling back to static serving:', error.message);
-        console.log('This is normal in production-like environments');
-        serveStatic(app);
-      }
+      await setupVite(app, server);
     } else {
       console.log('Serving static files in production mode...');
       serveStatic(app);
