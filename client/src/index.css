@@ -67,6 +67,18 @@ input[type="radio"]:focus-visible {
   border-radius: 50% !important;
 }
 
+/* Remove number input spinners that overlap with text */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox number input spinners */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
 @layer base {
   * {
     @apply border-border;
