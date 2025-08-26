@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calculator, Ruler, AlertTriangle } from 'lucide-react';
-import { MeasurementQuestion, getAllMeasurementValues } from './measurement-question';
+import { StableInput } from './stable-input';
+import { MeasurementCache } from '@/utils/measurement-cache';
 import { useLanguageContext } from '@/components/language-provider';
 
 interface Question {
@@ -29,7 +30,9 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
   const measurementQuestions = questions.filter(q => q.type === 'measurement');
   const calculatedQuestions = questions.filter(q => q.type === 'calculated');
 
-  // No initialization needed - using global cache
+  useEffect(() => {
+    MeasurementCache.restoreFromStorage();
+  }, []);
 
   const calculateValue = (question: Question): number | null => {
     if (!question.calculationFormula || !question.calculationInputs) {
@@ -37,7 +40,7 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
     }
 
     try {
-      const measurementValues = getAllMeasurementValues();
+      const measurementValues = (window as any).measurementValues || {};
       let formula = question.calculationFormula;
       
       const inputIds = Array.isArray(question.calculationInputs) 
@@ -47,8 +50,13 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
       for (const inputId of inputIds) {
         const value = measurementValues[inputId];
         
-        if (value !== undefined && value !== null && !isNaN(value)) {
-          formula = formula.replace(new RegExp(`\\b${inputId}\\b`, 'g'), value.toString());
+        if (value !== undefined && value !== null && value !== '') {
+          const numValue = typeof value === 'string' ? parseFloat(value) : value;
+          if (!isNaN(numValue)) {
+            formula = formula.replace(new RegExp(`\\b${inputId}\\b`, 'g'), numValue.toString());
+          } else {
+            return null;
+          }
         } else {
           return null;
         }
@@ -85,11 +93,64 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
                     {index + 1}
                   </div>
                   <div className="flex-1 min-w-0 pr-4">
-                    <MeasurementQuestion
-                      question={question}
-                      value={typeof values?.[question.id] === 'number' ? values[question.id] : undefined}
-                      onChange={(value) => onChange(question.id, value)}
+                    <p className="text-lg font-medium text-gray-800 leading-relaxed">
+                      {language === 'de' ? question.titleDe : question.title}
+                    </p>
+                    {question.unit && (
+                      <p className="text-base text-gray-500 mt-1">
+                        {question.unit}
+                        {question.minValue !== undefined && question.maxValue !== undefined && 
+                          ` (${question.minValue}-${question.maxValue})`
+                        }
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <StableInput
+                      questionId={question.id}
+                      type="number"
+                      placeholder="0"
+                      className="text-center font-mono border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 w-20"
+                      min={question.minValue}
+                      max={question.maxValue}
+                      onValueChange={(value) => {
+                        // Update measurement values immediately
+                        MeasurementCache.setValue(question.id, value);
+                        onChange(question.id, parseFloat(value) || 0);
+                        
+                        // Trigger measurement change event for calculated fields
+                        setTimeout(() => {
+                          window.dispatchEvent(new CustomEvent('measurement-change'));
+                        }, 100);
+                      }}
+                      onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          // Find next focusable element
+                          const focusableElements = document.querySelectorAll(
+                            'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                          );
+                          const currentIndex = Array.from(focusableElements).indexOf(e.currentTarget);
+                          const nextElement = focusableElements[currentIndex + 1] as HTMLElement;
+                          if (nextElement) {
+                            nextElement.focus();
+                            if (nextElement.tagName === 'INPUT') {
+                              (nextElement as HTMLInputElement).select();
+                            }
+                          }
+                        }
+                      }}
+                      initialValue={(() => {
+                        const cachedValue = (window as any).measurementValues?.[question.id] || 
+                                          (window as any).stableInputValues?.[question.id];
+                        const savedFormData = JSON.parse(localStorage.getItem('otis-protocol-form-data') || '{"answers":{}}');
+                        const savedValue = savedFormData.answers?.[question.id];
+                        return cachedValue || savedValue || '';
+                      })()}
                     />
+                    {question.unit && (
+                      <span className="text-sm text-gray-500 w-8">{question.unit}</span>
+                    )}
                   </div>
                 </div>
               ))}

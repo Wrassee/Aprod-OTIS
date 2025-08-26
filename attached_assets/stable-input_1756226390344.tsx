@@ -102,10 +102,14 @@ export function StableInput({ questionId, type = 'text', placeholder, initialVal
     // Trigger ONLY button-check event for validation - no UI re-render
     window.dispatchEvent(new CustomEvent('button-check'));
     
-    // Call onValueChange if provided
-    if (onValueChange) {
-      onValueChange(value);
-    }
+    // DISABLED: onValueChange callback causes UI flicker and re-renders
+    // Values are stored in cache and will be picked up during save/submit
+    // if (onValueChange) {
+    //   clearTimeout((window as any)[`stable-timeout-${questionId}`]);
+    //   (window as any)[`stable-timeout-${questionId}`] = setTimeout(() => {
+    //     onValueChange(value);
+    //   }, 500); // Debounced callback
+    // }
   };
 
   return (

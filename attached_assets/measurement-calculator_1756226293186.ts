@@ -1,4 +1,4 @@
-import { Question } from '@shared/schema';
+import { Question } from '../shared/schema.js';
 
 export interface MeasurementCalculationResult {
   questionId: string;
@@ -8,7 +8,7 @@ export interface MeasurementCalculationResult {
   error?: string;
 }
 
-export class MeasurementService {
+export class MeasurementCalculator {
   /**
    * Calculate values for all calculated questions based on measurement inputs
    */
