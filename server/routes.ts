@@ -346,7 +346,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const questions = await storage.getQuestionConfigsByTemplate(template.id);
       console.log(`✅ Found ${questions.length} questions for template: ${template.name}`);
       console.log(`📝 Questions:`, questions.map(q => ({ id: q.questionId, title: q.title })));
-      res.json(questions);
+      
+      // Transform questions based on language preference
+      const responseQuestions = questions.map(q => ({
+        ...q,
+        title: language === 'hu' ? (q.titleHu || q.title) : language === 'de' ? (q.titleDe || q.title) : q.title,
+        groupName: language === 'hu' ? q.groupName : (q.groupNameDe || q.groupName)
+      }));
+
+      res.json(responseQuestions);
     } catch (error) {
       console.error("❌ Error fetching questions:", error);
       res.status(500).json({ message: "Failed to fetch questions" });
@@ -486,20 +494,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           console.log(`Parsed ${questions.length} questions from ${type} template`);
           
-          // Save question configurations
+          // Save question configurations with all languages preserved
           for (const question of questions) {
             await storage.createQuestionConfig({
               templateId: newTemplate.id,
               questionId: question.questionId,
-              // Note: language is stored in the template, not individual questions
-              title: language === 'hu' ? (question.titleHu || question.title) : (question.titleDe || question.title),
+              title: question.title,
+              titleHu: question.titleHu || null,
+              titleDe: question.titleDe || null,
               type: question.type,
               required: question.required,
               placeholder: question.placeholder || null,
               cellReference: question.cellReference || null,
               sheetName: question.sheetName || null,
               multiCell: question.multiCell || false,
-              groupName: language === 'hu' ? question.groupName : (question.groupNameDe || question.groupName),
+              groupName: question.groupName || null,
+              groupNameDe: question.groupNameDe || null,
               groupOrder: question.groupOrder || 0,
               unit: question.unit || null,
               minValue: question.minValue || null,
