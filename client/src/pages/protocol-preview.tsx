@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, FileText, User, Calendar, CheckCircle, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, FileText, User, Calendar, CheckCircle, AlertTriangle, Mail, Download } from 'lucide-react';
 import { useLanguageContext } from '@/components/language-provider';
 
 interface Protocol {
@@ -35,6 +35,8 @@ export function ProtocolPreview({ onBack }: ProtocolPreviewProps) {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [emailStatus, setEmailStatus] = useState<string>('');
+  const [isEmailSending, setIsEmailSending] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -74,6 +76,65 @@ export function ProtocolPreview({ onBack }: ProtocolPreviewProps) {
 
     fetchData();
   }, []);
+
+  const handleEmailSend = async () => {
+    if (!protocol) return;
+    
+    setIsEmailSending(true);
+    setEmailStatus('Email küldése folyamatban...');
+    
+    try {
+      const response = await fetch('/api/protocols/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          formData: protocol,
+          language: 'hu',
+          recipient: 'netkodok@gmail.com'
+        })
+      });
+      
+      if (response.ok) {
+        setEmailStatus('✅ Email sikeresen elküldve a netkodok@gmail.com címre!');
+        setTimeout(() => setEmailStatus(''), 5000);
+      } else {
+        setEmailStatus('❌ Email küldése sikertelen!');
+        setTimeout(() => setEmailStatus(''), 5000);
+      }
+    } catch (error) {
+      console.error('Email error:', error);
+      setEmailStatus('❌ Email küldése sikertelen!');
+      setTimeout(() => setEmailStatus(''), 5000);
+    } finally {
+      setIsEmailSending(false);
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!protocol) return;
+    
+    try {
+      const response = await fetch('/api/protocols/download-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ language: 'hu' })
+      });
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `OTIS-Protocol-${protocol.receptionDate}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+    }
+  };
 
   if (loading) {
     return (
@@ -147,9 +208,41 @@ export function ProtocolPreview({ onBack }: ProtocolPreviewProps) {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center text-green-600">
-                <CheckCircle className="h-6 w-6 mr-2" />
-                <span className="font-medium">Elkészült</span>
+              <div className="flex flex-col items-end gap-2">
+                <div className="flex items-center text-green-600 mb-2">
+                  <CheckCircle className="h-6 w-6 mr-2" />
+                  <span className="font-medium">Elkészült</span>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={handleEmailSend}
+                    disabled={isEmailSending}
+                    className="bg-otis-blue hover:bg-otis-blue/90 text-white"
+                    size="sm"
+                  >
+                    <Mail className="h-4 w-4 mr-2" />
+                    {isEmailSending ? 'Küldés...' : 'Email'}
+                  </Button>
+                  
+                  <Button 
+                    onClick={handleDownloadPdf}
+                    variant="outline"
+                    className="border-otis-blue text-otis-blue hover:bg-otis-blue/10"
+                    size="sm"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    PDF
+                  </Button>
+                </div>
+                
+                {emailStatus && (
+                  <div className={`text-sm mt-2 px-3 py-1 rounded ${
+                    emailStatus.includes('✅') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                  }`}>
+                    {emailStatus}
+                  </div>
+                )}
               </div>
             </div>
           </div>
