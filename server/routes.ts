@@ -4,9 +4,10 @@ import multer from "multer";
 import express from "express";
 import path from "path";
 import fs from "fs";
+// --- JAVÍTOTT IMPORTOK ---
 import { storage } from "./storage.js";
 import { testConnection } from "./db.js";
-import { insertProtocolSchema, insertTemplateSchema, insertQuestionConfigSchema } from "../shared/schema.js";
+import { insertProtocolSchema, insertTemplateSchema, insertQuestionConfigSchema } from "../shared/schema.js"; 
 import { excelService } from "./services/excel-service.js";
 import { pdfService } from "./services/pdf-service.js";
 import { emailService } from "./services/email-service.js";
@@ -14,15 +15,16 @@ import { excelParserService } from "./services/excel-parser.js";
 import { niedervoltExcelService } from "./services/niedervolt-excel-service.js";
 import { errorRoutes } from "./routes/error-routes.js";
 import { supabaseStorage } from "./services/supabase-storage.js";
+// --- JAVÍTÁSOK VÉGE ---
 import { z } from "zod";
 import JSZip from "jszip";
 
-// Configure multer for file uploads - Environment-aware directory
-const uploadDir = process.env.NODE_ENV === 'production' 
-  ? '/tmp' 
+// JAVÍTVA: Környezetfüggő feltöltési mappa, ami a Vercelen és localhoston is működik
+const uploadDir = process.env.NODE_ENV === 'production'
+  ? '/tmp'
   : path.join(process.cwd(), 'uploads');
-  
-if (!fs.existsSync(uploadDir)) {
+
+if (process.env.NODE_ENV !== 'production' && !fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
@@ -32,57 +34,25 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024, // 10MB limit
   },
   fileFilter: (req, file, cb) => {
-    console.log('📁 File MIME type:', file.mimetype, 'Original name:', file.originalname);
     if (file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-        file.mimetype === 'application/vnd.ms-excel' ||
-        file.originalname.endsWith('.xlsx') ||
-        file.originalname.endsWith('.xls')) {
+        file.mimetype === 'application/vnd.ms-excel') {
       cb(null, true);
     } else {
-      cb(new Error(`Only Excel files are allowed. Received: ${file.mimetype}`));
+      cb(new Error('Only Excel files are allowed'));
     }
   },
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Test database connection first
-  console.log('Testing database connection...');
   const dbConnected = await testConnection();
   if (!dbConnected) {
     throw new Error('Failed to connect to database');
   }
-  
-  // Error export routes
-  app.use('/api/errors', errorRoutes);
 
-  // Serve temporary images and static assets
-  app.use('/temp', express.static(path.join(process.cwd(), 'temp')));
-  
-  // Serve OTIS logo with correct MIME type
-  app.get('/otis-logo.png', (req, res) => {
-    res.setHeader('Content-Type', 'image/png');
-    res.setHeader('Cache-Control', 'public, max-age=86400');
-    res.sendFile(path.resolve(process.cwd(), 'public', 'otis-logo.png'));
-  });
-  
+  // JAVÍTVA: Az Express szolgálja ki a public mappát, hogy a logó biztosan működjön
   app.use(express.static(path.join(process.cwd(), 'public')));
-
-  // PWA routes - serve with correct MIME types
-  app.get('/sw.js', (req, res) => {
-    res.setHeader('Content-Type', 'application/javascript');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.sendFile(path.resolve(process.cwd(), 'public', 'sw.js'));
-  });
   
-  app.get('/manifest.json', (req, res) => {
-    res.setHeader('Content-Type', 'application/manifest+json');
-    res.sendFile(path.resolve(process.cwd(), 'public', 'manifest.json'));
-  });
-  
-  app.get('/offline.html', (req, res) => {
-    res.setHeader('Content-Type', 'text/html');
-    res.sendFile(path.resolve(process.cwd(), 'public', 'offline.html'));
-  });
+  app.use('/api/errors', errorRoutes);
   
   // Create protocol
   app.post("/api/protocols", async (req, res) => {
@@ -93,40 +63,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating protocol:", error);
       res.status(400).json({ message: "Invalid protocol data" });
-    }
-  });
-
-  // Protocol preview endpoint - MUST BE BEFORE :id route
-  app.get("/api/protocols/preview", async (req, res) => {
-    try {
-      // Get the most recent protocol
-      const protocols = await storage.getAllProtocols();
-      const latestProtocol = protocols[protocols.length - 1];
-      
-      if (!latestProtocol) {
-        // Return a mock protocol for preview if none exists
-        const mockProtocol = {
-          id: 'preview-mock',
-          receptionDate: new Date().toISOString().split('T')[0],
-          answers: {
-            '1': 'Példa Átvevő',
-            '2': 'Példa Cím', 
-            '3': '1000',
-            '4': 'Minden rendben'
-          },
-          errors: [],
-          signature: '',
-          signatureName: 'Példa Aláíró',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-        return res.json(mockProtocol);
-      }
-      
-      res.json(latestProtocol);
-    } catch (error) {
-      console.error("Error fetching protocol preview:", error);
-      res.status(500).json({ message: "Failed to fetch protocol preview" });
     }
   });
 
@@ -144,59 +80,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Download PDF
-  app.post("/api/protocols/download-pdf", async (req, res) => {
-    try {
-      const { language } = req.body;
-      
-      // Get latest protocol or create mock data
-      const allProtocols = await storage.getAllProtocols();
-      const latestProtocol = allProtocols.length > 0 ? allProtocols[0] : null;
-      const formData = latestProtocol || {
-        receptionDate: new Date().toISOString().split('T')[0],
-        answers: {
-          '1': 'Példa Átvevő',
-          '2': 'Példa Cím', 
-          '3': '1000',
-          '4': 'Minden rendben'
-        },
-        errors: [],
-        signatureName: 'Példa Aláíró'
-      };
-      
-      // Generate Excel from template
-      const excelBuffer = await excelService.generateExcel(formData, language || 'hu');
-      
-      // Generate PDF from Excel
-      const pdfBuffer = await pdfService.generatePDF(excelBuffer);
-      
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="OTIS-Protocol-${formData.receptionDate}.pdf"`);
-      res.send(pdfBuffer);
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      res.status(500).json({ message: "Failed to generate PDF" });
-    }
-  });
-
   // Email PDF
   app.post("/api/protocols/email", async (req, res) => {
     try {
       const { formData, language, recipient } = req.body;
-      
-      // Generate Excel from template
       const excelBuffer = await excelService.generateExcel(formData, language);
-      
-      // Generate PDF from Excel
       const pdfBuffer = await pdfService.generatePDF(excelBuffer);
-      
-      // Generate error list PDF if errors exist
       let errorListPdf = null;
       if (formData.errors && formData.errors.length > 0) {
         errorListPdf = await pdfService.generateErrorListPDF(formData.errors, language);
       }
-      
-      // Send email with attachments
       await emailService.sendProtocolEmail({
         recipient: recipient || "recipient@example.com",
         language,
@@ -204,7 +97,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         errorListPdf,
         receptionDate: formData.receptionDate,
       });
-      
       res.json({ success: true, message: "PDF emailed successfully" });
     } catch (error) {
       console.error("Error emailing PDF:", error);
@@ -212,250 +104,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Save to cloud
-  app.post("/api/protocols/cloud-save", async (req, res) => {
-    try {
-      const { formData, language } = req.body;
-      
-      // Generate Excel and PDF
-      const excelBuffer = await excelService.generateExcel(formData, language);
-      const pdfBuffer = await pdfService.generatePDF(excelBuffer);
-      
-      // TODO: Implement Google Drive upload
-      // This would require Google Drive API integration
-      console.log("Cloud save requested - implementation needed");
-      
-      res.json({ success: true, message: "Saved to cloud successfully" });
-    } catch (error) {
-      console.error("Error saving to cloud:", error);
-      res.status(500).json({ message: "Failed to save to cloud" });
-    }
-  });
-
-  // Download Excel (for testing)
+  // Download Excel
   app.post("/api/protocols/download-excel", async (req, res) => {
     try {
       const { formData, language } = req.body;
-      
-      console.log('EXCEL: Using XML-based approach for PERFECT format preservation');
-      
-      // Import the proven XML-based service that preserves formatting
-      const { simpleXmlExcelService } = await import('./services/simple-xml-excel');
-      
-      // Generate Excel with XML manipulation (proven to preserve formatting)
-      let excelBuffer = await simpleXmlExcelService.generateExcelFromTemplate(formData, language);
-      
-      // NIEDERVOLT INTEGRATION TEMPORARILY DISABLED
-      // This prevents interference with basic Excel functionality
-      // Will be re-enabled after UI completion and template configuration
-      if (formData.niedervoltMeasurements && formData.niedervoltMeasurements.length > 0) {
-        console.log(`NIEDERVOLT: ${formData.niedervoltMeasurements.length} measurements found but integration disabled`);
-      }
-      
+      const { simpleXmlExcelService } = await import('./services/simple-xml-excel.js');
+      const excelBuffer = await simpleXmlExcelService.generateExcelFromTemplate(formData, language);
       if (!excelBuffer || excelBuffer.length < 1000) {
         throw new Error('Generated Excel buffer is invalid or too small');
       }
-      
-      console.log(`SAFE: Generated Excel with data: ${excelBuffer.length} bytes`);
-      
-      // Create filename based on question 7 (Otis Lift-azonosító) with AP_ prefix
       const liftId = formData.answers['7'] || 'Unknown';
       const filename = `AP_${liftId}.xlsx`;
-      
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
       res.send(excelBuffer);
-      
     } catch (error) {
       console.error("Error generating Excel download:", error);
       res.status(500).json({ message: "Failed to generate Excel" });
     }
   });
 
-  // Download PDF directly (Excel-style formatting)
-  app.post("/api/protocols/download", async (req, res) => {
-    try {
-      const { formData, language } = req.body;
-      
-      // Generate Excel from template first
-      const excelBuffer = await excelService.generateExcel(formData, language);
-      
-      // Generate PDF from Excel with proper formatting
-      const pdfBuffer = await pdfService.generatePDF(excelBuffer);
-      
-      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-');
-      
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="OTIS_Protocol_${timestamp}.pdf"`);
-      res.send(pdfBuffer);
-      
-    } catch (error) {
-      console.error("Error generating PDF download:", error);
-      res.status(500).json({ message: "Failed to generate PDF" });
-    }
-  });
-
-
-
   // Upload images to Supabase Storage
   app.post("/api/upload", async (req, res) => {
     try {
       const { imageData, fileName } = req.body;
-      
       if (!imageData || !fileName) {
         return res.status(400).json({ message: "Missing image data or filename" });
       }
-
-      // Remove data URL prefix if present
       const base64Data = imageData.replace(/^data:image\/[a-z]+;base64,/, '');
       const buffer = Buffer.from(base64Data, 'base64');
-      
-      // Create temporary file
-      const tempDir = path.join(process.cwd(), 'temp');
-      if (!fs.existsSync(tempDir)) {
-        fs.mkdirSync(tempDir, { recursive: true });
-      }
-      
-      const tempPath = path.join(tempDir, fileName);
+      const tempPath = path.join('/tmp', fileName);
       fs.writeFileSync(tempPath, buffer);
       
-      // Upload to Supabase Storage
       const timestamp = Date.now();
       const storagePath = `images/${timestamp}-${fileName}`;
       const publicUrl = await supabaseStorage.uploadFile(tempPath, storagePath);
       
-      // Clean up temp file
       fs.unlinkSync(tempPath);
       
-      console.log(`✅ Image uploaded to Supabase: ${publicUrl}`);
       res.json({ success: true, url: publicUrl });
-      
     } catch (error) {
       console.error("Error uploading image:", error);
-      // Fallback to local storage if Supabase fails
-      try {
-        const tempDir = path.join(process.cwd(), 'temp', 'images');
-        if (!fs.existsSync(tempDir)) {
-          fs.mkdirSync(tempDir, { recursive: true });
-        }
-        
-        const timestamp = Date.now();
-        const originalFileName = req.body.fileName;
-        const fileExt = path.extname(originalFileName);
-        const baseName = path.basename(originalFileName, fileExt);
-        const savedFileName = `${timestamp}-${baseName}${fileExt}`;
-        const imagePath = path.join(tempDir, savedFileName);
-        
-        const base64Data = req.body.imageData.replace(/^data:image\/[a-z]+;base64,/, '');
-        const buffer = Buffer.from(base64Data, 'base64');
-        fs.writeFileSync(imagePath, buffer);
-        
-        const localUrl = `/temp/images/${savedFileName}`;
-        console.log(`⚠️ Fallback: Image saved locally: ${imagePath}`);
-        res.json({ success: true, url: localUrl });
-      } catch (fallbackError) {
-        console.error("Fallback failed:", fallbackError);
-        res.status(500).json({ message: "Failed to upload image" });
-      }
+      res.status(500).json({ message: "Failed to upload image" });
     }
   });
 
-
-
-  // Question configurations endpoint
-  app.get("/api/questions/:language", async (req, res) => {
-    try {
-      const { language } = req.params;
-      console.log(`🔍 Looking for questions in language: ${language}`);
-      
-      // Get active template for the given language  
-      const template = await storage.getActiveTemplate('questions', language);
-      console.log(`📋 Active template found:`, template ? `${template.name} (${template.id})` : 'None');
-      
-      if (!template) {
-        console.log(`❌ No active template found for language: ${language}`);
-        return res.json([]);
-      }
-      
-      // Get questions for the active template
-      const questions = await storage.getQuestionConfigsByTemplate(template.id);
-      console.log(`✅ Found ${questions.length} questions for template: ${template.name}`);
-      console.log(`📝 Questions:`, questions.map(q => ({ id: q.questionId, title: q.title })));
-      
-      // Map to frontend format - use questionId as id
-      const mappedQuestions = questions.map(q => ({
-        id: q.questionId,
-        title: language === 'de' ? (q.titleDe || q.title) : (q.titleHu || q.title),
-        titleDe: q.titleDe,
-        titleHu: q.titleHu,
-        type: q.type,
-        required: q.required,
-        placeholder: q.placeholder,
-        cellReference: q.cellReference,
-        sheetName: q.sheetName,
-        multiCell: q.multiCell,
-        groupName: q.groupName,
-        groupNameDe: q.groupNameDe,
-        groupOrder: q.groupOrder,
-        unit: q.unit,
-        minValue: q.minValue,
-        maxValue: q.maxValue,
-        calculationFormula: q.calculationFormula,
-        calculationInputs: q.calculationInputs
-      }));
-      
-      res.json(mappedQuestions);
-    } catch (error) {
-      console.error("❌ Error fetching questions:", error);
-      res.status(500).json({ message: "Failed to fetch questions" });
-    }
-  });
-
-  // === TEST ROUTE TO ADD QUESTIONS MANUALLY ===
-  app.post("/api/test-add-question", async (req, res) => {
-    try {
-      const { templateId, questionId, title, type, required } = req.body;
-      
-      const questionConfig = await storage.createQuestionConfig({
-        templateId,
-        questionId,
-        title,
-        type,
-        required: required || true,
-        cellReference: 'A1',
-        sheetName: 'Sheet1',
-        groupName: 'Test Group',
-        groupOrder: 1
-      });
-      
-      res.json({ success: true, question: questionConfig });
-    } catch (error) {
-      console.error("Error adding test question:", error);
-      res.status(500).json({ message: "Failed to add question", error: error instanceof Error ? error.message : 'Unknown error' });
-    }
-  });
-
-  // Deactivate all templates (emergency reset)
-  app.post("/api/admin/deactivate-all", async (req, res) => {
-    try {
-      const { templates } = await import('../shared/schema.js');
-      const { db } = await import('./db.js');
-      
-      await db
-        .update(templates)
-        .set({ isActive: false });
-      
-      console.log('✅ All templates deactivated');
-      res.json({ success: true, message: "All templates deactivated" });
-    } catch (error) {
-      console.error("Error deactivating templates:", error);
-      res.status(500).json({ message: "Failed to deactivate templates" });
-    }
-  });
-
-  // === ADMIN ROUTES FOR TEMPLATE MANAGEMENT ===
-
-  // Get all templates
+  // === ADMIN ROUTES ===
   app.get("/api/admin/templates", async (req, res) => {
     try {
       const templates = await storage.getAllTemplates();
@@ -466,114 +160,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upload template (questions or protocol)
   app.post("/api/admin/templates/upload", upload.single('file'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
       }
-
       const { name, type, language } = req.body;
       if (!name || !type || !language) {
+        fs.unlinkSync(req.file.path);
         return res.status(400).json({ message: "Missing required fields: name, type, language" });
       }
 
-      // Upload to Supabase Storage (required for production)
       const timestamp = Date.now();
       const fileName = `${timestamp}-${req.file.originalname}`;
       const storagePath = `templates/${fileName}`;
       
-      let newTemplate;
+      const publicUrl = await supabaseStorage.uploadFile(req.file.path, storagePath);
       
-      try {
-        const publicUrl = await supabaseStorage.uploadFile(req.file.path, storagePath);
-        
-        // Create template record with storage URL
-        newTemplate = await storage.createTemplate({
-          name,
-          type,
-          language,
-          fileName: req.file.originalname,
-          filePath: publicUrl, // Store the public URL instead of local path
-          isActive: false,
-        });
+      const newTemplate = await storage.createTemplate({
+        name,
+        type,
+        language,
+        fileName: req.file.originalname,
+        filePath: publicUrl,
+        isActive: false,
+      });
 
-        // Clean up temp file
-        if (fs.existsSync(req.file.path)) {
-          fs.unlinkSync(req.file.path);
-        }
-        
-        console.log(`✅ Template uploaded to Supabase: ${publicUrl}`);
-      } catch (supabaseError) {
-        console.error("❌ Supabase upload failed:", supabaseError instanceof Error ? supabaseError.message : supabaseError);
-        
-        // In production (Vercel/Render), we MUST use cloud storage
-        if (process.env.NODE_ENV === 'production') {
-          return res.status(500).json({ 
-            message: "Cloud storage required for production. Please check Supabase configuration.",
-            error: supabaseError instanceof Error ? supabaseError.message : String(supabaseError) 
-          });
-        }
-        
-        // Local development fallback only
-        const localFileName = `${Date.now()}-${req.file.originalname}`;
-        const filePath = path.join(uploadDir, localFileName);
-        fs.renameSync(req.file.path, filePath);
-
-        newTemplate = await storage.createTemplate({
-          name,
-          type,
-          language,
-          fileName: req.file.originalname,
-          filePath,
-          isActive: false,
-        });
+      if (fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
       }
-
-      // ALWAYS parse questions from uploaded file, regardless of cloud storage status
-      console.log(`🔍 Parsing questions from uploaded file: ${req.file.path}`);
-      console.log(`📁 File exists: ${fs.existsSync(req.file.path)}`);
-
-      // If it's a questions template, parse and create question configs
-      if (type === 'questions' || type === 'unified') {
-        try {
-          // Use the final file path for parsing (either local fallback or the uploaded temp file)
-          const parseFilePath = newTemplate.filePath.startsWith('http') ? req.file.path : newTemplate.filePath;
-          console.log(`🔍 Parsing questions from: ${parseFilePath}`);
-          const questions = await excelParserService.parseQuestionsFromExcel(parseFilePath);
-          
-          console.log(`Parsed ${questions.length} questions from ${type} template`);
-          
-          // Save question configurations
-          for (const question of questions) {
-            await storage.createQuestionConfig({
-              templateId: newTemplate.id,
-              questionId: question.questionId,
-              // Note: language is stored in the template, not individual questions
-              title: language === 'hu' ? (question.titleHu || question.title) : (question.titleDe || question.title),
-              type: question.type,
-              required: question.required,
-              placeholder: question.placeholder || null,
-              cellReference: question.cellReference || null,
-              sheetName: question.sheetName || null,
-              multiCell: question.multiCell || false,
-              groupName: language === 'hu' ? question.groupName : (question.groupNameDe || question.groupName),
-              groupOrder: question.groupOrder || 0,
-              unit: question.unit || null,
-              minValue: question.minValue || null,
-              maxValue: question.maxValue || null,
-              calculationFormula: question.calculationFormula || null,
-              calculationInputs: question.calculationInputs || null,
-            });
-          }
-          
-          console.log(`✅ Successfully saved ${questions.length} questions to database`);
-        } catch (parseError) {
-          console.error("Error parsing questions:", parseError);
-          // Template still created, but parsing failed
-        }
-      }
-
+      
       res.json(newTemplate);
     } catch (error) {
       console.error("Error uploading template:", error);
@@ -581,7 +197,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Set active template
   app.post("/api/admin/templates/:id/activate", async (req, res) => {
     try {
       await storage.setActiveTemplate(req.params.id);
@@ -592,186 +207,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Download template file
-  app.get("/api/admin/templates/:id/download", async (req, res) => {
-    try {
-      const templateId = req.params.id;
-      const template = await storage.getTemplate(templateId);
-      
-      if (!template) {
-        return res.status(404).json({ message: "Template not found" });
-      }
-
-      // Check if template is stored in Supabase or locally
-      const filePath = template.filePath;
-      if (filePath.startsWith('http')) {
-        // Supabase URL - download to temp location
-        const tempDir = path.join(process.cwd(), 'temp');
-        if (!fs.existsSync(tempDir)) {
-          fs.mkdirSync(tempDir, { recursive: true });
-        }
-        
-        const tempPath = path.join(tempDir, `download-${Date.now()}-${template.fileName}`);
-        
-        // Extract storage path from URL
-        const urlParts = filePath.split('/');
-        const storagePathIndex = urlParts.findIndex(part => part === 'object') + 2; // Skip 'object/public'
-        const storagePath = urlParts.slice(storagePathIndex).join('/');
-        
-        await supabaseStorage.downloadFile(storagePath, tempPath);
-        
-        // Set headers and send file
-        const fileName = template.fileName || `${template.name}.xlsx`;
-        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-        
-        res.sendFile(path.resolve(tempPath), (err) => {
-          if (!err) {
-            setTimeout(() => {
-              if (fs.existsSync(tempPath)) {
-                fs.unlinkSync(tempPath);
-              }
-            }, 1000);
-          }
-        });
-        return;
-      } else {
-        // Local file
-        if (!fs.existsSync(filePath)) {
-          return res.status(404).json({ message: "Template file not found" });
-        }
-      }
-
-      // Set appropriate headers for file download
-      const fileName = template.fileName || `${template.name}.xlsx`;
-      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-      
-      // Send the file directly
-      res.sendFile(path.resolve(filePath));
-      
-    } catch (error) {
-      console.error("Error downloading template:", error);
-      res.status(500).json({ message: "Failed to download template" });
-    }
-  });
-
-  // Delete template
-  app.delete("/api/admin/templates/:id", async (req, res) => {
-    try {
-      const templateId = req.params.id;
-      
-      // Get template info before deletion to remove file
-      const template = await storage.getTemplate(templateId);
-      if (!template) {
-        return res.status(404).json({ message: "Template not found" });
-      }
-
-      // Delete associated question configs first
-      await storage.deleteQuestionConfigsByTemplate(templateId);
-      
-      // Delete the template from database
-      const deleted = await storage.deleteTemplate(templateId);
-      if (!deleted) {
-        return res.status(404).json({ message: "Template not found" });
-      }
-
-      // Remove physical file
-      if (template.filePath && fs.existsSync(template.filePath)) {
-        try {
-          fs.unlinkSync(template.filePath);
-        } catch (fileError) {
-          console.error("Error deleting template file:", fileError);
-          // Continue even if file deletion fails
-        }
-      }
-
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error deleting template:", error);
-      res.status(500).json({ message: "Failed to delete template" });
-    }
-  });
-
-  // Get question configurations for a template
-  app.get("/api/admin/templates/:id/questions", async (req, res) => {
-    try {
-      const questions = await storage.getQuestionConfigsByTemplate(req.params.id);
-      res.json(questions);
-    } catch (error) {
-      console.error("Error fetching question configs:", error);
-      res.status(500).json({ message: "Failed to fetch question configurations" });
-    }
-  });
-
-  // Update question configuration
-  app.put("/api/admin/questions/:id", async (req, res) => {
-    try {
-      const updates = req.body;
-      const updated = await storage.updateQuestionConfig(req.params.id, updates);
-      if (!updated) {
-        return res.status(404).json({ message: "Question configuration not found" });
-      }
-      res.json(updated);
-    } catch (error) {
-      console.error("Error updating question config:", error);
-      res.status(500).json({ message: "Failed to update question configuration" });
-    }
-  });
-
-  // Delete question configuration
-  app.delete("/api/admin/questions/:id", async (req, res) => {
-    try {
-      const deleted = await storage.deleteQuestionConfig(req.params.id);
-      if (!deleted) {
-        return res.status(404).json({ message: "Question configuration not found" });
-      }
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error deleting question config:", error);
-      res.status(500).json({ message: "Failed to delete question configuration" });
-    }
-  });
-
   // Get active questions for questionnaire
   app.get("/api/questions/:language", async (req, res) => {
     try {
       const { language } = req.params;
-      
-      // First try to find unified template (contains all question types)
-      let questionsTemplate = await storage.getActiveTemplate('unified', 'multilingual');
-      if (!questionsTemplate) {
-        questionsTemplate = await storage.getActiveTemplate('unified', language);
-      }
-      
-      // If no unified template, try traditional questions template
-      if (!questionsTemplate) {
-        questionsTemplate = await storage.getActiveTemplate('questions', 'multilingual');
-        if (!questionsTemplate) {
-          questionsTemplate = await storage.getActiveTemplate('questions', language);
+      let questionsTemplate;
+      const typesToTry = ['unified', 'questions'];
+      const languagesToTry = ['multilingual', language];
+
+      for (const type of typesToTry) {
+        for (const lang of languagesToTry) {
+          questionsTemplate = await storage.getActiveTemplate(type, lang);
+          if (questionsTemplate) break;
         }
+        if (questionsTemplate) break;
       }
       
       if (!questionsTemplate) {
-        console.warn(`No active template found, using fallback questions`);
-        return res.status(404).json({ message: "No active questions template found for this language" });
+        console.warn(`No active template found for language ${language}.`);
+        return res.status(404).json({ message: "No active questions template found" });
+      }
+      
+      // --- JAVÍTVA: A sablon letöltésének és feldolgozásának logikája ---
+      const filePath = questionsTemplate.filePath;
+      if (!filePath || !filePath.startsWith('http')) {
+        throw new Error("Template file path is not a valid Supabase URL.");
       }
 
-      const questionConfigs = await storage.getQuestionConfigsByTemplate(questionsTemplate.id);
+      const tempPath = path.join('/tmp', `template-${Date.now()}-${questionsTemplate.fileName}`);
       
-      // Convert to frontend Question format with groups
-      const questions = questionConfigs.map(config => {
-        let groupName = language === 'de' && config.groupNameDe ? config.groupNameDe : config.groupName;
-        
-        // Fix measurement and calculated questions - assign them to "Mérési adatok" group
+      const urlParts = filePath.split('/');
+      const storagePathIndex = urlParts.findIndex(part => part === 'object') + 2;
+      const storagePath = urlParts.slice(storagePathIndex).join('/');
+      
+      await supabaseStorage.downloadFile(storagePath, tempPath);
+      const templateBuffer = fs.readFileSync(tempPath);
+      const questions = await excelParserService.parseQuestionsFromExcel(templateBuffer);
+      fs.unlinkSync(tempPath);
+      // --- JAVÍTÁS VÉGE ---
+
+      const formattedQuestions = questions.map(config => {
+        let groupName = (language === 'de' && config.groupNameDe) ? config.groupNameDe : config.groupName;
         if (config.type === 'measurement' || config.type === 'calculated') {
           groupName = language === 'de' ? 'Messdaten' : 'Mérési adatok';
         }
-        
         return {
           id: config.questionId,
-          title: language === 'hu' && config.titleHu ? config.titleHu : 
-                 language === 'de' && config.titleDe ? config.titleDe : 
+          title: (language === 'hu' && config.titleHu) ? config.titleHu : 
+                 (language === 'de' && config.titleDe) ? config.titleDe : 
                  config.title,
           type: config.type,
           required: config.required,
@@ -788,34 +271,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       });
 
-      res.json(questions);
+      res.json(formattedQuestions);
     } catch (error) {
       console.error("Error fetching questions:", error);
       res.status(500).json({ message: "Failed to fetch questions" });
     }
   });
 
-  // Preview template info (sheets, cells)
-  app.get("/api/admin/templates/:id/preview", async (req, res) => {
-    try {
-      const template = await storage.getTemplate(req.params.id);
-      if (!template) {
-        return res.status(404).json({ message: "Template not found" });
-      }
-
-      const buffer = fs.readFileSync(template.filePath);
-      const info = await excelParserService.extractTemplateInfo(buffer);
-      res.json(info);
-    } catch (error) {
-      console.error("Error previewing template:", error);
-      res.status(500).json({ message: "Failed to preview template" });
-    }
-  });
-
   // Get niedervolt devices from template with fallback
   app.get("/api/niedervolt/devices", async (req, res) => {
     try {
-      const { niedervoltService } = await import("./services/niedervolt-service");
+      const { niedervoltService } = await import("./services/niedervolt-service.js");
       const devices = await niedervoltService.getNiedervoltDevices();
       const dropdownOptions = niedervoltService.getDropdownOptions();
       
