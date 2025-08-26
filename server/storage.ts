@@ -85,6 +85,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getActiveTemplate(type: string, language: string): Promise<Template | undefined> {
+    console.log(`🔍 Looking for active template: type=${type}, language=${language}`);
+    
     const [template] = await db
       .select()
       .from(templates)
@@ -95,6 +97,8 @@ export class DatabaseStorage implements IStorage {
           eq(templates.isActive, true)
         )
       );
+    
+    console.log(`📋 Found template:`, template ? `${template.name} (active: ${template.isActive})` : 'None');
     return template || undefined;
   }
 

@@ -318,6 +318,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
+  // Question configurations endpoint
+  app.get("/api/questions/:language", async (req, res) => {
+    try {
+      const { language } = req.params;
+      console.log(`🔍 Looking for questions in language: ${language}`);
+      
+      // Get active template for the given language  
+      const template = await storage.getActiveTemplate('questions', language);
+      console.log(`📋 Active template found:`, template ? `${template.name} (${template.id})` : 'None');
+      
+      if (!template) {
+        console.log(`❌ No active template found for language: ${language}`);
+        return res.json([]);
+      }
+      
+      // Get questions for the active template
+      const questions = await storage.getQuestionConfigsByTemplate(template.id);
+      console.log(`✅ Found ${questions.length} questions for template: ${template.name}`);
+      console.log(`📝 Questions:`, questions.map(q => ({ id: q.questionId, title: q.title })));
+      res.json(questions);
+    } catch (error) {
+      console.error("❌ Error fetching questions:", error);
+      res.status(500).json({ message: "Failed to fetch questions" });
+    }
+  });
+
   // === TEST ROUTE TO ADD QUESTIONS MANUALLY ===
   app.post("/api/test-add-question", async (req, res) => {
     try {
