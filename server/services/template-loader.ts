@@ -32,7 +32,22 @@ export class TemplateLoaderService {
       return await this.downloadTemplateFromStorage(publicUrl, template.fileName);
     } else {
       // Backward compatibility - read from local file
-      return fs.readFileSync(publicUrl);
+      // Check if file exists, if not try to use template from uploads directory
+      if (fs.existsSync(publicUrl)) {
+        return fs.readFileSync(publicUrl);
+      } else {
+        // Try to find a similar template in uploads directory
+        const uploadsDir = path.join(process.cwd(), 'uploads');
+        if (fs.existsSync(uploadsDir)) {
+          const files = fs.readdirSync(uploadsDir);
+          const protocolFile = files.find(f => f.includes('Abnahmeprotokoll') || f.includes('protocol'));
+          if (protocolFile) {
+            console.log(`Using fallback template: ${protocolFile}`);
+            return fs.readFileSync(path.join(uploadsDir, protocolFile));
+          }
+        }
+        throw new Error(`Template file not found: ${publicUrl}`);
+      }
     }
   }
 
