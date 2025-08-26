@@ -27,14 +27,22 @@ class ExcelParserService {
     try {
       console.log(`🔍 Parsing questions from: ${filePath}`);
       
-      // Read Excel file with dynamic import
-      const XLSX = await import('xlsx');
-      const workbook = XLSX.default.readFile(filePath);
+      // Check if file exists
+      const fs = await import('fs');
+      if (!fs.existsSync(filePath)) {
+        throw new Error(`File not found: ${filePath}`);
+      }
+      
+      // Read Excel file - use require for better compatibility
+      const XLSX = require('xlsx');
+      console.log(`📚 Using XLSX version: ${XLSX.version}`);
+      const workbook = XLSX.readFile(filePath);
       const sheetName = workbook.SheetNames[0]; // Use first sheet
       const worksheet = workbook.Sheets[sheetName];
       
       // Convert sheet to array of arrays  
-      const data = XLSX.default.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+      const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[];
+      console.log(`📊 Found ${data.length} rows in Excel file`);
       
       const questions: ParsedQuestion[] = [];
       
@@ -58,7 +66,7 @@ class ExcelParserService {
       
       const idIndex = getColumnIndex(['id', 'question_id', 'questionid']);
       const titleIndex = getColumnIndex(['title', 'title_en', 'question']);
-      const titleHuIndex = getColumnIndex(['title_hu', 'hungarian', 'magyar']);
+      const titleHuIndex = getColumnIndex(['title_hun', 'title_hu', 'hungarian', 'magyar']);
       const titleDeIndex = getColumnIndex(['title_de', 'german', 'deutsch']);
       const typeIndex = getColumnIndex(['type', 'input_type', 'field_type']);
       
@@ -67,21 +75,20 @@ class ExcelParserService {
         Title Index: ${titleIndex} (${headerRow[titleIndex]})
         Type Index: ${typeIndex} (${headerRow[typeIndex]})
         Header Row: ${JSON.stringify(headerRow)}`);
-      const requiredIndex = getColumnIndex(['required', 'mandatory', 'kötelező']);
-      const placeholderIndex = getColumnIndex(['placeholder', 'hint', 'example']);
+      const requiredIndex = getColumnIndex(['required', 'mandatory', 'kötelező', 'kell']);
+      const placeholderIndex = getColumnIndex(['placeholder', 'hint', 'example', 'cél', 'leírás']);
       // Cell reference column - search for multiple possible names
-      const cellRefIndex = getColumnIndex(['cell_reference', 'cellreference', 'cél', 'cell', 'reference']);
+      const cellRefIndex = getColumnIndex(['cell_reference', 'cellreference', 'cél/placeholder', 'cell', 'reference']);
       // MultiCell column 
       const multiCellIndex = getColumnIndex(['multicell', 'multi_cell', 'multi']);
-      // Group and Order columns
-      const groupIndex = getColumnIndex(['group', 'csoport', 'blokk', 'kategória']);
-      const groupDeIndex = getColumnIndex(['group_de', 'gruppe_de', 'german_group', 'deutsch_gruppe']);
-      const orderIndex = getColumnIndex(['order', 'sorrend', 'rang']);
-      
-      // Measurement and calculation columns
-      const unitIndex = getColumnIndex(['unit', 'egység', 'einheit', 'mértékegység']);
-      const minValueIndex = getColumnIndex(['min_value', 'minvalue', 'minimum', 'min']);
-      const maxValueIndex = getColumnIndex(['max_value', 'maxvalue', 'maximum', 'max']);
+      // Group/block names
+      const groupNameIndex = getColumnIndex(['group', 'blokk', 'blokk neve hu', 'group_name']);
+      const groupNameDeIndex = getColumnIndex(['group_de', 'blokk neve de', 'group_name_de']);
+      const groupOrderIndex = getColumnIndex(['order', 'sort', 'sorrend']);
+      const unitIndex = getColumnIndex(['unit', 'egység']);
+      const minValueIndex = getColumnIndex(['min', 'min_value', 'minimum']);
+      const maxValueIndex = getColumnIndex(['max', 'max_value', 'maximum']);
+      const sheetNameIndex = getColumnIndex(['sheet', 'munkalap', 'munkalap neve']);
       const calculationFormulaIndex = getColumnIndex(['calculation_formula', 'formula', 'képlet', 'formel']);
       const calculationInputsIndex = getColumnIndex(['calculation_inputs', 'inputs', 'bemenet', 'eingabe', 'bemenetek', 'eingaben']);
       
@@ -108,9 +115,9 @@ class ExcelParserService {
           cellReference: cellRefIndex !== -1 ? row[cellRefIndex]?.toString() : undefined,
           sheetName: sheetName,
           multiCell: multiCellIndex !== -1 ? this.parseBoolean(row[multiCellIndex]) : false,
-          groupName: groupIndex !== -1 ? row[groupIndex]?.toString() : undefined,
-          groupNameDe: groupDeIndex !== -1 ? row[groupDeIndex]?.toString() : undefined,
-          groupOrder: orderIndex !== -1 ? parseInt(row[orderIndex]?.toString()) || 0 : 0,
+          groupName: groupNameIndex !== -1 ? row[groupNameIndex]?.toString() : undefined,
+          groupNameDe: groupNameDeIndex !== -1 ? row[groupNameDeIndex]?.toString() : undefined,
+          groupOrder: groupOrderIndex !== -1 ? parseInt(row[groupOrderIndex]?.toString()) || 0 : 0,
           unit: unitIndex !== -1 ? row[unitIndex]?.toString() : undefined,
           minValue: minValueIndex !== -1 ? parseFloat(row[minValueIndex]?.toString()) : undefined,
           maxValue: maxValueIndex !== -1 ? parseFloat(row[maxValueIndex]?.toString()) : undefined,
