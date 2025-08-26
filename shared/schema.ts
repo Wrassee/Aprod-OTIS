@@ -15,14 +15,6 @@ export const protocols = sqliteTable("protocols", {
   createdAt: integer("created_at").notNull().$defaultFn(() => Date.now()),
 });
 
-export const insertProtocolSchema = createInsertSchema(protocols).omit({
-  id: true,
-  createdAt: true,
-});
-
-export type InsertProtocol = z.infer<typeof insertProtocolSchema>;
-export type Protocol = typeof protocols.$inferSelect;
-
 // Question types
 export const QuestionType = z.enum(["yes_no_na", "number", "text", "true_false", "measurement", "calculated"]);
 export type QuestionType = z.infer<typeof QuestionType>;
@@ -46,6 +38,17 @@ export const ProtocolError = z.object({
   images: z.array(z.string()).default([]),
 });
 export type ProtocolError = z.infer<typeof ProtocolError>;
+
+export const insertProtocolSchema = createInsertSchema(protocols, {
+  answers: z.record(z.union([z.string(), z.number()])).transform(val => JSON.stringify(val)),
+  errors: z.array(ProtocolError).transform(val => JSON.stringify(val)),
+}).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertProtocol = z.infer<typeof insertProtocolSchema>;
+export type Protocol = typeof protocols.$inferSelect;
 
 export const QuestionSchema = z.object({
   id: z.string(),
