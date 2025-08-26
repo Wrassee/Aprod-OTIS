@@ -9,28 +9,50 @@ interface EmailOptions {
 class EmailService {
   async sendProtocolEmail(options: EmailOptions): Promise<void> {
     try {
-      // Mock email service - replace with actual email service like Nodemailer
-      console.log('Sending email to:', options.recipient);
-      console.log('Language:', options.language);
-      console.log('Reception date:', options.receptionDate);
-      console.log('Protocol PDF size:', options.protocolPdf.length);
-      
-      if (options.errorListPdf) {
-        console.log('Error list PDF size:', options.errorListPdf.length);
+      // Check if RESEND_API_KEY is available
+      const apiKey = process.env.RESEND_API_KEY;
+      if (!apiKey) {
+        console.log('RESEND_API_KEY not found, using mock email service');
+        console.log('Sending email to:', options.recipient);
+        console.log('Language:', options.language);
+        console.log('Reception date:', options.receptionDate);
+        console.log('Protocol PDF size:', options.protocolPdf.length);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log('Email sent successfully');
+        return;
       }
 
-      // In a real implementation, you would:
-      // 1. Configure nodemailer with SMTP settings
-      // 2. Create email template based on language
-      // 3. Attach PDF files
-      // 4. Send the email
+      // Use Resend API for actual email sending
+      const { Resend } = await import('resend');
+      const resend = new Resend(apiKey);
 
       const emailContent = this.getEmailContent(options.language, options.receptionDate);
       
-      // Mock successful send
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log('Email sent successfully');
+      // Prepare attachments
+      const attachments = [
+        {
+          filename: `OTIS-Protocol-${options.receptionDate}.pdf`,
+          content: options.protocolPdf,
+        }
+      ];
+
+      if (options.errorListPdf) {
+        attachments.push({
+          filename: `OTIS-ErrorList-${options.receptionDate}.pdf`,
+          content: options.errorListPdf,
+        });
+      }
+
+      // Send email via Resend
+      const result = await resend.emails.send({
+        from: 'otis-protocol@resend.dev',
+        to: options.recipient,
+        subject: emailContent.subject,
+        html: emailContent.body,
+        attachments: attachments as any,
+      });
+
+      console.log('Email sent successfully via Resend:', result);
     } catch (error) {
       console.error('Error sending email:', error);
       throw new Error('Failed to send email');

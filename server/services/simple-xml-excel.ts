@@ -344,7 +344,7 @@ class SimpleXmlExcelService {
         // Write error description to column A
         mappings.push({
           cell: `A${rowNumber}`,
-          value: error.description || error.title || `Hiba ${index + 1}`,
+          value: error.description || `Hiba ${index + 1}`,
           label: `Error ${index + 1} description`
         });
         

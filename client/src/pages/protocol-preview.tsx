@@ -177,7 +177,7 @@ export function ProtocolPreview({ onBack }: ProtocolPreviewProps) {
             <div className="p-6 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Hibák</h3>
               <div className="space-y-3">
-                {(Array.isArray(protocol.errors) ? protocol.errors : JSON.parse(protocol.errors || '[]')).map((error) => (
+                {(Array.isArray(protocol.errors) ? protocol.errors : JSON.parse(protocol.errors || '[]')).map((error: any) => (
                   <div key={error.id} className="flex items-start p-3 bg-red-50 rounded-lg">
                     <div className={`w-3 h-3 rounded-full mt-1 mr-3 ${
                       error.severity === 'high' ? 'bg-red-500' :
