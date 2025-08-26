@@ -4,17 +4,15 @@
 This full-stack TypeScript application digitalizes the OTIS elevator acceptance protocol process. It guides users through a step-by-step questionnaire, enables error documentation with images, generates PDFs, and supports sharing. The system operates in both Hungarian and German, aiming to streamline and standardize the acceptance process, reduce manual errors, and improve efficiency for OTIS technicians. The project envisions a future of fully digitized and seamlessly integrated elevator inspection and acceptance procedures within existing OTIS systems.
 
 ## Recent Changes (2025-08-26)
-### ✅ REFACTORING & DEPLOYMENT READY - All Core Issues Resolved
-- **Questions Loading Fixed**: Active template detection works, questions endpoint functional
-  - **Fixed**: getActiveTemplate function with debug logging 
-  - **Working**: `/api/questions/hu` returns 3 test questions successfully
-  - **Manual Route**: Added questions endpoint that was missing from routes
-- **OTIS Logo Display Fixed**: Logo copied to public directory for proper serving
-  - **Fixed**: `/public/otis-logo.png` accessible via static serving
-  - **Working**: Start screen displays OTIS logo correctly
-- **Vite Config Requirements**: Manual user edit needed for deployment optimization
-  - **Add**: `base: ''` and `publicDir: 'public'` for Vercel compatibility
-  - **Protected**: File editing restricted, requires manual intervention
+### ✅ VERSION 0.4.9 - EMAIL INTEGRATION & USER FEEDBACK COMPLETE
+- **Email Functionality**: Complete Resend API integration with user feedback
+  - **Working**: Email sending with PDF attachments to netkodok@gmail.com
+  - **User Feedback**: Visual status indicators ("Küldés...", "✅ Sikeresen elküldve!", "❌ Sikertelen!")
+  - **Auto-dismiss**: All notifications disappear after 5 seconds
+  - **Multi-location**: Available on both Protocol Preview and Completion pages
+- **Protocol Preview Enhancement**: PDF preview in iframe with download/email buttons
+- **Schema & Types Fixed**: JSON string/object conversion with Zod transforms
+- **Deployment Ready**: All LSP errors resolved, Vercel compatibility verified
 
 ### ✅ REFACTORING COMPLETE - Project Structure Standardized for Deployment
 - **Backend Refactoring**: Complete relative imports conversion
@@ -69,6 +67,8 @@ This full-stack TypeScript application digitalizes the OTIS elevator acceptance 
 ## User Preferences
 Preferred communication style: Simple, everyday language (Hungarian preferred).
 Frustrated with Vite complexity - prefers solutions that avoid Vite whenever possible.
+Requires immediate user feedback for all actions - no "silent buttons" or unclear states.
+Excel writing functionality must remain untouched to prevent corruption.
 
 ## System Architecture
 ### Frontend
