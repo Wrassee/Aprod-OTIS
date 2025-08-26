@@ -1,0 +1,41 @@
+You have just completed a major refactoring of this project based on my previous instructions. Now, I need you to perform a final verification checklist to ensure everything is working correctly on the local development environment before we proceed.
+
+Please execute the following tests and report the success or failure of each step.
+
+---
+### **Final Verification Checklist**
+
+**1. Build Test:**
+- **Action:** Run the command: `npm run build`
+- **Expected Result:** The command must complete without any errors. A `dist` directory should be created.
+- **Please confirm:** Was the build successful?
+
+**2. Local Development Server Test:**
+- **Action:** Run the command: `npm run dev`
+- **Expected Result:** The server must start without any errors. The terminal should display a local URL (e.g., `http://localhost:5173`).
+- **Please confirm:** Did the dev server start successfully? What URL is it running on?
+
+**3. Functional Tests (while the dev server is running):**
+
+**3.1. Visual Appearance:**
+- **Action:** Simulate opening the application at the localhost URL provided above.
+- **Expected Result:** The start page should render correctly with full styling. The layout should be visually correct, not just plain, unstyled text.
+- **Please confirm:** Does the page load with CSS applied correctly?
+
+**3.2. Static Asset Loading:**
+- **Action:** Observe the fully rendered start page.
+- **Expected Result:** The `otis-logo.png` image should be visible. There should be NO 404 errors in the browser console for any images (`.png`) or the manifest icons.
+- **Please confirm:** Are the logo and PWA icons loading correctly without 404 errors?
+
+**3.3. API Functionality (Backend Routing):**
+- **Action:** Simulate navigating to the "Admin" page of the application.
+- **Expected Result:** This action should trigger a `GET` request to the `/api/admin/templates` endpoint. This request must succeed and return a response (even if it's an empty array `[]`). It must NOT return a 500 Internal Server Error or a 404 Not Found error.
+- **Please confirm:** Does the `GET /api/admin/templates` API call work correctly?
+
+**3.4. File Upload on Localhost:**
+- **Action:** Simulate uploading a file on the "Admin" page.
+- **Expected Result:** The file upload should be handled successfully by the backend. Because the environment is `development`, the code should save the temporary file to the local `./uploads` directory.
+- **Please confirm:** Does the file upload logic work correctly in the local environment?
+
+---
+Please provide a summary of the results for each point on this checklist. If any step fails, please provide the specific error message. Thank you!
