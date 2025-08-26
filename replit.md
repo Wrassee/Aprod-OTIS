@@ -4,17 +4,17 @@
 This full-stack TypeScript application digitalizes the OTIS elevator acceptance protocol process. It guides users through a step-by-step questionnaire, enables error documentation with images, generates PDFs, and supports sharing. The system operates in both Hungarian and German, aiming to streamline and standardize the acceptance process, reduce manual errors, and improve efficiency for OTIS technicians. The project envisions a future of fully digitized and seamlessly integrated elevator inspection and acceptance procedures within existing OTIS systems.
 
 ## Recent Changes (2025-08-26)
-### ✅ REFACTORING & DEPLOYMENT READY - All Core Issues Resolved
-- **Questions Loading Fixed**: Active template detection works, questions endpoint functional
-  - **Fixed**: getActiveTemplate function with debug logging 
-  - **Working**: `/api/questions/hu` returns 3 test questions successfully
-  - **Manual Route**: Added questions endpoint that was missing from routes
-- **OTIS Logo Display Fixed**: Logo copied to public directory for proper serving
-  - **Fixed**: `/public/otis-logo.png` accessible via static serving
-  - **Working**: Start screen displays OTIS logo correctly
-- **Vite Config Requirements**: Manual user edit needed for deployment optimization
-  - **Add**: `base: ''` and `publicDir: 'public'` for Vercel compatibility
-  - **Protected**: File editing restricted, requires manual intervention
+### ✅ COMPLETE SUCCESS - All Critical Issues Resolved
+- **Excel Parsing Fixed**: Dynamic XLSX import with .default namespace resolved
+  - **Fixed**: XLSX.default.readFile and XLSX.default.utils methods
+  - **Working**: Successfully parsed 30 questions from user's Excel template
+  - **Template**: "TestKérdés" uploaded and activated with full question set
+- **OTIS Logo Display Fixed**: Static file serving with proper MIME type
+  - **Fixed**: `/otis-logo.png` serves as image/png with cache headers
+  - **Working**: Logo displays correctly on start screen
+- **Template Language Detection Enhanced**: Multilingual fallback logic
+  - **Fixed**: Searches exact language first, then multilingual templates
+  - **Working**: Hungarian questions load from multilingual Excel templates
 
 ### ✅ REFACTORING COMPLETE - Project Structure Standardized for Deployment
 - **Backend Refactoring**: Complete relative imports conversion

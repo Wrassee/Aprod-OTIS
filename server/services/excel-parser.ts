@@ -123,7 +123,14 @@ class ExcelParserService {
       
       return questions;
     } catch (error) {
-      console.error('Error parsing Excel file:', error);
+      console.error('🚨 Error parsing Excel file:', error);
+      console.error('🚨 File path:', filePath);
+      const fs = await import('fs');
+      console.error('🚨 File exists:', fs.existsSync(filePath));
+      if (fs.existsSync(filePath)) {
+        const stats = fs.statSync(filePath);
+        console.error('🚨 File size:', stats.size, 'bytes');
+      }
       throw new Error(`Failed to parse Excel file: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
