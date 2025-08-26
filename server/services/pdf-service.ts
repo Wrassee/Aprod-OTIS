@@ -1,4 +1,4 @@
-import { ProtocolError } from './../shared/schema.js';
+import { ProtocolError } from './.  //shared/schema.js';
 import * as XLSX from 'xlsx';
 import puppeteer from 'puppeteer';
 import { spawn } from 'child_process';

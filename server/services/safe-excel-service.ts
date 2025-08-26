@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx';
-import { FormData } from './../shared/types';
-import { storage } from './storage';
+import { FormData } from './.  //shared/types';
+import { storage } from '.  //storage';
 import fs from 'fs';
 
 class SafeExcelService {

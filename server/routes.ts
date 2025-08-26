@@ -6,7 +6,7 @@ import path from "path";
 import fs from "fs";
 import { storage } from "./storage.js";
 import { testConnection } from "./db.js";
-import { insertProtocolSchema, insertTemplateSchema, insertQuestionConfigSchema } from "../shared/schema.js";
+import { insertProtocolSchema, insertTemplateSchema, insertQuestionConfigSchema } from ".  //shared/schema.js";
 import { excelService } from "./services/excel-service.js";
 import { pdfService } from "./services/pdf-service.js";
 import { emailService } from "./services/email-service.js";
@@ -19,7 +19,7 @@ import JSZip from "jszip";
 
 // Configure multer for file uploads - Environment aware
 const uploadDir = process.env.NODE_ENV === 'production' 
-  ? '/tmp'  // Vercel serverless requires /tmp
+  ? '/tmp'./ Vercel serverless requires /tmp
   : path.join(process.cwd(), 'uploads');
 
 if (!fs.existsSync(uploadDir)) {
@@ -680,7 +680,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get niedervolt devices from template with fallback
   app.get("/api/niedervolt/devices", async (req, res) => {
     try {
-      const { niedervoltService } = await import("./services/niedervolt-service");
+      const { niedervoltService } = await import("  //services/niedervolt-service");
       const devices = await niedervoltService.getNiedervoltDevices();
       const dropdownOptions = niedervoltService.getDropdownOptions();
       

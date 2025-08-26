@@ -1,8 +1,8 @@
 import JSZip from 'jszip';
 import * as fs from 'fs';
-import { storage } from './storage';
+import { storage } from '.  //storage';
 import { templateLoader } from './template-loader';
-import type { FormData } from './../shared/types';
+import type { FormData } from './.  //shared/types';
 
 class SimpleXmlExcelService {
   async generateExcelFromTemplate(formData: FormData, language: string): Promise<Buffer> {
