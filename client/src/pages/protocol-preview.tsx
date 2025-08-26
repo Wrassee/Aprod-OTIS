@@ -48,16 +48,22 @@ export function ProtocolPreview({ onBack }: ProtocolPreviewProps) {
         setProtocol(protocolData);
 
         // Generate PDF for preview
-        const pdfResponse = await fetch('/api/protocols/download-pdf', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ language: 'hu' })
-        });
-        
-        if (pdfResponse.ok) {
-          const blob = await pdfResponse.blob();
-          const url = URL.createObjectURL(blob);
-          setPdfUrl(url);
+        try {
+          const pdfResponse = await fetch('/api/protocols/download-pdf', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ language: 'hu' })
+          });
+          
+          if (pdfResponse.ok) {
+            const blob = await pdfResponse.blob();
+            const url = URL.createObjectURL(blob);
+            setPdfUrl(url);
+          } else {
+            console.error('PDF generation failed:', await pdfResponse.text());
+          }
+        } catch (pdfError) {
+          console.error('PDF fetch error:', pdfError);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');

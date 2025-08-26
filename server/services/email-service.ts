@@ -43,10 +43,10 @@ class EmailService {
         });
       }
 
-      // Send email via Resend
+      // Send email via Resend (use verified domain or test email)
       const result = await resend.emails.send({
-        from: 'otis-protocol@resend.dev',
-        to: options.recipient,
+        from: 'netkodok@gmail.com', // Use your verified email for testing
+        to: 'netkodok@gmail.com', // Can only send to your own email in test mode
         subject: emailContent.subject,
         html: emailContent.body,
         attachments: attachments as any,

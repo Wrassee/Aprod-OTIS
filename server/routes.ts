@@ -144,6 +144,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Download PDF
+  app.post("/api/protocols/download-pdf", async (req, res) => {
+    try {
+      const { language } = req.body;
+      
+      // Get latest protocol or create mock data
+      const allProtocols = await storage.getAllProtocols();
+      const latestProtocol = allProtocols.length > 0 ? allProtocols[0] : null;
+      const formData = latestProtocol || {
+        receptionDate: new Date().toISOString().split('T')[0],
+        answers: {
+          '1': 'Példa Átvevő',
+          '2': 'Példa Cím', 
+          '3': '1000',
+          '4': 'Minden rendben'
+        },
+        errors: [],
+        signatureName: 'Példa Aláíró'
+      };
+      
+      // Generate Excel from template
+      const excelBuffer = await excelService.generateExcel(formData, language || 'hu');
+      
+      // Generate PDF from Excel
+      const pdfBuffer = await pdfService.generatePDF(excelBuffer);
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="OTIS-Protocol-${formData.receptionDate}.pdf"`);
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      res.status(500).json({ message: "Failed to generate PDF" });
+    }
+  });
+
   // Email PDF
   app.post("/api/protocols/email", async (req, res) => {
     try {
@@ -396,7 +431,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true, question: questionConfig });
     } catch (error) {
       console.error("Error adding test question:", error);
-      res.status(500).json({ message: "Failed to add question", error: error.message });
+      res.status(500).json({ message: "Failed to add question", error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 

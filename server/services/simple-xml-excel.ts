@@ -341,23 +341,30 @@ class SimpleXmlExcelService {
       formData.errors.forEach((error, index) => {
         const rowNumber = 737 + index;
         
-        // Write error description to column A
+        // Write error number to merged ABC columns (A cell represents the merged area)
         mappings.push({
           cell: `A${rowNumber}`,
+          value: `${index + 1}`,
+          label: `Error ${index + 1} number`
+        });
+        
+        // Write error description to merged DEFGH columns (D cell represents the merged area)
+        mappings.push({
+          cell: `D${rowNumber}`,
           value: error.description || `Hiba ${index + 1}`,
           label: `Error ${index + 1} description`
         });
         
-        // Write error severity to column B
+        // Write error severity to merged KLM columns (K cell represents the merged area)
         const severityText = error.severity === 'critical' ? 'Kritikus' : 
                            error.severity === 'medium' ? 'Közepes' : 'Alacsony';
         mappings.push({
-          cell: `B${rowNumber}`,
+          cell: `K${rowNumber}`,
           value: severityText,
           label: `Error ${index + 1} severity`
         });
         
-        console.log(`Error ${index + 1} mapped to row ${rowNumber}: ${error.description} (${severityText})`);
+        console.log(`Error ${index + 1} mapped to row ${rowNumber}: A${rowNumber}=${index + 1}, D${rowNumber}=${error.description}, K${rowNumber}=${severityText}`);
       });
     }
     
