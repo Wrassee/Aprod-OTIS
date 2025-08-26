@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calculator, Ruler, AlertTriangle } from 'lucide-react';
 import { StableInput } from './stable-input';
@@ -26,21 +26,54 @@ interface MeasurementBlockProps {
 
 export function MeasurementBlock({ questions, values, onChange, onAddError }: MeasurementBlockProps) {
   const { language, t } = useLanguageContext();
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   
   const measurementQuestions = questions.filter(q => q.type === 'measurement');
   const calculatedQuestions = questions.filter(q => q.type === 'calculated');
 
   useEffect(() => {
     MeasurementCache.restoreFromStorage();
+    
+    // Listen for measurement value changes to trigger recalculation
+    const handleMeasurementChange = () => {
+      console.log('Measurement values changed, triggering recalculation');
+      setRefreshTrigger(prev => prev + 1);
+    };
+    
+    const handleCalculationUpdate = () => {
+      console.log('Calculation update triggered');
+      setRefreshTrigger(prev => prev + 1);
+    };
+    
+    window.addEventListener('measurement-change', handleMeasurementChange);
+    window.addEventListener('calculation-update', handleCalculationUpdate);
+    
+    return () => {
+      window.removeEventListener('measurement-change', handleMeasurementChange);
+      window.removeEventListener('calculation-update', handleCalculationUpdate);
+    };
   }, []);
 
   const calculateValue = (question: Question): number | null => {
     if (!question.calculationFormula || !question.calculationInputs) {
+      console.log(`Calculation failed: Missing formula or inputs for ${question.id}`);
       return null;
     }
 
     try {
+      // Get values from multiple sources
       const measurementValues = (window as any).measurementValues || {};
+      const stableInputValues = (window as any).stableInputValues || {};
+      const formAnswers = values || {};
+      
+      console.log(`Calculating ${question.id}:`, {
+        formula: question.calculationFormula,
+        inputs: question.calculationInputs,
+        measurementValues,
+        stableInputValues,
+        formAnswers
+      });
+      
       let formula = question.calculationFormula;
       
       const inputIds = Array.isArray(question.calculationInputs) 
@@ -48,16 +81,26 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
         : question.calculationInputs.split(',').map((id: string) => id.trim());
       
       for (const inputId of inputIds) {
-        const value = measurementValues[inputId];
+        // Try multiple value sources
+        const value = measurementValues[inputId] || 
+                      stableInputValues[inputId] || 
+                      formAnswers[inputId] ||
+                      parseFloat(measurementValues[inputId]) ||
+                      parseFloat(stableInputValues[inputId]);
+        
+        console.log(`Input ${inputId}:`, value);
         
         if (value !== undefined && value !== null && value !== '') {
           const numValue = typeof value === 'string' ? parseFloat(value) : value;
           if (!isNaN(numValue)) {
             formula = formula.replace(new RegExp(`\\b${inputId}\\b`, 'g'), numValue.toString());
+            console.log(`Replaced ${inputId} with ${numValue}, formula now: ${formula}`);
           } else {
+            console.log(`Invalid numeric value for ${inputId}:`, value);
             return null;
           }
         } else {
+          console.log(`Missing value for input ${inputId}`);
           return null;
         }
       }
@@ -65,12 +108,15 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
       try {
         const result = Function(`"use strict"; return (${formula})`)();
         const roundedResult = typeof result === 'number' && !isNaN(result) ? Math.round(result) : null;
+        console.log(`Calculation result for ${question.id}:`, roundedResult);
         return roundedResult;
       } catch (evalError) {
+        console.error(`Formula evaluation error for ${question.id}:`, evalError);
         return null;
       }
       
     } catch (error) {
+      console.error(`Calculation error for ${question.id}:`, error);
       return null;
     }
   };
@@ -113,6 +159,16 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
                       className="text-center font-mono border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 w-20"
                       min={question.minValue}
                       max={question.maxValue}
+                      onValueChange={(value) => {
+                        // Update measurement values immediately
+                        MeasurementCache.setValue(question.id, value);
+                        onChange(question.id, parseFloat(value) || 0);
+                        
+                        // Trigger measurement change event for calculated fields
+                        setTimeout(() => {
+                          window.dispatchEvent(new CustomEvent('measurement-change'));
+                        }, 100);
+                      }}
                       onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                         if (e.key === 'Enter') {
                           e.preventDefault();
@@ -169,6 +225,11 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
                 const calculatedValue = calculateValue(question);
                 const isOutOfBounds = calculatedValue !== null && question.minValue !== undefined && question.maxValue !== undefined &&
                   (calculatedValue < question.minValue || calculatedValue > question.maxValue);
+                
+                // Auto-save calculated value
+                if (calculatedValue !== null) {
+                  onChange(question.id, calculatedValue);
+                }
 
                 return (
                   <div key={question.id} className="flex items-center gap-4 py-3 border-b border-gray-100 last:border-b-0">
