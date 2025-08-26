@@ -1,36 +1,19 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface StableInputProps {
   questionId: string;
   type?: 'text' | 'number' | 'email';
   initialValue?: string;
-  onChange?: (value: string) => void;
+  onValueChange?: (value: string) => void;
   placeholder?: string;
   className?: string;
   min?: number;
   max?: number;  
   step?: string | number;
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-  maxLength?: number;
-  pattern?: string;
-  inputMode?: string;
 }
 
-export function StableInput({ 
-  questionId, 
-  type = 'text', 
-  placeholder, 
-  initialValue, 
-  onChange, 
-  className, 
-  min, 
-  max, 
-  step, 
-  onKeyDown,
-  maxLength,
-  pattern,
-  inputMode
-}: StableInputProps) {
+export function StableInput({ questionId, type = 'text', placeholder, initialValue, onValueChange, className, min, max, step, onKeyDown }: StableInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const mountedRef = useRef(false);
 
@@ -119,10 +102,14 @@ export function StableInput({
     // Trigger ONLY button-check event for validation - no UI re-render
     window.dispatchEvent(new CustomEvent('button-check'));
     
-    // Call onChange if provided
-    if (onChange) {
-      onChange(value);
-    }
+    // DISABLED: onValueChange callback causes UI flicker and re-renders
+    // Values are stored in cache and will be picked up during save/submit
+    // if (onValueChange) {
+    //   clearTimeout((window as any)[`stable-timeout-${questionId}`]);
+    //   (window as any)[`stable-timeout-${questionId}`] = setTimeout(() => {
+    //     onValueChange(value);
+    //   }, 500); // Debounced callback
+    // }
   };
 
   return (
@@ -137,36 +124,46 @@ export function StableInput({
             'Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'Home', 'End',
             'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Clear', 'Copy', 'Paste'
           ];
+          const allowedChars = '0123456789.,\-';
           
-          if (!allowedKeys.includes(e.key) && !e.ctrlKey && !e.metaKey) {
-            // Allow numbers, decimal point, and minus sign
-            if (!/[0-9.-]/.test(e.key)) {
-              e.preventDefault();
-            }
+          const isCtrlA = e.ctrlKey && e.key === 'a';
+          const isCtrlC = e.ctrlKey && e.key === 'c';
+          const isCtrlV = e.ctrlKey && e.key === 'v';
+          const isCtrlX = e.ctrlKey && e.key === 'x';
+          const isCtrlZ = e.ctrlKey && e.key === 'z';
+          
+          if (!allowedKeys.includes(e.key) && !allowedChars.includes(e.key) && !isCtrlA && !isCtrlC && !isCtrlV && !isCtrlX && !isCtrlZ) {
+            e.preventDefault();
+            return false;
           }
         }
         
+        // Call parent onKeyDown if provided
         if (onKeyDown) {
           onKeyDown(e);
         }
       }}
       placeholder={placeholder}
-      className={className || 'w-full px-3 py-2 border border-gray-300 rounded-md'}
       min={min}
       max={max}
       step={step}
-      maxLength={maxLength}
-      pattern={pattern}
-      inputMode={inputMode}
+      className={`${questionId?.startsWith('m') ? 'w-auto' : 'w-full'} px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-otis-blue focus:border-transparent ${className || ''}`}
+      style={{ 
+        fontSize: '16px',
+        backgroundColor: 'white',
+        color: '#000',
+        ...(questionId?.startsWith('m') ? { width: '70px', textAlign: 'center' } : {})
+      }}
     />
   );
 }
 
-// Global helper function for compatibility
+// Helper function to get all stable input values
 export function getAllStableInputValues(): Record<string, string> {
-  const stableInputValues = (window as any).stableInputValues || {};
-  const measurementValues = (window as any).measurementValues || {};
-  
-  // Combine both caches
-  return { ...stableInputValues, ...measurementValues };
+  return (window as any).stableInputValues || {};
+}
+
+// Helper function to clear all stable input values
+export function clearAllStableInputValues() {
+  (window as any).stableInputValues = {};
 }

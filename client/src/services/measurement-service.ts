@@ -157,7 +157,7 @@ export class MeasurementService {
     const errors: any[] = [];
     
     Object.values(calculations).forEach(calc => {
-      if (calc.isValid && !calc.isWithinLimits) {
+      if (calc.isValid && !calc.isWithinLimits && calc.error) {
         const question = questions.find(q => q.id === calc.questionId);
         if (question) {
           const title = language === 'de' ? (question.titleDe || question.title) : (question.titleHu || question.title);

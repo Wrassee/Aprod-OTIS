@@ -73,50 +73,81 @@ export function MeasurementQuestion({ question, value, onChange }: MeasurementQu
     const cached = (window as any).measurementValues?.[question.id];
     return cached ? parseFloat(cached) : value;
   };
-
+  
   const currentValue = getCachedValue();
-  const isOutOfRange = currentValue !== undefined && 
-                      question.minValue !== undefined && 
-                      question.maxValue !== undefined &&
-                      (currentValue < question.minValue || currentValue > question.maxValue);
+  const isOutOfRange = currentValue !== undefined && !isNaN(currentValue) && (
+    (question.minValue !== undefined && currentValue < question.minValue) ||
+    (question.maxValue !== undefined && currentValue > question.maxValue)
+  );
 
   return (
-    <div className="flex items-center justify-between w-full py-3 border-b border-gray-100 last:border-b-0">
-      {/* Question Title - Left Column */}
-      <div className="flex-1 pr-6">
-        <Label className="text-lg font-medium text-gray-800 leading-relaxed block">
+    <div className="space-y-4">
+      <div className="flex items-center gap-4">
+        <Label htmlFor={question.id} className="text-xl font-bold text-gray-900 flex-1 leading-relaxed">
           {getTitle()}
+          {question.unit && (
+            <span className="ml-2 text-gray-700 font-medium">({question.unit})</span>
+          )}
+          {question.required && (
+            <span className="text-red-500 ml-1">*</span>
+          )}
         </Label>
-        <div className="mt-1 text-base text-gray-500">
-          {question.unit && <span>{question.unit}</span>}
-          {question.minValue !== undefined && question.maxValue !== undefined && (
-            <span className="ml-2 text-sm">
-              ({question.minValue} - {question.maxValue} {question.unit})
-            </span>
-          )}
-          {isOutOfRange && (
-            <span className="ml-2 text-red-500 font-medium">
-              ⚠️ Tartományon kívül
-            </span>
-          )}
+        
+        <div className="flex-shrink-0" style={{width: "70px"}}>
+          <input
+            id={question.id}
+            type="text"
+            defaultValue={value?.toString() || ''}
+            onInput={(e) => {
+              const input = e.target as HTMLInputElement;
+              let val = input.value;
+              
+              // Only allow numbers and decimal point
+              val = val.replace(/[^0-9.]/g, '');
+              
+              // Limit to 5 characters maximum - STRICT ENFORCEMENT
+              if (val.length > 5) {
+                val = val.slice(0, 5);
+                input.value = val;
+              }
+              
+              // Clear old cache to prevent interference
+              if ((window as any).stableInputValues) {
+                delete (window as any).stableInputValues[question.id];
+              }
+              
+              // Store in measurement cache
+              if (!(window as any).measurementValues) {
+                (window as any).measurementValues = {};
+              }
+              (window as any).measurementValues[question.id] = val;
+              
+              console.log(`Measurement input ${question.id}: ${val} (length: ${val.length})`);
+              
+              handleValueChange(val);
+            }}
+            placeholder="0"
+            className={`text-center text-sm px-1 border-2 rounded-lg py-1 ${isOutOfRange ? 'border-red-500' : 'border-gray-200'}`}
+            maxLength={5}
+            style={{width: "70px", fontSize: "12px", minWidth: "70px", maxWidth: "70px"}}
+          />
         </div>
       </div>
       
-      {/* Input Field - Right Column */}
-      <div className="flex-shrink-0">
-        <StableInput
-          questionId={question.id}
-          initialValue={value?.toString() || ''}
-          onChange={handleValueChange}
-          placeholder="0"
-          className={`w-20 text-center font-mono text-lg ${
-            isOutOfRange ? 'border-red-500 bg-red-50' : ''
-          }`}
-          maxLength={5}
-          pattern="[0-9]*"
-          inputMode="numeric"
-        />
-      </div>
+      {question.minValue !== undefined && question.maxValue !== undefined && (
+        <p className="text-xs text-gray-500 ml-1">
+          {language === 'de' ? 'Bereich' : 'Tartomány'}: {question.minValue} - {question.maxValue} {question.unit || ''}
+        </p>
+      )}
+      
+      {isOutOfRange && (
+        <p className="text-xs text-red-500 ml-1">
+          {language === 'de' 
+            ? 'Wert außerhalb des zulässigen Bereichs' 
+            : 'Az érték a megengedett tartományon kívül esik'
+          }
+        </p>
+      )}
     </div>
   );
 }
