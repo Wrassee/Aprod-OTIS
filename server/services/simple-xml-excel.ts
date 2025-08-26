@@ -218,6 +218,12 @@ class SimpleXmlExcelService {
       
       if (config && config.cellReference && answer !== '' && answer !== null && answer !== undefined) {
         
+        // SPECIAL CASE: Skip false values for true_false questions (only process true values)
+        if (config.type === 'true_false' && (answer === false || answer === 'false')) {
+          console.log(`Skipping true_false question ${questionId} with false value: ${answer}`);
+          return;
+        }
+        
         // Handle yes_no_na questions specially - put X in appropriate column(s)
         if (config.type === 'yes_no_na') {
           console.log(`Processing yes_no_na question ${questionId}: ${answer}, cellRef: ${config.cellReference}, multiCell: ${config.multiCell}`);
@@ -322,9 +328,10 @@ class SimpleXmlExcelService {
               label: `${config.title} - Igen`
             });
           } else {
-            // For false, null, undefined, empty string, etc. - leave cell empty
+            // For false, null, undefined, empty string, etc. - leave cell empty (NO MAPPING!)
             console.log(`Skipping true_false question ${questionId} (not true): ${answer}`);
           }
+          return; // IMPORTANT: Exit early so it doesn't fall through to other handlers
         } else if (config.type === 'measurement') {
           // Handle measurement questions - just the numeric value for Excel
           const numValue = parseFloat(String(answer));
