@@ -333,6 +333,33 @@ class SimpleXmlExcelService {
         label: 'Signature name'
       });
     }
+
+    // Add errors to Excel starting from row 737
+    if (formData.errors && formData.errors.length > 0) {
+      console.log(`Adding ${formData.errors.length} errors starting from row 737`);
+      
+      formData.errors.forEach((error, index) => {
+        const rowNumber = 737 + index;
+        
+        // Write error description to column A
+        mappings.push({
+          cell: `A${rowNumber}`,
+          value: error.description || error.title || `Hiba ${index + 1}`,
+          label: `Error ${index + 1} description`
+        });
+        
+        // Write error severity to column B
+        const severityText = error.severity === 'critical' ? 'Kritikus' : 
+                           error.severity === 'medium' ? 'Közepes' : 'Alacsony';
+        mappings.push({
+          cell: `B${rowNumber}`,
+          value: severityText,
+          label: `Error ${index + 1} severity`
+        });
+        
+        console.log(`Error ${index + 1} mapped to row ${rowNumber}: ${error.description} (${severityText})`);
+      });
+    }
     
     return mappings;
   }
