@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="UTF-8" />
+    
+    <!-- PWA Configuration v0.4.8 -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/png" href="/pwa-64x64.png" />
+    
+    <!-- Enhanced PWA Meta Tags -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#1f2937" />
+    <meta name="background-color" content="#ffffff" />
+    <meta name="display" content="standalone" />
+    <meta name="orientation" content="portrait-primary" />
+    
+    <!-- App Info -->
+    <meta name="application-name" content="OTIS APROD" />
+    <meta name="description" content="OTIS lift inspection protocol application for technicians" />
+    <meta name="keywords" content="OTIS, lift, elevator, inspection, protocol, technician, maintenance" />
+    
+    <!-- iOS Specific -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="OTIS APROD" />
+    <meta name="apple-mobile-web-app-orientation" content="portrait-primary" />
+    <link rel="apple-touch-icon" href="/pwa-192x192.png" />
+    
+    <!-- Additional PWA Icons -->
+    <link rel="icon" type="image/png" sizes="64x64" href="/pwa-64x64.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/pwa-192x192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/pwa-512x512.png" />
+    
+    <!-- Windows/Edge -->
+    <meta name="msapplication-TileColor" content="#1f2937" />
+    <meta name="msapplication-TileImage" content="/pwa-192x192.png" />
+    <meta name="msapplication-navbutton-color" content="#1f2937" />
+    
+    <!-- Additional Mobile Optimizations -->
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    
+    <title>OTIS APROD - Átvételi Protokoll</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- PWA Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js', { scope: '/' })
+            .then((registration) => {
+              console.log('[PWA] Service Worker registered successfully:', registration);
+            })
+            .catch((error) => {
+              console.log('[PWA] Service Worker registration failed:', error);
+            });
+        });
+      }
+    </script>
+    
+    <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
+    <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
+  </body>
+</html>

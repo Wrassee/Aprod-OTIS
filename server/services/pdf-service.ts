@@ -1,4 +1,4 @@
-import { ProtocolError } from '@shared/schema';
+import { ProtocolError } from '../../shared/schema.js';
 import * as XLSX from 'xlsx';
 import puppeteer from 'puppeteer';
 import { spawn } from 'child_process';
@@ -11,7 +11,9 @@ class PDFService {
     
     try {
       
-      const tempDir = path.join(process.cwd(), 'temp');
+      const tempDir = process.env.NODE_ENV === 'production' 
+        ? '/tmp' 
+        : path.join(process.cwd(), 'temp');
       
       if (!fs.existsSync(tempDir)) {
         fs.mkdirSync(tempDir, { recursive: true });
@@ -106,7 +108,9 @@ class PDFService {
       // Save HTML to temp file and return as "PDF" (user can save as PDF)
       const fs = await import('fs');
       const path = await import('path');
-      const tempDir = path.join(process.cwd(), 'temp');
+      const tempDir = process.env.NODE_ENV === 'production' 
+        ? '/tmp' 
+        : path.join(process.cwd(), 'temp');
       
       if (!fs.existsSync(tempDir)) {
         fs.mkdirSync(tempDir, { recursive: true });
