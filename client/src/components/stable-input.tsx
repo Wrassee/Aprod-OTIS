@@ -96,7 +96,19 @@ export function StableInput({ questionId, type = 'text', placeholder, initialVal
       if (!(window as any).measurementValues) {
         (window as any).measurementValues = {};
       }
-      (window as any).measurementValues[questionId] = value;
+      const numValue = parseFloat(value);
+      if (!isNaN(numValue)) {
+        (window as any).measurementValues[questionId] = numValue;
+        
+        // Trigger measurement change event for calculations with debounce
+        clearTimeout((window as any)[`measurement-timeout-${questionId}`]);
+        (window as any)[`measurement-timeout-${questionId}`] = setTimeout(() => {
+          console.log(`🔔 Measurement changed: ${questionId} = ${numValue}`);
+          window.dispatchEvent(new CustomEvent('measurement-change'));
+        }, 300);
+      } else {
+        (window as any).measurementValues[questionId] = value;
+      }
     }
     
     // Trigger ONLY button-check event for validation - no UI re-render

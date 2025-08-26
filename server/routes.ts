@@ -424,9 +424,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { name, type, language } = req.body;
-      if (!name || !type || !language) {
-        return res.status(400).json({ message: "Missing required fields: name, type, language" });
+      if (!name || !language) {
+        return res.status(400).json({ message: "Missing required fields: name, language" });
       }
+      
+      // Force all templates to be 'questions' type - no more unified/protocol distinction
+      const templateType = 'questions';
 
       // Upload to Supabase Storage (required for production)
       const timestamp = Date.now();
@@ -441,7 +444,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Create template record with storage URL
         newTemplate = await storage.createTemplate({
           name,
-          type,
+          type: templateType, // Always 'questions'
           language,
           fileName: req.file.originalname,
           filePath: publicUrl, // Store the public URL instead of local path
@@ -472,7 +475,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         newTemplate = await storage.createTemplate({
           name,
-          type,
+          type: templateType, // Always 'questions'
           language,
           fileName: req.file.originalname,
           filePath,
@@ -485,14 +488,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`📁 File exists: ${fs.existsSync(req.file.path)}`);
 
       // If it's a questions template, parse and create question configs
-      if (type === 'questions' || type === 'unified') {
+      if (templateType === 'questions') {
         try {
           // Use the final file path for parsing (either local fallback or the uploaded temp file)
           const parseFilePath = newTemplate.filePath.startsWith('http') ? req.file.path : newTemplate.filePath;
           console.log(`🔍 Parsing questions from: ${parseFilePath}`);
           const questions = await excelParserService.parseQuestionsFromExcel(parseFilePath);
           
-          console.log(`Parsed ${questions.length} questions from ${type} template`);
+          console.log(`Parsed ${questions.length} questions from ${templateType} template`);
           
           // Save question configurations with all languages preserved
           for (const question of questions) {

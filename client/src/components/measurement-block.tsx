@@ -56,67 +56,54 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
 
   const calculateValue = (question: Question): number | null => {
     if (!question.calculationFormula || !question.calculationInputs) {
-      console.log(`Calculation failed: Missing formula or inputs for ${question.id}`);
       return null;
     }
 
     try {
-      // Get values from multiple sources
+      // Get fresh measurement values from cache
       const measurementValues = (window as any).measurementValues || {};
       const stableInputValues = (window as any).stableInputValues || {};
-      const formAnswers = values || {};
-      
-      console.log(`Calculating ${question.id}:`, {
-        formula: question.calculationFormula,
-        inputs: question.calculationInputs,
-        measurementValues,
-        stableInputValues,
-        formAnswers
-      });
       
       let formula = question.calculationFormula;
-      
       const inputIds = Array.isArray(question.calculationInputs) 
         ? question.calculationInputs 
         : question.calculationInputs.split(',').map((id: string) => id.trim());
       
+      console.log(`🧮 Calculating ${question.id} with formula: ${formula}`);
+      console.log('📊 Available values:', { measurementValues, stableInputValues });
+      
       for (const inputId of inputIds) {
-        // Try multiple value sources
-        const value = measurementValues[inputId] || 
-                      stableInputValues[inputId] || 
-                      formAnswers[inputId] ||
-                      parseFloat(measurementValues[inputId]) ||
-                      parseFloat(stableInputValues[inputId]);
+        let value = measurementValues[inputId] || stableInputValues[inputId];
         
-        console.log(`Input ${inputId}:`, value);
+        // Try parsing as number if it's a string
+        if (typeof value === 'string') {
+          value = parseFloat(value);
+        }
         
-        if (value !== undefined && value !== null && value !== '') {
-          const numValue = typeof value === 'string' ? parseFloat(value) : value;
-          if (!isNaN(numValue)) {
-            formula = formula.replace(new RegExp(`\\b${inputId}\\b`, 'g'), numValue.toString());
-            console.log(`Replaced ${inputId} with ${numValue}, formula now: ${formula}`);
-          } else {
-            console.log(`Invalid numeric value for ${inputId}:`, value);
-            return null;
-          }
+        console.log(`  ${inputId} = ${value}`);
+        
+        if (value !== undefined && value !== null && !isNaN(value)) {
+          formula = formula.replace(new RegExp(`\\b${inputId}\\b`, 'g'), value.toString());
         } else {
-          console.log(`Missing value for input ${inputId}`);
+          console.log(`❌ Missing or invalid value for ${inputId}`);
           return null;
         }
       }
       
+      console.log(`🔄 Final formula: ${formula}`);
+      
       try {
         const result = Function(`"use strict"; return (${formula})`)();
-        const roundedResult = typeof result === 'number' && !isNaN(result) ? Math.round(result) : null;
-        console.log(`Calculation result for ${question.id}:`, roundedResult);
+        const roundedResult = Math.round(result);
+        console.log(`✅ Result: ${roundedResult}`);
         return roundedResult;
       } catch (evalError) {
-        console.error(`Formula evaluation error for ${question.id}:`, evalError);
+        console.error('❌ Formula evaluation error:', evalError);
         return null;
       }
       
     } catch (error) {
-      console.error(`Calculation error for ${question.id}:`, error);
+      console.error('❌ Calculation error:', error);
       return null;
     }
   };

@@ -161,7 +161,7 @@ def create_comprehensive_template():
             'Type': 'calculated',
             'Cél/Placeholder': 'J40',
             'Unit': 'mm',
-            'calculation_formula': 'm1 + m2 + m3',
+            'calculation_formula': 'm1+m2+m3',
             'calculation_inputs': 'm1,m2,m3',
             'min_value': '2000',
             'max_value': '50000',
