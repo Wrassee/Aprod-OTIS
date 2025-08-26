@@ -346,7 +346,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const questions = await storage.getQuestionConfigsByTemplate(template.id);
       console.log(`✅ Found ${questions.length} questions for template: ${template.name}`);
       console.log(`📝 Questions:`, questions.map(q => ({ id: q.questionId, title: q.title })));
-      res.json(questions);
+      
+      // Map to frontend format - use questionId as id
+      const mappedQuestions = questions.map(q => ({
+        id: q.questionId,
+        title: language === 'de' ? (q.titleDe || q.title) : (q.titleHu || q.title),
+        titleDe: q.titleDe,
+        titleHu: q.titleHu,
+        type: q.type,
+        required: q.required,
+        placeholder: q.placeholder,
+        cellReference: q.cellReference,
+        sheetName: q.sheetName,
+        multiCell: q.multiCell,
+        groupName: q.groupName,
+        groupNameDe: q.groupNameDe,
+        groupOrder: q.groupOrder,
+        unit: q.unit,
+        minValue: q.minValue,
+        maxValue: q.maxValue,
+        calculationFormula: q.calculationFormula,
+        calculationInputs: q.calculationInputs
+      }));
+      
+      res.json(mappedQuestions);
     } catch (error) {
       console.error("❌ Error fetching questions:", error);
       res.status(500).json({ message: "Failed to fetch questions" });
