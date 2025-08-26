@@ -501,7 +501,7 @@ const Questionnaire = memo(function Questionnaire({
             )}
 
             {/* Error List */}
-            {errors.length > 0 && (
+            {errors && errors.length > 0 && (
               <div className="mt-8">
                 <ErrorList
                   errors={errors}
