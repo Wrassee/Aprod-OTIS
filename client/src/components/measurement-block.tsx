@@ -113,6 +113,16 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
                       className="text-center font-mono border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 w-20"
                       min={question.minValue}
                       max={question.maxValue}
+                      onValueChange={(value) => {
+                        // Update measurement values immediately
+                        MeasurementCache.setValue(question.id, value);
+                        onChange(question.id, parseFloat(value) || 0);
+                        
+                        // Trigger measurement change event for calculated fields
+                        setTimeout(() => {
+                          window.dispatchEvent(new CustomEvent('measurement-change'));
+                        }, 100);
+                      }}
                       onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                         if (e.key === 'Enter') {
                           e.preventDefault();
@@ -169,6 +179,11 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
                 const calculatedValue = calculateValue(question);
                 const isOutOfBounds = calculatedValue !== null && question.minValue !== undefined && question.maxValue !== undefined &&
                   (calculatedValue < question.minValue || calculatedValue > question.maxValue);
+                
+                // Auto-save calculated value
+                if (calculatedValue !== null) {
+                  onChange(question.id, calculatedValue);
+                }
 
                 return (
                   <div key={question.id} className="flex items-center gap-4 py-3 border-b border-gray-100 last:border-b-0">
