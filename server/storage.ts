@@ -106,8 +106,10 @@ export class DatabaseStorage implements IStorage {
     const template = await this.getTemplate(id);
     if (!template) throw new Error('Template not found');
 
-    // Deactivate other templates of the same type and language
-    await db
+    console.log(`🔄 Activating template: ${template.name} (${template.type}, ${template.language})`);
+    
+    // First, deactivate ALL templates of the same type and language
+    const deactivateResult = await db
       .update(templates)
       .set({ isActive: false })
       .where(
@@ -116,12 +118,16 @@ export class DatabaseStorage implements IStorage {
           eq(templates.language, template.language)
         )
       );
+    
+    console.log(`✅ Deactivated ${deactivateResult.changes} templates`);
 
-    // Activate the specified template
-    await db
+    // Then activate the specified template
+    const activateResult = await db
       .update(templates)
       .set({ isActive: true })
       .where(eq(templates.id, id));
+    
+    console.log(`✅ Activated template: ${template.name}`);
   }
 
   async deleteTemplate(id: string): Promise<boolean> {

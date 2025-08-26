@@ -14,7 +14,10 @@ export function StartScreen({ onLanguageSelect }: StartScreenProps) {
         <img 
           src="/otis-logo.png" 
           alt="OTIS Logo" 
-          className="h-48 w-48"
+          className="h-48 w-48 object-contain"
+          onError={(e) => {
+            console.log('Logo load failed, path:', (e.target as HTMLImageElement).src);
+          }}
         />
       </div>
       

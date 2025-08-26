@@ -368,6 +368,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Deactivate all templates (emergency reset)
+  app.post("/api/admin/deactivate-all", async (req, res) => {
+    try {
+      const { templates } = await import('../shared/schema.js');
+      const { db } = await import('./db.js');
+      
+      await db
+        .update(templates)
+        .set({ isActive: false });
+      
+      console.log('✅ All templates deactivated');
+      res.json({ success: true, message: "All templates deactivated" });
+    } catch (error) {
+      console.error("Error deactivating templates:", error);
+      res.status(500).json({ message: "Failed to deactivate templates" });
+    }
+  });
+
   // === ADMIN ROUTES FOR TEMPLATE MANAGEMENT ===
 
   // Get all templates

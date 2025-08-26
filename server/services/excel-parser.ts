@@ -25,6 +25,10 @@ export interface ParsedQuestion {
 class ExcelParserService {
   async parseQuestionsFromExcel(filePath: string): Promise<ParsedQuestion[]> {
     try {
+      console.log(`🔍 Parsing questions from: ${filePath}`);
+      
+      // Read Excel file with dynamic import
+      const XLSX = await import('xlsx');
       const workbook = XLSX.readFile(filePath);
       const sheetName = workbook.SheetNames[0]; // Use first sheet
       const worksheet = workbook.Sheets[sheetName];
