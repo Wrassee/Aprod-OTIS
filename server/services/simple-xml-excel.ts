@@ -310,33 +310,21 @@ class SimpleXmlExcelService {
             }
           }
         } else if (config.type === 'true_false') {
-          // Handle true_false questions - convert to X/-
-          let cellValue = answer;
+          // Handle true_false questions - only put X for true, leave empty for false
+          console.log(`Processing true_false question ${questionId}: ${answer}`);
           
-          console.log(`DEBUG: Processing true_false question ${questionId}`);
-          console.log(`DEBUG: Raw answer value:`, answer, `(type: ${typeof answer})`);
-          console.log(`DEBUG: Answer === 'true':`, answer === 'true');
-          console.log(`DEBUG: Answer === true:`, answer === true);
-          console.log(`DEBUG: Answer === 'false':`, answer === 'false');
-          console.log(`DEBUG: Answer === false:`, answer === false);
-          
-          if (answer === 'true' || answer === true) {
-            cellValue = 'X';
-          } else if (answer === 'false' || answer === false) {
-            cellValue = '-';
+          // Only put X if the answer is explicitly true
+          if (answer === true || answer === 'true') {
+            console.log(`Adding X for true_false question ${questionId} in cell ${config.cellReference}`);
+            mappings.push({
+              cell: config.cellReference,
+              value: 'X',
+              label: `${config.title} - Igen`
+            });
           } else {
-            // Handle any unexpected values
-            console.log(`WARNING: Unexpected true_false value for question ${questionId}:`, answer);
-            cellValue = '-'; // Default to false
+            // For false, null, undefined, empty string, etc. - leave cell empty
+            console.log(`Skipping true_false question ${questionId} (not true): ${answer}`);
           }
-          
-          console.log(`Processing true_false question ${questionId}: ${answer} -> ${cellValue}, cellRef: ${config.cellReference}`);
-          
-          mappings.push({
-            cell: config.cellReference,
-            value: cellValue,
-            label: config.title || `Question ${questionId}`
-          });
         } else if (config.type === 'measurement') {
           // Handle measurement questions - just the numeric value for Excel
           const numValue = parseFloat(String(answer));
