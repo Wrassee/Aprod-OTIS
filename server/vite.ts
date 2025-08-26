@@ -1,27 +1,12 @@
 import express, { type Express } from "express";
 import fs from "fs";
 import path from "path";
+import { createServer as createViteServer, createLogger } from "vite";
 import { type Server } from "http";
+import viteConfig from "../vite.config";
 import { nanoid } from "nanoid";
 
-// Conditional Vite imports for development only
-let createViteServer: any, createLogger: any, viteConfig: any;
-
-// Initialize Vite imports only in development
-if (process.env.NODE_ENV === 'development') {
-  try {
-    const viteModule = await import('vite');
-    createViteServer = viteModule.createServer;
-    createLogger = viteModule.createLogger;
-
-    const configModule = await import('../vite.config.js');
-    viteConfig = configModule.default;
-  } catch (error) {
-    console.log('Vite not available - skipping development setup');
-  }
-}
-
-const viteLogger = createLogger ? createLogger() : null;
+const viteLogger = createLogger();
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -35,12 +20,6 @@ export function log(message: string, source = "express") {
 }
 
 export async function setupVite(app: Express, server: Server) {
-  // Skip Vite setup in production or if imports failed
-  if (process.env.NODE_ENV !== 'development' || !createViteServer || !viteConfig) {
-    console.log('Skipping Vite setup - production mode or Vite unavailable');
-    return;
-  }
-
   const serverOptions = {
     middlewareMode: true,
     hmr: { server },
@@ -52,7 +31,7 @@ export async function setupVite(app: Express, server: Server) {
     configFile: false,
     customLogger: {
       ...viteLogger,
-      error: (msg: string, options: any) => {
+      error: (msg, options) => {
         viteLogger.error(msg, options);
         process.exit(1);
       },

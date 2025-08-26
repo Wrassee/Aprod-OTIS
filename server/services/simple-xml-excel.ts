@@ -98,62 +98,32 @@ class SimpleXmlExcelService {
           modifiedCount++;
           console.log(`XML: Replaced ${cell} = "${value}" (formatting preserved)`);
         } 
-        // Replace any existing cell regardless of format
-        else if (worksheetXml.includes(`<c r="${cell}"`)) {
-          // Find the cell with a simple search - this will catch ALL cell types
-          const cellStartIndex = worksheetXml.indexOf(`<c r="${cell}"`);
-          if (cellStartIndex !== -1) {
-            // Find the end of this cell tag
-            let cellEndIndex = worksheetXml.indexOf('>', cellStartIndex);
-            
-            // Check if it's self-closing
-            const isSelfClosing = worksheetXml.substring(cellStartIndex, cellEndIndex + 1).endsWith('/>');
-            
-            if (isSelfClosing) {
-              cellEndIndex = worksheetXml.indexOf('/>', cellStartIndex) + 2;
-            } else {
-              // Find the closing tag
-              cellEndIndex = worksheetXml.indexOf('</c>', cellStartIndex) + 4;
-            }
-            
-            const originalCell = worksheetXml.substring(cellStartIndex, cellEndIndex);
-            
-            // For ERROR CELLS: Use PLAIN TEXT format, ignore original style
-            const isErrorCell = cell.match(/^[ADK]7[3-9]\d$/);
-            const replacement = isErrorCell 
-              ? `<c r="${cell}" t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`
-              : `<c r="${cell}" t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`;
-            
-            // Replace the found cell
-            worksheetXml = worksheetXml.replace(originalCell, replacement);
+        // Replace self-closing empty cells with exact style preservation
+        else if (worksheetXml.includes(`<c r="${cell}" s="`)) {
+          // Find the exact style value manually
+          const styleMatch = worksheetXml.match(new RegExp(`<c r="${cell}" s="([^"]+)"/>`));
+          if (styleMatch) {
+            const styleValue = styleMatch[1];
+            const replacement = `<c r="${cell}" s="${styleValue}" t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`;
+            worksheetXml = worksheetXml.replace(
+              new RegExp(`<c r="${cell}" s="${styleValue}"/>`), 
+              replacement
+            );
             modifiedCount++;
-            
-            const logMessage = isErrorCell 
-              ? `XML: FORCE REPLACED ERROR ${cell} = "${value}" (PLAIN TEXT, NO STYLE)`
-              : `XML: FORCE REPLACED ${cell} = "${value}" (inlineStr format)`;
-            console.log(logMessage);
+            console.log(`XML: Added ${cell} = "${value}" (exact style preserved: s="${styleValue}")`);
           } else {
-            console.log(`XML: Cell ${cell} not found in worksheet`);
+            console.log(`XML: Style match failed for ${cell}`);
           }
         }
         // Fallback for any other empty pattern
         else if (emptyPattern.test(worksheetXml)) {
           const rowNum = cell.match(/\d+/)?.[0];
-          const isErrorCell = cell.match(/^[ADK]7[3-9]\d$/);
+          const defaultStyle = this.inferCellStyle(cell, rowNum);
           
-          // ERROR CELLS: No style, plain text only
-          if (isErrorCell) {
-            worksheetXml = worksheetXml.replace(emptyPattern, 
-              `<c r="${cell}" t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`);
-            modifiedCount++;
-            console.log(`XML: Added ERROR ${cell} = "${value}" (PLAIN TEXT, NO STYLE)`);
-          } else {
-            const defaultStyle = this.inferCellStyle(cell, rowNum);
-            worksheetXml = worksheetXml.replace(emptyPattern, 
-              `<c r="${cell}"$1${defaultStyle} t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`);
-            modifiedCount++;
-            console.log(`XML: Added ${cell} = "${value}" (with inferred style)`);
-          }
+          worksheetXml = worksheetXml.replace(emptyPattern, 
+            `<c r="${cell}"$1${defaultStyle} t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`);
+          modifiedCount++;
+          console.log(`XML: Added ${cell} = "${value}" (with inferred style)`);
         }
         // Insert new cell if row exists
         else {
@@ -161,21 +131,11 @@ class SimpleXmlExcelService {
           if (rowNumber) {
             const rowPattern = new RegExp(`(<row r="${rowNumber}"[^>]*>)(.*?)(</row>)`, 'g');
             if (rowPattern.test(worksheetXml)) {
-              const isErrorCell = cell.match(/^[ADK]7[3-9]\d$/);
-              
-              // ERROR CELLS: Create plain text cell with no style
-              if (isErrorCell) {
-                worksheetXml = worksheetXml.replace(rowPattern, 
-                  `$1$2<c r="${cell}" t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>$3`);
-                modifiedCount++;
-                console.log(`XML: Inserted ERROR ${cell} = "${value}" (PLAIN TEXT, NO STYLE)`);
-              } else {
-                const defaultStyle = this.inferCellStyle(cell, rowNumber);
-                worksheetXml = worksheetXml.replace(rowPattern, 
-                  `$1$2<c r="${cell}"${defaultStyle} t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>$3`);
-                modifiedCount++;
-                console.log(`XML: Inserted ${cell} = "${value}" (with inferred style)`);
-              }
+              const defaultStyle = this.inferCellStyle(cell, rowNumber);
+              worksheetXml = worksheetXml.replace(rowPattern, 
+                `$1$2<c r="${cell}"${defaultStyle} t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>$3`);
+              modifiedCount++;
+              console.log(`XML: Inserted ${cell} = "${value}" (with inferred style)`);
             }
           }
         }
@@ -217,12 +177,6 @@ class SimpleXmlExcelService {
       }
       
       if (config && config.cellReference && answer !== '' && answer !== null && answer !== undefined) {
-        
-        // SPECIAL CASE: Skip false values for true_false questions (only process true values)
-        if (config.type === 'true_false' && (answer === false || answer === 'false')) {
-          console.log(`Skipping true_false question ${questionId} with false value: ${answer}`);
-          return;
-        }
         
         // Handle yes_no_na questions specially - put X in appropriate column(s)
         if (config.type === 'yes_no_na') {
@@ -316,22 +270,33 @@ class SimpleXmlExcelService {
             }
           }
         } else if (config.type === 'true_false') {
-          // Handle true_false questions - only put X for true, leave empty for false
-          console.log(`Processing true_false question ${questionId}: ${answer}`);
+          // Handle true_false questions - convert to X/-
+          let cellValue = answer;
           
-          // Only put X if the answer is explicitly true
-          if (answer === true || answer === 'true') {
-            console.log(`Adding X for true_false question ${questionId} in cell ${config.cellReference}`);
-            mappings.push({
-              cell: config.cellReference,
-              value: 'X',
-              label: `${config.title} - Igen`
-            });
+          console.log(`DEBUG: Processing true_false question ${questionId}`);
+          console.log(`DEBUG: Raw answer value:`, answer, `(type: ${typeof answer})`);
+          console.log(`DEBUG: Answer === 'true':`, answer === 'true');
+          console.log(`DEBUG: Answer === true:`, answer === true);
+          console.log(`DEBUG: Answer === 'false':`, answer === 'false');
+          console.log(`DEBUG: Answer === false:`, answer === false);
+          
+          if (answer === 'true' || answer === true) {
+            cellValue = 'X';
+          } else if (answer === 'false' || answer === false) {
+            cellValue = '-';
           } else {
-            // For false, null, undefined, empty string, etc. - leave cell empty (NO MAPPING!)
-            console.log(`Skipping true_false question ${questionId} (not true): ${answer}`);
+            // Handle any unexpected values
+            console.log(`WARNING: Unexpected true_false value for question ${questionId}:`, answer);
+            cellValue = '-'; // Default to false
           }
-          return; // IMPORTANT: Exit early so it doesn't fall through to other handlers
+          
+          console.log(`Processing true_false question ${questionId}: ${answer} -> ${cellValue}, cellRef: ${config.cellReference}`);
+          
+          mappings.push({
+            cell: config.cellReference,
+            value: cellValue,
+            label: config.title || `Question ${questionId}`
+          });
         } else if (config.type === 'measurement') {
           // Handle measurement questions - just the numeric value for Excel
           const numValue = parseFloat(String(answer));

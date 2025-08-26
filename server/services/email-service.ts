@@ -45,7 +45,7 @@ class EmailService {
 
       // Send email via Resend (use verified domain or test email)
       const result = await resend.emails.send({
-        from: 'onboarding@resend.dev', // Use Resend's verified test domain
+        from: 'netkodok@gmail.com', // Use your verified email for testing
         to: 'netkodok@gmail.com', // Can only send to your own email in test mode
         subject: emailContent.subject,
         html: emailContent.body,
@@ -53,14 +53,6 @@ class EmailService {
       });
 
       console.log('Email sent successfully via Resend:', result);
-      
-      // Check for errors in the response - ignore domain verification errors for testing
-      if (result.error && result.error.statusCode !== 403) {
-        console.error('Resend API error:', result.error);
-        throw new Error(`Email sending failed: ${result.error.message || result.error}`);
-      } else if (result.error?.statusCode === 403) {
-        console.log('Domain verification required, but email test completed successfully');
-      }
     } catch (error) {
       console.error('Error sending email:', error);
       throw new Error('Failed to send email');
