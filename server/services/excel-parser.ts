@@ -23,9 +23,9 @@ export interface ParsedQuestion {
 }
 
 class ExcelParserService {
-  async parseQuestionsFromExcel(buffer: Buffer): Promise<ParsedQuestion[]> {
+  async parseQuestionsFromExcel(filePath: string): Promise<ParsedQuestion[]> {
     try {
-      const workbook = XLSX.read(buffer, { type: 'buffer' });
+      const workbook = XLSX.readFile(filePath);
       const sheetName = workbook.SheetNames[0]; // Use first sheet
       const worksheet = workbook.Sheets[sheetName];
       
@@ -57,6 +57,12 @@ class ExcelParserService {
       const titleHuIndex = getColumnIndex(['title_hu', 'hungarian', 'magyar']);
       const titleDeIndex = getColumnIndex(['title_de', 'german', 'deutsch']);
       const typeIndex = getColumnIndex(['type', 'input_type', 'field_type']);
+      
+      console.log(`🔍 Excel Column Detection:
+        ID Index: ${idIndex} (${headerRow[idIndex]})
+        Title Index: ${titleIndex} (${headerRow[titleIndex]})
+        Type Index: ${typeIndex} (${headerRow[typeIndex]})
+        Header Row: ${JSON.stringify(headerRow)}`);
       const requiredIndex = getColumnIndex(['required', 'mandatory', 'kötelező']);
       const placeholderIndex = getColumnIndex(['placeholder', 'hint', 'example']);
       // Cell reference column - search for multiple possible names

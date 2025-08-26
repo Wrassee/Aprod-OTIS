@@ -3,7 +3,30 @@
 ## Overview
 This full-stack TypeScript application digitalizes the OTIS elevator acceptance protocol process. It guides users through a step-by-step questionnaire, enables error documentation with images, generates PDFs, and supports sharing. The system operates in both Hungarian and German, aiming to streamline and standardize the acceptance process, reduce manual errors, and improve efficiency for OTIS technicians. The project envisions a future of fully digitized and seamlessly integrated elevator inspection and acceptance procedures within existing OTIS systems.
 
-## Recent Changes (2025-08-21)
+## Recent Changes (2025-08-26)
+### ✅ REFACTORING COMPLETE - Project Structure Standardized for Deployment
+- **Backend Refactoring**: Complete relative imports conversion
+  - **Fixed**: All @shared/ aliases replaced with relative paths (../shared/schema.js)
+  - **Fixed**: All local imports now have .js extensions for Node.js ES Module compatibility
+  - **Updated**: server/db.ts, storage.ts, routes.ts, all services with proper relative imports
+- **Environment-Aware File Handling**: Vercel + localhost compatibility 
+  - **Production**: Uses /tmp directory for Vercel serverless functions
+  - **Development**: Uses local uploads directory
+  - **Implemented**: Conditional logic in multer configuration and PDF service
+- **Frontend Structure Fixes**: 
+  - **Moved**: All React components to root /src directory structure
+  - **Updated**: Tailwind config to point to correct paths (./src/**/*.{js,jsx,ts,tsx})
+  - **Fixed**: Static asset paths (OTIS logo renamed to otis-logo.png)
+- **Excel Question Parsing**: Enhanced with debug logging
+  - **Fixed**: Parser now accepts file paths instead of buffers
+  - **Enhanced**: Column detection with multiple possible names
+  - **Debug**: Added comprehensive logging for troubleshooting
+- **Supabase Integration**: Cloud storage ready for production
+  - **Working**: Template uploads to Supabase Storage
+  - **Fallback**: Local storage for development when cloud fails
+  - **Pattern**: Download-first-then-process for cloud files
+
+## Previous Changes (2025-08-21)
 ### ✅ ULTIMATE DEPLOYMENT FIX - All Vite Bundling Issues Permanently Resolved
 - **CRITICAL FIX**: COMPLETE - All suggested deployment fixes applied with ultimate solution
   - **Problem**: Protected `server/vite.ts` file with direct Vite imports causing persistent ESBuild failures

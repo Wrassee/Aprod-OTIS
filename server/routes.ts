@@ -32,11 +32,14 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024, // 10MB limit
   },
   fileFilter: (req, file, cb) => {
+    console.log('📁 File MIME type:', file.mimetype, 'Original name:', file.originalname);
     if (file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-        file.mimetype === 'application/vnd.ms-excel') {
+        file.mimetype === 'application/vnd.ms-excel' ||
+        file.originalname.endsWith('.xlsx') ||
+        file.originalname.endsWith('.xls')) {
       cb(null, true);
     } else {
-      cb(new Error('Only Excel files are allowed'));
+      cb(new Error(`Only Excel files are allowed. Received: ${file.mimetype}`));
     }
   },
 });
@@ -405,7 +408,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If it's a questions template, parse and create question configs
       if (type === 'questions' || type === 'unified') {
         try {
-          const questions = await excelParserService.parseQuestionsFromExcel(buffer);
+          // Use the uploaded file path instead of buffer for more reliable parsing
+          const questions = await excelParserService.parseQuestionsFromExcel(req.file.path);
           
           console.log(`Parsed ${questions.length} questions from ${type} template`);
           
