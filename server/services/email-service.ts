@@ -43,10 +43,10 @@ class EmailService {
         });
       }
 
-      // Send email via Resend (use verified domain or test email)
+      // Send email via Resend with proper domain
       const result = await resend.emails.send({
-        from: 'netkodok@gmail.com', // Use your verified email for testing
-        to: 'netkodok@gmail.com', // Can only send to your own email in test mode
+        from: 'onboarding@resend.dev', // Use Resend's test domain
+        to: options.recipient,
         subject: emailContent.subject,
         html: emailContent.body,
         attachments: attachments as any,
