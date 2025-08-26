@@ -85,13 +85,8 @@ function App() {
   }, []);
 
   const handleQuestionnaireNext = () => {
-    // Navigate directly to signature to skip template-based niedervolt measurements
-    // The hardcoded Niedervolt Table UI is accessible via the admin menu
-    setCurrentScreen('signature');
-  };
-  
-  const handleGoToNiedervoltTable = () => {
-    // Direct access to the hardcoded Niedervolt Table with beautiful UI
+    // After completing all template questions, show the beautiful Niedervolt UI
+    console.log('🔄 Questionnaire completed - showing Niedervolt UI as final step');
     setCurrentScreen('niedervolt');
   };
 
@@ -611,7 +606,6 @@ function App() {
         return <Admin 
           onBack={() => setCurrentScreen('questionnaire')} 
           onHome={() => setCurrentScreen('start')} 
-          onNiedervoltTable={handleGoToNiedervoltTable}
         />;
       case 'protocol-preview':
         return <ProtocolPreview onBack={() => setCurrentScreen('completion')} />;

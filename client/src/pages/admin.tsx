@@ -26,10 +26,9 @@ interface Template {
 interface AdminProps {
   onBack: () => void;
   onHome?: () => void;
-  onNiedervoltTable?: () => void;
 }
 
-export function Admin({ onBack, onHome, onNiedervoltTable }: AdminProps) {
+export function Admin({ onBack, onHome }: AdminProps) {
   const { t, language } = useLanguageContext();
   const { toast } = useToast();
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -267,18 +266,7 @@ export function Admin({ onBack, onHome, onNiedervoltTable }: AdminProps) {
                   <Home className="h-4 w-4" />
                 </Button>
               )}
-              {onNiedervoltTable && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onNiedervoltTable}
-                  className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 mr-4"
-                  title={language === 'de' ? 'Niedervolt Messungen' : 'Niedervolt Mérések'}
-                >
-                  <Settings className="h-4 w-4 mr-2" />
-                  {language === 'de' ? 'NIV Messungen' : 'NIV Mérések'}
-                </Button>
-              )}
+
               <div className="flex items-center">
                 <span className="text-lg font-medium text-gray-800 mr-3">{t.admin}</span>
                 <Badge variant="outline" className="bg-gray-50 text-gray-600 font-mono text-xs">

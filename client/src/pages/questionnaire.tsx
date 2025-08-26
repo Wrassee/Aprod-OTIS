@@ -185,8 +185,8 @@ const Questionnaire = memo(function Questionnaire({
       }));
 
     // Calculate pagination based on groups (1 group per page)
-    // Total: actual questionnaire groups + 1 niedervolt measurements page
-    const total = groupsArray.length + 1; // questionnaire groups + niedervolt page
+    // Total: actual questionnaire groups only (Niedervolt UI will be handled separately)
+    const total = groupsArray.length; // only questionnaire groups, no extra page
     const currentGroupData = groupsArray[currentPage] || { name: '', questions: [], questionCount: 0 };
     const prog = total > 0 ? ((currentPage + 1) / total) * 100 : 0;
     
