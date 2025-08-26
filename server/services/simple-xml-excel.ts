@@ -98,32 +98,62 @@ class SimpleXmlExcelService {
           modifiedCount++;
           console.log(`XML: Replaced ${cell} = "${value}" (formatting preserved)`);
         } 
-        // Replace self-closing empty cells with exact style preservation
-        else if (worksheetXml.includes(`<c r="${cell}" s="`)) {
-          // Find the exact style value manually
-          const styleMatch = worksheetXml.match(new RegExp(`<c r="${cell}" s="([^"]+)"/>`));
-          if (styleMatch) {
-            const styleValue = styleMatch[1];
-            const replacement = `<c r="${cell}" s="${styleValue}" t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`;
-            worksheetXml = worksheetXml.replace(
-              new RegExp(`<c r="${cell}" s="${styleValue}"/>`), 
-              replacement
-            );
+        // Replace any existing cell regardless of format
+        else if (worksheetXml.includes(`<c r="${cell}"`)) {
+          // Find the cell with a simple search - this will catch ALL cell types
+          const cellStartIndex = worksheetXml.indexOf(`<c r="${cell}"`);
+          if (cellStartIndex !== -1) {
+            // Find the end of this cell tag
+            let cellEndIndex = worksheetXml.indexOf('>', cellStartIndex);
+            
+            // Check if it's self-closing
+            const isSelfClosing = worksheetXml.substring(cellStartIndex, cellEndIndex + 1).endsWith('/>');
+            
+            if (isSelfClosing) {
+              cellEndIndex = worksheetXml.indexOf('/>', cellStartIndex) + 2;
+            } else {
+              // Find the closing tag
+              cellEndIndex = worksheetXml.indexOf('</c>', cellStartIndex) + 4;
+            }
+            
+            const originalCell = worksheetXml.substring(cellStartIndex, cellEndIndex);
+            
+            // For ERROR CELLS: Use PLAIN TEXT format, ignore original style
+            const isErrorCell = cell.match(/^[ADK]7[3-9]\d$/);
+            const replacement = isErrorCell 
+              ? `<c r="${cell}" t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`
+              : `<c r="${cell}" t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`;
+            
+            // Replace the found cell
+            worksheetXml = worksheetXml.replace(originalCell, replacement);
             modifiedCount++;
-            console.log(`XML: Added ${cell} = "${value}" (exact style preserved: s="${styleValue}")`);
+            
+            const logMessage = isErrorCell 
+              ? `XML: FORCE REPLACED ERROR ${cell} = "${value}" (PLAIN TEXT, NO STYLE)`
+              : `XML: FORCE REPLACED ${cell} = "${value}" (inlineStr format)`;
+            console.log(logMessage);
           } else {
-            console.log(`XML: Style match failed for ${cell}`);
+            console.log(`XML: Cell ${cell} not found in worksheet`);
           }
         }
         // Fallback for any other empty pattern
         else if (emptyPattern.test(worksheetXml)) {
           const rowNum = cell.match(/\d+/)?.[0];
-          const defaultStyle = this.inferCellStyle(cell, rowNum);
+          const isErrorCell = cell.match(/^[ADK]7[3-9]\d$/);
           
-          worksheetXml = worksheetXml.replace(emptyPattern, 
-            `<c r="${cell}"$1${defaultStyle} t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`);
-          modifiedCount++;
-          console.log(`XML: Added ${cell} = "${value}" (with inferred style)`);
+          // ERROR CELLS: No style, plain text only
+          if (isErrorCell) {
+            worksheetXml = worksheetXml.replace(emptyPattern, 
+              `<c r="${cell}" t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`);
+            modifiedCount++;
+            console.log(`XML: Added ERROR ${cell} = "${value}" (PLAIN TEXT, NO STYLE)`);
+          } else {
+            const defaultStyle = this.inferCellStyle(cell, rowNum);
+            worksheetXml = worksheetXml.replace(emptyPattern, 
+              `<c r="${cell}"$1${defaultStyle} t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`);
+            modifiedCount++;
+            console.log(`XML: Added ${cell} = "${value}" (with inferred style)`);
+          }
         }
         // Insert new cell if row exists
         else {
@@ -131,11 +161,21 @@ class SimpleXmlExcelService {
           if (rowNumber) {
             const rowPattern = new RegExp(`(<row r="${rowNumber}"[^>]*>)(.*?)(</row>)`, 'g');
             if (rowPattern.test(worksheetXml)) {
-              const defaultStyle = this.inferCellStyle(cell, rowNumber);
-              worksheetXml = worksheetXml.replace(rowPattern, 
-                `$1$2<c r="${cell}"${defaultStyle} t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>$3`);
-              modifiedCount++;
-              console.log(`XML: Inserted ${cell} = "${value}" (with inferred style)`);
+              const isErrorCell = cell.match(/^[ADK]7[3-9]\d$/);
+              
+              // ERROR CELLS: Create plain text cell with no style
+              if (isErrorCell) {
+                worksheetXml = worksheetXml.replace(rowPattern, 
+                  `$1$2<c r="${cell}" t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>$3`);
+                modifiedCount++;
+                console.log(`XML: Inserted ERROR ${cell} = "${value}" (PLAIN TEXT, NO STYLE)`);
+              } else {
+                const defaultStyle = this.inferCellStyle(cell, rowNumber);
+                worksheetXml = worksheetXml.replace(rowPattern, 
+                  `$1$2<c r="${cell}"${defaultStyle} t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>$3`);
+                modifiedCount++;
+                console.log(`XML: Inserted ${cell} = "${value}" (with inferred style)`);
+              }
             }
           }
         }
