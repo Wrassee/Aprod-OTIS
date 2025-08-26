@@ -1,18 +1,18 @@
 import { sql, relations } from "drizzle-orm";
-import { pgTable, text, varchar, jsonb, timestamp, boolean, integer } from "drizzle-orm/pg-core";
+import { sqliteTable, text, integer, real, blob } from "drizzle-orm/sqlite-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const protocols = pgTable("protocols", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const protocols = sqliteTable("protocols", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   receptionDate: text("reception_date").notNull(),
   language: text("language").notNull(),
-  answers: jsonb("answers").notNull().default({}),
-  errors: jsonb("errors").notNull().default([]),
+  answers: text("answers").notNull().default("{}"),
+  errors: text("errors").notNull().default("[]"),
   signature: text("signature"),
   signatureName: text("signature_name"),
-  completed: boolean("completed").notNull().default(false),
-  createdAt: timestamp("created_at").notNull().default(sql`now()`),
+  completed: integer("completed", { mode: 'boolean' }).notNull().default(false),
+  createdAt: integer("created_at").notNull().$defaultFn(() => Date.now()),
 });
 
 export const insertProtocolSchema = createInsertSchema(protocols).omit({
@@ -60,15 +60,15 @@ export const QuestionSchema = z.object({
 export type Question = z.infer<typeof QuestionSchema>;
 
 // Template management
-export const templates = pgTable("templates", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const templates = sqliteTable("templates", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   name: text("name").notNull(),
   type: text("type").notNull(), // "questions" or "protocol"
   fileName: text("file_name").notNull(),
   filePath: text("file_path").notNull(),
   language: text("language").notNull().default("multilingual"), // "hu", "de", or "multilingual"
-  uploadedAt: timestamp("uploaded_at").notNull().default(sql`now()`),
-  isActive: boolean("is_active").notNull().default(false),
+  uploadedAt: integer("uploaded_at").notNull().$defaultFn(() => Date.now()),
+  isActive: integer("is_active", { mode: 'boolean' }).notNull().default(false),
 });
 
 export const insertTemplateSchema = createInsertSchema(templates).omit({
@@ -80,19 +80,19 @@ export type InsertTemplate = z.infer<typeof insertTemplateSchema>;
 export type Template = typeof templates.$inferSelect;
 
 // Question configuration from Excel
-export const questionConfigs = pgTable("question_configs", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  templateId: varchar("template_id").notNull().references(() => templates.id),
+export const questionConfigs = sqliteTable("question_configs", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  templateId: text("template_id").notNull().references(() => templates.id),
   questionId: text("question_id").notNull(),
   title: text("title").notNull(),
   titleHu: text("title_hu"),
   titleDe: text("title_de"),
   type: text("type").notNull(),
-  required: boolean("required").notNull().default(true),
+  required: integer("required", { mode: 'boolean' }).notNull().default(true),
   placeholder: text("placeholder"),
   cellReference: text("cell_reference"), // B5, C10, etc. For yes_no_na: comma-separated A5,B5,C5 or multi-row A5;A6;A7,B5;B6;B7,C5;C6;C7
   sheetName: text("sheet_name").default("Sheet1"),
-  multiCell: boolean("multi_cell").notNull().default(false), // Controls multi-row X placement for yes_no_na
+  multiCell: integer("multi_cell", { mode: 'boolean' }).notNull().default(false), // Controls multi-row X placement for yes_no_na
   groupName: text("group_name"), // Block group name for organizing questions (e.g., "Alapadatok", "Gépház", "Ajtók")
   groupNameDe: text("group_name_de"), // German group name (e.g., "Grunddaten", "Maschinenraum", "Türen")
   groupOrder: integer("group_order").default(0), // Order within the group
@@ -102,7 +102,7 @@ export const questionConfigs = pgTable("question_configs", {
   maxValue: integer("max_value"), // Maximum allowed value
   calculationFormula: text("calculation_formula"), // e.g., "q1 + q2 - q3" for calculated fields
   calculationInputs: text("calculation_inputs"), // comma-separated question IDs used in calculation
-  createdAt: timestamp("created_at").notNull().default(sql`now()`),
+  createdAt: integer("created_at").notNull().$defaultFn(() => Date.now()),
 });
 
 export const insertQuestionConfigSchema = createInsertSchema(questionConfigs).omit({

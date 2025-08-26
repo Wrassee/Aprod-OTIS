@@ -67,7 +67,7 @@ class PDFService {
           fs.unlinkSync(tempExcelPath);
           fs.unlinkSync(pdfPath);
         } catch (e) {
-          console.log('Excel-to-PDF: Cleanup warning:', e.message);
+          console.log('Excel-to-PDF: Cleanup warning:', (e as Error).message);
         }
         
         console.log('Excel-to-PDF: SUCCESS! Perfect PDF generated, size:', pdfBuffer.length);
@@ -78,7 +78,7 @@ class PDFService {
       }
       
     } catch (error) {
-      console.log('Excel-to-PDF: LibreOffice error:', error.message, '- using fallback');
+      console.log('Excel-to-PDF: LibreOffice error:', (error as Error).message, '- using fallback');
       return this.generateHTMLBasedPDF(excelBuffer);
     }
   }
@@ -94,7 +94,7 @@ class PDFService {
         cellNF: true,
         cellHTML: true,
         sheetStubs: true,
-        bookSST: true,
+        // bookSST: true, // Removed unsupported option
         dense: false
       });
       

@@ -202,7 +202,7 @@ class ExcelService {
       }
 
       // Add errors section
-      if (formData.errors.length > 0) {
+      if (formData.errors && formData.errors.length > 0) {
         worksheetData.push(['', '', '', '']);
         worksheetData.push(['Error List:', '', '', '']);
         worksheetData.push(['', '', '', '']);
@@ -210,7 +210,7 @@ class ExcelService {
         formData.errors.forEach((error, index) => {
           worksheetData.push([
             `Error ${index + 1}:`,
-            error.title,
+            error.description,
             error.severity,
             ''
           ]);
