@@ -206,10 +206,10 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
 }
 
 export const clearAllCalculatedValues = () => {
-  const calculatedQuestionIds = Object.keys(MeasurementCache.getAllValues()).filter(id => 
-    id.includes('calculation') || id.includes('calculated')
-  );
-  calculatedQuestionIds.forEach(id => MeasurementCache.clearValue(id));
+  // Clear calculated values from global cache
+  if ((window as any).calculatedValues) {
+    (window as any).calculatedValues = {};
+  }
 };
 
 // Export function to get all calculated values for external use

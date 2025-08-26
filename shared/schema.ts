@@ -50,12 +50,23 @@ export type ProtocolError = z.infer<typeof ProtocolError>;
 export const QuestionSchema = z.object({
   id: z.string(),
   title: z.string(),
+  titleHu: z.string().optional(),
+  titleDe: z.string().optional(),
   type: QuestionType,
   required: z.boolean().default(true),
   placeholder: z.string().optional(),
   cellReference: z.string().optional(), // Excel cell reference like "B5" or "A5;B5" for true_false pairs
   sheetName: z.string().optional(), // Sheet name in Excel file
   groupSize: z.number().optional(), // For true_false type: how many questions in this group
+  groupName: z.string().optional(), // Group name for organizing questions
+  groupNameDe: z.string().optional(), // German group name
+  groupOrder: z.number().optional(), // Order within the group
+  unit: z.string().optional(), // Unit for measurement/calculated questions
+  minValue: z.number().optional(), // Minimum value for validation
+  maxValue: z.number().optional(), // Maximum value for validation
+  calculationFormula: z.string().optional(), // Formula for calculated questions
+  calculationInputs: z.string().optional(), // Comma-separated input IDs for calculated questions
+  multiCell: z.boolean().optional(), // If this question spans multiple cells
 });
 export type Question = z.infer<typeof QuestionSchema>;
 

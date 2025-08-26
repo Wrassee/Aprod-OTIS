@@ -431,7 +431,7 @@ const Questionnaire = memo(function Questionnaire({
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-otis-blue mx-auto mb-4"></div>
-              <p className="text-gray-600">{t.loadingQuestions}</p>
+              <p className="text-gray-600">{language === 'de' ? 'Fragen werden geladen...' : 'Kérdések betöltése...'}</p>
             </div>
           </div>
         ) : (
@@ -443,8 +443,10 @@ const Questionnaire = memo(function Questionnaire({
                 {/* Group Header */}
                 {currentGroup.name && (
                   <QuestionGroupHeader
-                    title={currentGroup.name}
+                    groupName={currentGroup.name}
                     questionCount={currentGroup.questionCount}
+                    totalGroups={questionGroups.length}
+                    currentGroupIndex={currentPage}
                     language={language}
                   />
                 )}
@@ -456,10 +458,9 @@ const Questionnaire = memo(function Questionnaire({
                       return (
                         <TrueFalseGroup
                           key={question.id}
-                          question={question}
-                          value={answers[question.id] as string}
-                          onChange={(value) => onAnswerChange(question.id, value)}
-                          onQuestionChange={onQuestionChange}
+                          questions={[question]}
+                          values={answers}
+                          onChange={onAnswerChange}
                           language={language}
                         />
                       );
@@ -470,7 +471,6 @@ const Questionnaire = memo(function Questionnaire({
                           question={question}
                           value={answers[question.id]}
                           onChange={(value) => onAnswerChange(question.id, value)}
-                          onQuestionChange={onQuestionChange}
                           language={language}
                         />
                       );
@@ -487,7 +487,7 @@ const Questionnaire = memo(function Questionnaire({
                     {t.measurementData || 'Measurement Data'}
                   </h2>
                   <p className="text-gray-600">
-                    {t.measurementDescription || 'Enter measurement values and view calculated results'}
+                    {language === 'de' ? 'Messwerte eingeben und berechnete Ergebnisse anzeigen' : 'Mérési értékek megadása és számított eredmények megtekintése'}
                   </p>
                 </div>
                 
@@ -496,7 +496,6 @@ const Questionnaire = memo(function Questionnaire({
                   questions={allQuestions}
                   values={answers}
                   onChange={onAnswerChange}
-                  language={language}
                 />
               </div>
             )}
@@ -509,7 +508,6 @@ const Questionnaire = memo(function Questionnaire({
                   onAddError={handleAddError}
                   onEditError={handleEditError}
                   onDeleteError={handleDeleteError}
-                  language={language}
                 />
               </div>
             )}
