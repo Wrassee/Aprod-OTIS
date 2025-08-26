@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx';
-import { FormData } from '../../shared/types';
-import { storage } from '../storage';
+import { FormData } from './../shared/types';
+import { storage } from './storage';
 import fs from 'fs';
 
 class SafeExcelService {
@@ -85,7 +85,7 @@ class SafeExcelService {
                       (i === 2 && value === 'na')
                     ) {
                       worksheet[cell].v = 'X';
-                      worksheet[cell].t = 's'; // string type
+                      worksheet[cell].t = 's'./ string type
                       filledCells++;
                     }
                   }
@@ -96,7 +96,7 @@ class SafeExcelService {
               const displayValue = (value === true || value === 'true') ? 'X' : '-';
               if (worksheet[cellRef]) {
                 worksheet[cellRef].v = displayValue;
-                worksheet[cellRef].t = 's'; // string type
+                worksheet[cellRef].t = 's'./ string type
                 filledCells++;
                 console.log(`SAFE: ${cellRef} = "${displayValue}" (${config.type})`);
               }
@@ -106,7 +106,7 @@ class SafeExcelService {
                 const numValue = parseFloat(value.toString());
                 if (!isNaN(numValue)) {
                   worksheet[cellRef].v = numValue;
-                  worksheet[cellRef].t = 'n'; // numeric type
+                  worksheet[cellRef].t = 'n'./ numeric type
                   filledCells++;
                   console.log(`SAFE: ${cellRef} = ${numValue} (${config.type})`);
                 }

@@ -4,21 +4,24 @@ import multer from "multer";
 import express from "express";
 import path from "path";
 import fs from "fs";
-import { storage } from "./storage";
-import { testConnection } from "./db";
-import { insertProtocolSchema, insertTemplateSchema, insertQuestionConfigSchema } from "@shared/schema";
-import { excelService } from "./services/excel-service";
-import { pdfService } from "./services/pdf-service";
-import { emailService } from "./services/email-service";
-import { excelParserService } from "./services/excel-parser";
-import { niedervoltExcelService } from "./services/niedervolt-excel-service";
-import { errorRoutes } from "./routes/error-routes";
-import { supabaseStorage } from "./services/supabase-storage";
+import { storage } from "./storage.js";
+import { testConnection } from "./db.js";
+import { insertProtocolSchema, insertTemplateSchema, insertQuestionConfigSchema } from "../shared/schema.js";
+import { excelService } from "./services/excel-service.js";
+import { pdfService } from "./services/pdf-service.js";
+import { emailService } from "./services/email-service.js";
+import { excelParserService } from "./services/excel-parser.js";
+import { niedervoltExcelService } from "./services/niedervolt-excel-service.js";
+import { errorRoutes } from "./routes/error-routes.js";
+import { supabaseStorage } from "./services/supabase-storage.js";
 import { z } from "zod";
 import JSZip from "jszip";
 
-// Configure multer for file uploads
-const uploadDir = path.join(process.cwd(), 'uploads');
+// Configure multer for file uploads - Environment aware
+const uploadDir = process.env.NODE_ENV === 'production' 
+  ? '/tmp'./ Vercel serverless requires /tmp
+  : path.join(process.cwd(), 'uploads');
+
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }

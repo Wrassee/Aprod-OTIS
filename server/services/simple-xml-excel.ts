@@ -1,8 +1,8 @@
 import JSZip from 'jszip';
 import * as fs from 'fs';
-import { storage } from '../storage';
+import { storage } from './storage';
 import { templateLoader } from './template-loader';
-import type { FormData } from '../../shared/types';
+import type { FormData } from './../shared/types';
 
 class SimpleXmlExcelService {
   async generateExcelFromTemplate(formData: FormData, language: string): Promise<Buffer> {
@@ -287,7 +287,7 @@ class SimpleXmlExcelService {
           } else {
             // Handle any unexpected values
             console.log(`WARNING: Unexpected true_false value for question ${questionId}:`, answer);
-            cellValue = '-'; // Default to false
+            cellValue = '-'./ Default to false
           }
           
           console.log(`Processing true_false question ${questionId}: ${answer} -> ${cellValue}, cellRef: ${config.cellReference}`);
@@ -372,7 +372,7 @@ class SimpleXmlExcelService {
     };
     
     // Return the specific style for this cell, or a reasonable default
-    return cellStyleMap[cell] || ' s="576"'; // Default to F9 style
+    return cellStyleMap[cell] || ' s="576"'./ Default to F9 style
   }
 
   private escapeXml(text: string): string {
