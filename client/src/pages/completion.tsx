@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useLanguageContext } from '@/components/language-provider';
 import { ErrorExport } from '@/components/error-export';
@@ -47,6 +48,24 @@ export function Completion({
   protocolData,
 }: CompletionProps) {
   const { t } = useLanguageContext();
+  const [emailStatus, setEmailStatus] = useState<string>('');
+  const [isEmailSending, setIsEmailSending] = useState(false);
+  
+  const handleEmailClick = async () => {
+    setIsEmailSending(true);
+    setEmailStatus('Email küldése folyamatban...');
+    
+    try {
+      await onEmailPDF();
+      setEmailStatus('✅ Email sikeresen elküldve!');
+      setTimeout(() => setEmailStatus(''), 5000);
+    } catch (error) {
+      setEmailStatus('❌ Email küldése sikertelen!');
+      setTimeout(() => setEmailStatus(''), 5000);
+    } finally {
+      setIsEmailSending(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-light-surface">
@@ -102,13 +121,26 @@ export function Completion({
           {/* Action Buttons */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             {/* Email PDF */}
-            <Button
-              onClick={onEmailPDF}
-              className="bg-otis-blue hover:bg-blue-700 text-white flex items-center justify-center py-4 h-auto"
-            >
-              <Mail className="h-5 w-5 mr-3" />
-              {t.emailPDF}
-            </Button>
+            <div className="relative">
+              <Button
+                onClick={handleEmailClick}
+                disabled={isEmailSending}
+                className="bg-otis-blue hover:bg-blue-700 text-white flex items-center justify-center py-4 h-auto w-full disabled:opacity-50"
+              >
+                <Mail className="h-5 w-5 mr-3" />
+                {isEmailSending ? 'Küldés...' : t.emailPDF}
+              </Button>
+              
+              {emailStatus && (
+                <div className={`absolute top-full mt-2 left-0 right-0 text-sm px-3 py-2 rounded text-center ${
+                  emailStatus.includes('✅') ? 'bg-green-100 text-green-700' : 
+                  emailStatus.includes('folyamatban') ? 'bg-blue-100 text-blue-700' :
+                  'bg-red-100 text-red-700'
+                }`}>
+                  {emailStatus}
+                </div>
+              )}
+            </div>
             
             {/* Save to Cloud */}
             <Button
