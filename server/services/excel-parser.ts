@@ -29,12 +29,12 @@ class ExcelParserService {
       
       // Read Excel file with dynamic import
       const XLSX = await import('xlsx');
-      const workbook = XLSX.readFile(filePath);
+      const workbook = XLSX.default.readFile(filePath);
       const sheetName = workbook.SheetNames[0]; // Use first sheet
       const worksheet = workbook.Sheets[sheetName];
       
-      // Convert sheet to array of arrays
-      const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+      // Convert sheet to array of arrays  
+      const data = XLSX.default.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
       
       const questions: ParsedQuestion[] = [];
       

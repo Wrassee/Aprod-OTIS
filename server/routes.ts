@@ -55,8 +55,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Error export routes
   app.use('/api/errors', errorRoutes);
 
-  // Serve temporary images
+  // Serve temporary images and static assets
   app.use('/temp', express.static(path.join(process.cwd(), 'temp')));
+  
+  // Serve OTIS logo with correct MIME type
+  app.get('/otis-logo.png', (req, res) => {
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.sendFile(path.resolve(process.cwd(), 'public', 'otis-logo.png'));
+  });
+  
+  app.use(express.static(path.join(process.cwd(), 'public')));
 
   // PWA routes - serve with correct MIME types
   app.get('/sw.js', (req, res) => {

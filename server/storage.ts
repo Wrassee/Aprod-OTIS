@@ -87,7 +87,8 @@ export class DatabaseStorage implements IStorage {
   async getActiveTemplate(type: string, language: string): Promise<Template | undefined> {
     console.log(`🔍 Looking for active template: type=${type}, language=${language}`);
     
-    const [template] = await db
+    // First try exact language match
+    let [template] = await db
       .select()
       .from(templates)
       .where(
@@ -98,7 +99,22 @@ export class DatabaseStorage implements IStorage {
         )
       );
     
-    console.log(`📋 Found template:`, template ? `${template.name} (active: ${template.isActive})` : 'None');
+    // If no exact match, try multilingual template
+    if (!template) {
+      console.log(`🔍 No ${language} template found, trying multilingual...`);
+      [template] = await db
+        .select()
+        .from(templates)
+        .where(
+          and(
+            eq(templates.type, type),
+            eq(templates.language, 'multilingual'),
+            eq(templates.isActive, true)
+          )
+        );
+    }
+    
+    console.log(`📋 Found template:`, template ? `${template.name} (${template.language}, active: ${template.isActive})` : 'None');
     return template || undefined;
   }
 
