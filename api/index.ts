@@ -1,5 +1,5 @@
-// Serverless deployment entry point - uses production-safe server
-import app from '../server/production-only';
+// Serverless deployment entry point for Vercel
+import app from '../server/app.js';
 
 // Export for Vercel serverless functions
 export default app;
