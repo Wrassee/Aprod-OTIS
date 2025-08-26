@@ -167,7 +167,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       const { name, type, language } = req.body;
       if (!name || !type || !language) {
-        fs.unlinkSync(req.file.path);
+        if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
         return res.status(400).json({ message: "Missing required fields: name, type, language" });
       }
 
@@ -228,7 +228,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "No active questions template found" });
       }
       
-      // --- JAVÍTVA: A sablon letöltésének és feldolgozásának logikája ---
+      // JAVÍTVA: A sablon letöltésének és feldolgozásának logikája
       const filePath = questionsTemplate.filePath;
       if (!filePath || !filePath.startsWith('http')) {
         throw new Error("Template file path is not a valid Supabase URL.");
