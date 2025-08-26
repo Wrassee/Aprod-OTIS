@@ -4,17 +4,21 @@
 This full-stack TypeScript application digitalizes the OTIS elevator acceptance protocol process. It guides users through a step-by-step questionnaire, enables error documentation with images, generates PDFs, and supports sharing. The system operates in both Hungarian and German, aiming to streamline and standardize the acceptance process, reduce manual errors, and improve efficiency for OTIS technicians. The project envisions a future of fully digitized and seamlessly integrated elevator inspection and acceptance procedures within existing OTIS systems.
 
 ## Recent Changes (2025-08-26)
-### ✅ REFACTORING & DEPLOYMENT READY - All Core Issues Resolved
-- **Questions Loading Fixed**: Active template detection works, questions endpoint functional
-  - **Fixed**: getActiveTemplate function with debug logging 
-  - **Working**: `/api/questions/hu` returns 3 test questions successfully
-  - **Manual Route**: Added questions endpoint that was missing from routes
-- **OTIS Logo Display Fixed**: Logo copied to public directory for proper serving
-  - **Fixed**: `/public/otis-logo.png` accessible via static serving
-  - **Working**: Start screen displays OTIS logo correctly
-- **Vite Config Requirements**: Manual user edit needed for deployment optimization
-  - **Add**: `base: ''` and `publicDir: 'public'` for Vercel compatibility
-  - **Protected**: File editing restricted, requires manual intervention
+### ✅ ALL CORE FEATURES WORKING - Email & Error Handling Complete
+- **Email Integration**: SUCCESSFUL with Resend API 
+  - **Working**: PDF attachments sent successfully (ID: 86499a4f-0982-40ae-9815-ad138f2956a5)
+  - **Fixed**: Domain verification handled, emails delivered to netkodok@gmail.com
+  - **Protocol**: Sends OTIS Protocol PDF + Error List PDF as attachments
+- **Excel Error Writing**: FIXED - Plain text insertion to 737+ rows
+  - **Working**: A737 (number), D737 (description), K737 (severity) columns
+  - **Method**: Force replacement technique catches all cell types (t="s", self-closing, etc.)
+  - **Format**: Plain text only, no style formatting as requested
+- **Protocol Preview**: PDF generation and display working
+  - **Endpoint**: `/api/protocols/download-pdf` provides PDF for iframe display
+  - **Working**: LibreOffice conversion maintains perfect Excel formatting
+- **Deployment Issue**: Local development working, but deployment broken
+  - **Status**: All features functional in development environment
+  - **Issue**: Code crashes during deployment process
 
 ### ✅ REFACTORING COMPLETE - Project Structure Standardized for Deployment
 - **Backend Refactoring**: Complete relative imports conversion
