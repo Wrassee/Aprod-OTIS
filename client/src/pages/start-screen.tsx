@@ -1,3 +1,4 @@
+import React from 'react';
 import { Button } from '@/components/ui/button';
 
 interface StartScreenProps {
@@ -11,7 +12,7 @@ export function StartScreen({ onLanguageSelect }: StartScreenProps) {
       {/* OTIS Logo */}
       <div className="mb-3">
         <img 
-          src="/otis-elevators-seeklogo_1753525178175.png" 
+          src="/otis-logo.png" 
           alt="OTIS Logo" 
           className="h-48 w-48"
         />

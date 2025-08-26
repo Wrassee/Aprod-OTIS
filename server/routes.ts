@@ -318,6 +318,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
+  // === TEST ROUTE TO ADD QUESTIONS MANUALLY ===
+  app.post("/api/test-add-question", async (req, res) => {
+    try {
+      const { templateId, questionId, title, type, required } = req.body;
+      
+      const questionConfig = await storage.createQuestionConfig({
+        templateId,
+        questionId,
+        title,
+        type,
+        required: required || true,
+        cellReference: 'A1',
+        sheetName: 'Sheet1',
+        groupName: 'Test Group',
+        groupOrder: 1
+      });
+      
+      res.json({ success: true, question: questionConfig });
+    } catch (error) {
+      console.error("Error adding test question:", error);
+      res.status(500).json({ message: "Failed to add question", error: error.message });
+    }
+  });
+
   // === ADMIN ROUTES FOR TEMPLATE MANAGEMENT ===
 
   // Get all templates
@@ -395,11 +419,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // For local development, parse questions even if Supabase failed
-      if (!fs.existsSync(req.file.path)) {
-        console.log("Template file processed, skipping question parsing");
-        return res.json({ success: true, message: "Template uploaded successfully" });
-      }
+      // ALWAYS parse questions from uploaded file, regardless of cloud storage status
+      console.log(`🔍 Parsing questions from uploaded file: ${req.file.path}`);
+      console.log(`📁 File exists: ${fs.existsSync(req.file.path)}`);
 
       // If it's a questions template, parse and create question configs
       if (type === 'questions' || type === 'unified') {

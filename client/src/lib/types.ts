@@ -1,4 +1,4 @@
-import { Question, AnswerValue, ProtocolError, ErrorSeverity } from "@shared/schema";
+import { Question, AnswerValue, ProtocolError, ErrorSeverity } from "../../shared/schema.js";
 
 export interface MeasurementRow {
   id: string;

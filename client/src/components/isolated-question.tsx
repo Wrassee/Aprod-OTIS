@@ -1,5 +1,5 @@
 import { memo, useCallback } from 'react';
-import { Question, AnswerValue } from '@shared/schema';
+import { Question, AnswerValue } from '../../shared/schema.js';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CacheRadio } from './cache-radio';
