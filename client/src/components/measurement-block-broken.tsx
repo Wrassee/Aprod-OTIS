@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calculator, Ruler, AlertTriangle } from 'lucide-react';
 import { StableInput } from './stable-input';
@@ -26,53 +26,164 @@ interface MeasurementBlockProps {
 
 export function MeasurementBlock({ questions, values, onChange, onAddError }: MeasurementBlockProps) {
   const { language, t } = useLanguageContext();
+  const [calculatedValues, setCalculatedValues] = useState<Record<string, any>>({});
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   
   const measurementQuestions = questions.filter(q => q.type === 'measurement');
   const calculatedQuestions = questions.filter(q => q.type === 'calculated');
 
+  // Recalculate when measurements change
   useEffect(() => {
-    MeasurementCache.restoreFromStorage();
-  }, []);
-
-  const calculateValue = (question: Question): number | null => {
-    if (!question.calculationFormula || !question.calculationInputs) {
-      return null;
-    }
-
-    try {
+    const handleMeasurementChange = () => {
+      console.log('🔄 Measurement change detected, recalculating...');
+      
+      // Get measurement values from global cache
       const measurementValues = (window as any).measurementValues || {};
-      let formula = question.calculationFormula;
+      const stableInputValues = (window as any).stableInputValues || {};
+      const combinedValues: Record<string, number> = {};
       
-      const inputIds = Array.isArray(question.calculationInputs) 
-        ? question.calculationInputs 
-        : question.calculationInputs.split(',').map((id: string) => id.trim());
-      
-      for (const inputId of inputIds) {
-        const value = measurementValues[inputId];
-        
-        if (value !== undefined && value !== null && value !== '') {
-          const numValue = typeof value === 'string' ? parseFloat(value) : value;
-          if (!isNaN(numValue)) {
-            formula = formula.replace(new RegExp(`\\b${inputId}\\b`, 'g'), numValue.toString());
-          } else {
-            return null;
-          }
-        } else {
-          return null;
+      // Combine and convert to numbers
+      Object.keys({ ...measurementValues, ...stableInputValues }).forEach(key => {
+        const value = measurementValues[key] || stableInputValues[key];
+        const numValue = typeof value === 'string' ? parseFloat(value) : value;
+        if (!isNaN(numValue)) {
+          combinedValues[key] = numValue;
         }
-      }
+      });
       
-      try {
-        const result = Function(`"use strict"; return (${formula})`)();
-        const roundedResult = typeof result === 'number' && !isNaN(result) ? Math.round(result) : null;
-        return roundedResult;
-      } catch (evalError) {
-        return null;
-      }
+      console.log('📊 Combined measurement values:', combinedValues);
       
-    } catch (error) {
-      return null;
-    }
+      // Calculate all calculated questions
+      const newCalculatedValues: Record<string, any> = {};
+      
+      calculatedQuestions.forEach(question => {
+        if (question.calculationFormula && question.calculationInputs) {
+          try {
+            let formula = question.calculationFormula;
+            const inputIds = question.calculationInputs.split(',').map(id => id.trim());
+            let hasAllInputs = true;
+            
+            console.log(`🧮 Calculating ${question.id} with formula: ${formula}`);
+            console.log(`📋 Required inputs: ${inputIds.join(', ')}`);
+            
+            // Replace variables with values
+            inputIds.forEach(inputId => {
+              const value = combinedValues[inputId];
+              if (value !== undefined && value !== null && !isNaN(value)) {
+                formula = formula.replace(new RegExp(`\\b${inputId}\\b`, 'g'), value.toString());
+                console.log(`  ${inputId} = ${value} → formula: ${formula}`);
+              } else {
+                hasAllInputs = false;
+                console.log(`  ❌ Missing value for ${inputId}`);
+              }
+            });
+            
+            if (hasAllInputs) {
+              console.log(`🔢 Evaluating: ${formula}`);
+              const result = Function(`"use strict"; return (${formula})`)();
+              const roundedResult = Math.round(result);
+              console.log(`✅ Result: ${roundedResult}`);
+              
+              newCalculatedValues[question.id] = {
+                value: roundedResult,
+                isValid: true,
+                formula: question.calculationFormula,
+                inputs: inputIds
+              };
+              
+              // Update form value
+              onChange(question.id, roundedResult);
+            } else {
+              console.log(`⏳ Waiting for all inputs for ${question.id}`);
+              newCalculatedValues[question.id] = {
+                value: null,
+                isValid: false,
+                error: 'Missing input values'
+              };
+            }
+          } catch (error) {
+            console.error(`❌ Calculation error for ${question.id}:`, error);
+            newCalculatedValues[question.id] = {
+              value: null,
+              isValid: false,
+              error: error.message
+            };
+          }
+        }
+      });
+      
+      setCalculatedValues(newCalculatedValues);
+    };
+    
+    // Initial calculation
+    handleMeasurementChange();
+    
+    // Listen for measurement changes
+    window.addEventListener('measurement-change', handleMeasurementChange);
+    
+    return () => {
+      window.removeEventListener('measurement-change', handleMeasurementChange);
+    };
+  }, [questions, calculatedQuestions, onChange]);
+
+  const renderCalculatedValue = (question: Question) => {
+    const result = calculatedValues[question.id];
+    const displayValue = result?.isValid && result.value !== null 
+      ? result.value.toString()
+      : '-';
+    
+    const getTitle = () => {
+      if (language === 'de' && question.titleDe) return question.titleDe;
+      if (language === 'hu' && question.titleHu) return question.titleHu;
+      return question.title;
+    };
+    
+    const isOutOfRange = result?.isValid && (
+      (question.minValue !== undefined && result.value < question.minValue) ||
+      (question.maxValue !== undefined && result.value > question.maxValue)
+    );
+
+    return (
+      <div key={question.id} className="space-y-2">
+        <div className="flex items-center gap-4">
+          <label className="text-xl font-bold text-gray-900 flex-1 leading-relaxed">
+            {getTitle()}
+            {question.unit && (
+              <span className="ml-2 text-gray-700 font-medium">({question.unit})</span>
+            )}
+          </label>
+          
+          <div 
+            className={`flex-shrink-0 w-20 px-3 py-2 text-center font-bold text-lg rounded-lg border-2 ${
+              isOutOfRange ? 'border-red-500 bg-red-50 text-red-700' : 'border-green-500 bg-green-50 text-green-700'
+            }`}
+          >
+            {displayValue}
+          </div>
+        </div>
+        
+        {question.minValue !== undefined && question.maxValue !== undefined && (
+          <p className="text-xs text-gray-500 ml-1">
+            {language === 'de' ? 'Bereich' : 'Tartomány'}: {question.minValue} - {question.maxValue} {question.unit || ''}
+          </p>
+        )}
+        
+        {isOutOfRange && result?.error && (
+          <p className="text-xs text-red-500 ml-1">
+            {language === 'de' 
+              ? 'Wert außerhalb des zulässigen Bereichs' 
+              : 'Az érték a megengedett tartományon kívül esik'
+            }
+          </p>
+        )}
+        
+        {process.env.NODE_ENV === 'development' && result && (
+          <p className="text-xs text-gray-400 ml-1">
+            Debug: {result.formula} = {result.value} (Valid: {result.isValid ? 'Yes' : 'No'})
+          </p>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -113,6 +224,16 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
                       className="text-center font-mono border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 w-20"
                       min={question.minValue}
                       max={question.maxValue}
+                      onValueChange={(value) => {
+                        // Update measurement values immediately
+                        MeasurementCache.setValue(question.id, value);
+                        onChange(question.id, parseFloat(value) || 0);
+                        
+                        // Trigger measurement change event for calculated fields
+                        setTimeout(() => {
+                          window.dispatchEvent(new CustomEvent('measurement-change'));
+                        }, 100);
+                      }}
                       onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                         if (e.key === 'Enter') {
                           e.preventDefault();
@@ -166,9 +287,15 @@ export function MeasurementBlock({ questions, values, onChange, onAddError }: Me
           <CardContent>
             <div className="space-y-4">
               {calculatedQuestions.map((question, index) => {
-                const calculatedValue = calculateValue(question);
+                const result = calculatedValues[question.id];
+                const calculatedValue = result?.isValid && result.value !== null ? result.value : null;
                 const isOutOfBounds = calculatedValue !== null && question.minValue !== undefined && question.maxValue !== undefined &&
                   (calculatedValue < question.minValue || calculatedValue > question.maxValue);
+                
+                // Auto-save calculated value
+                if (calculatedValue !== null) {
+                  onChange(question.id, calculatedValue);
+                }
 
                 return (
                   <div key={question.id} className="flex items-center gap-4 py-3 border-b border-gray-100 last:border-b-0">
