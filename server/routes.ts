@@ -19,7 +19,7 @@ import JSZip from "jszip";
 
 // Configure multer for file uploads - Environment aware
 const uploadDir = process.env.NODE_ENV === 'production' 
-  ? '/tmp'./ Vercel serverless requires /tmp
+  ? '/tmp'  // Vercel serverless requires /tmp
   : path.join(process.cwd(), 'uploads');
 
 if (!fs.existsSync(uploadDir)) {

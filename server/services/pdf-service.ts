@@ -22,11 +22,11 @@ class PDFService {
       const timestamp = Date.now();
       const tempExcelPath = path.join(tempDir, `excel-${timestamp}.xlsx`);
       
-      // Write Excel buffer to temporary file
+        // Write Excel buffer to temporary file
       fs.writeFileSync(tempExcelPath, excelBuffer);
       console.log('Excel-to-PDF: Temporary Excel file written:', tempExcelPath);
       
-      // Convert Excel to PDF using LibreOffice
+        // Convert Excel to PDF using LibreOffice
       console.log('Excel-to-PDF: Starting LibreOffice conversion...');
       
       const conversionProcess = spawn('libreoffice', [
@@ -52,19 +52,19 @@ class PDFService {
         setTimeout(() => {
           conversionProcess.kill();
           resolve(-1);
-        }, 15000); // 15 second timeout
+        }, 15000);   // 15 second timeout
       });
       
       console.log('Excel-to-PDF: LibreOffice exit code:', exitCode);
       if (stderr) console.log('Excel-to-PDF: LibreOffice stderr:', stderr);
       
-      // Expected PDF path
+        // Expected PDF path
       const pdfPath = path.join(tempDir, `excel-${timestamp}.pdf`);
       
       if (exitCode === 0 && fs.existsSync(pdfPath)) {
         const pdfBuffer = fs.readFileSync(pdfPath);
         
-        // Cleanup
+          // Cleanup
         try {
           fs.unlinkSync(tempExcelPath);
           fs.unlinkSync(pdfPath);
@@ -89,7 +89,7 @@ class PDFService {
     try {
       console.log('Excel-to-PDF: Generating HTML-based PDF with Excel styling');
       
-      // Read Excel with all formatting options
+        // Read Excel with all formatting options
       const workbook = XLSX.read(excelBuffer, { 
         type: 'buffer',
         cellStyles: true,
@@ -102,10 +102,10 @@ class PDFService {
       
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       
-      // Convert to HTML with enhanced CSS for Excel-like appearance
+        // Convert to HTML with enhanced CSS for Excel-like appearance
       const htmlContent = this.createExcelLikeHTML(worksheet);
       
-      // Save HTML to temp file and return as "PDF" (user can save as PDF)
+        // Save HTML to temp file and return as "PDF" (user can save as PDF)
       const fs = await import('fs');
       const path = await import('path');
       const tempDir = process.env.NODE_ENV === 'production' 
@@ -121,7 +121,7 @@ class PDFService {
       
       console.log('Excel-to-PDF: HTML file created for manual PDF conversion');
       
-      // Return the Excel buffer as PDF for now (user can manually save as PDF)
+        // Return the Excel buffer as PDF for now (user can manually save as PDF)
       return excelBuffer;
       
     } catch (error) {
@@ -131,7 +131,7 @@ class PDFService {
   }
   
   private createExcelLikeHTML(worksheet: any): string {
-    // Convert worksheet to HTML with Excel-like styling
+      // Convert worksheet to HTML with Excel-like styling
     const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1:Z100');
     
     let html = `<!DOCTYPE html>
@@ -188,7 +188,7 @@ class PDFService {
 <body>
   <table>`;
     
-    // Generate table rows based on Excel data
+      // Generate table rows based on Excel data
     for (let row = range.s.r; row <= Math.min(range.e.r, 100); row++) {
       html += '<tr>';
       
@@ -202,7 +202,7 @@ class PDFService {
         if (cell && cell.v !== undefined) {
           cellValue = String(cell.v);
           
-          // Style based on content (simple heuristics)
+            // Style based on content (simple heuristics)
           if (cellValue.includes('OTIS') || row < 3) {
             cellClass = 'header-cell';
           }
@@ -229,7 +229,7 @@ class PDFService {
     const basicInfo: Array<{label: string, value: string}> = [];
     const questions: Array<{question: string, answer: string}> = [];
     
-    // Common field mappings (approximate positions based on typical Excel templates)
+      // Common field mappings (approximate positions based on typical Excel templates)
     const fieldMap = [
       { pattern: /átvevő|name.*prüfer|recipient/i, label: 'Recipient Name' },
       { pattern: /szerelő|monteur|engineer/i, label: 'Engineer Name' },
@@ -242,7 +242,7 @@ class PDFService {
       { pattern: /kirendeltség|agentur|agency/i, label: 'Agency' }
     ];
     
-    // Process data to find key information
+      // Process data to find key information
     data.forEach((row, rowIndex) => {
       if (!row || row.length === 0) return;
       
@@ -250,10 +250,10 @@ class PDFService {
         if (cell && typeof cell === 'string' && cell.trim()) {
           const cellValue = cell.trim();
           
-          // Check if this looks like a field label
+            // Check if this looks like a field label
           fieldMap.forEach(field => {
             if (field.pattern.test(cellValue)) {
-              // Look for value in next cell or nearby cells
+                // Look for value in next cell or nearby cells
               const value = this.findNearbyValue(data, rowIndex, cellIndex);
               if (value) {
                 basicInfo.push({ label: field.label, value });
@@ -261,7 +261,7 @@ class PDFService {
             }
           });
           
-          // Check for question patterns (Q25, Q26, etc. with X or -)
+            // Check for question patterns (Q25, Q26, etc. with X or -)
           if (/^Q\d+$/.test(cellValue)) {
             const answer = this.findNearbyValue(data, rowIndex, cellIndex);
             if (answer && (answer === 'X' || answer === '-' || answer.toLowerCase() === 'yes' || answer.toLowerCase() === 'no')) {
@@ -279,12 +279,12 @@ class PDFService {
   }
   
   private findNearbyValue(data: any[][], rowIndex: number, cellIndex: number): string | null {
-    // Look in adjacent cells for values
+      // Look in adjacent cells for values
     const searchPositions = [
-      [rowIndex, cellIndex + 1], // Right
-      [rowIndex + 1, cellIndex], // Below
-      [rowIndex, cellIndex + 2], // Two cells right
-      [rowIndex - 1, cellIndex], // Above
+      [rowIndex, cellIndex + 1],   // Right
+      [rowIndex + 1, cellIndex],   // Below
+      [rowIndex, cellIndex + 2],   // Two cells right
+      [rowIndex - 1, cellIndex],   // Above
     ];
     
     for (const [r, c] of searchPositions) {
@@ -300,13 +300,13 @@ class PDFService {
   }
 
   private createPDFContent(keyInfo: { basicInfo: Array<{label: string, value: string}>, questions: Array<{question: string, answer: string}> }): string {
-    // Create a simple but valid PDF with basic content
+      // Create a simple but valid PDF with basic content
     const currentDate = new Date().toLocaleString();
     
     let textContent = 'OTIS ACCEPTANCE PROTOCOL\\n\\n';
     textContent += 'Elevator Acceptance Documentation\\n\\n';
     
-    // Add basic info
+      // Add basic info
     if (keyInfo.basicInfo.length > 0) {
       textContent += 'BASIC INFORMATION:\\n';
       keyInfo.basicInfo.forEach(info => {
@@ -315,7 +315,7 @@ class PDFService {
       textContent += '\\n';
     }
     
-    // Add questions
+      // Add questions
     if (keyInfo.questions.length > 0) {
       textContent += 'INSPECTION QUESTIONS:\\n';
       keyInfo.questions.forEach((question, index) => {
@@ -327,7 +327,7 @@ class PDFService {
     
     textContent += `\\nGenerated: ${currentDate}\\nOTIS Elevator Company`;
     
-    // Create a minimal but valid PDF
+      // Create a minimal but valid PDF
     const pdfContent = `%PDF-1.3
 1 0 obj
 <<
@@ -409,15 +409,15 @@ startxref
     try {
       console.log('Using Excel-based fallback PDF generation');
       
-      // Read Excel and extract meaningful data
+        // Read Excel and extract meaningful data
       const workbook = XLSX.read(excelBuffer, { type: 'buffer' });
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       
-      // Extract data in a more structured way
+        // Extract data in a more structured way
       const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1:Z100');
       const extractedData: Array<{label: string, value: string}> = [];
       
-      // Look for filled cells with meaningful content
+        // Look for filled cells with meaningful content
       for (let row = range.s.r; row <= Math.min(range.e.r, 50); row++) {
         for (let col = range.s.c; col <= Math.min(range.e.c, 10); col++) {
           const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
@@ -447,7 +447,7 @@ startxref
     } catch (error) {
       console.error('Fallback PDF generation failed:', error);
       
-      // Ultra simple fallback
+        // Ultra simple fallback
       const simplePDF = this.createSimplePDF();
       return Buffer.from(simplePDF, 'binary');
     }
