@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { ErrorExportService } from '.  //services/error-export.js';
+import { ErrorExportService } from '../services/error-export';
 
 const router = Router();
 

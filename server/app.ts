@@ -1,5 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes.js";
+import { registerRoutes } from "./routes";
 
 const app = express();
 app.use(express.json());

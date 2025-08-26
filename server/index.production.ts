@@ -1,12 +1,12 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-// Use conditional imports to prevent bundling issues
-import { serveStatic, log } from "./production-wrapper";
+import { serveStatic, log } from "./static-server";
 
 const app = express();
 
-// Export for Vercel
+// Export for serverless deployment (Vercel)
 export default app;
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -42,7 +42,7 @@ app.use((req, res, next) => {
 
 (async () => {
   try {
-    console.log('Starting server initialization...');
+    console.log('Starting production server initialization...');
     const server = await registerRoutes(app);
     console.log('Routes registered successfully');
 
@@ -54,36 +54,25 @@ app.use((req, res, next) => {
       res.status(status).json({ message });
     });
 
-    // Setup development or production serving
-    if (process.env.NODE_ENV === "development") {
-      console.log('Setting up Vite in development mode...');
-      // Add environment check in server startup to prevent Vite setup in production
-      try {
-        // Use completely safe Vite wrapper that prevents all bundling issues
-        const { setupVite } = await import("./production-wrapper");
-        await setupVite(app, server);
-        console.log('Vite setup completed successfully');
-      } catch (error: any) {
-        console.log('Vite setup failed, falling back to static serving:', error.message);
-        console.log('This is normal in production-like environments');
-        serveStatic(app);
-      }
-    } else {
-      console.log('Serving static files in production mode...');
-      serveStatic(app);
+    // In production, serve static files only
+    console.log('Serving static files in production mode...');
+    serveStatic(app);
+
+    // For serverless deployment (Vercel), don't start the server
+    if (process.env.VERCEL) {
+      console.log('Running in Vercel serverless environment');
+      return;
     }
 
     // ALWAYS serve the app on the port specified in the environment variable PORT
     // Other ports are firewalled. Default to 5000 if not specified.
-    // this serves both the API and the client.
-    // It is the only port that is not firewalled.
     const port = parseInt(process.env.PORT || '5000', 10);
     server.listen({
       port,
       host: "0.0.0.0",
       reusePort: true,
     }, () => {
-      log(`serving on port ${port}`);
+      log(`serving on port ${port}`, 'express');
     });
   } catch (error) {
     console.error('Failed to start server:', error);

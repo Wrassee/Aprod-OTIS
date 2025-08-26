@@ -50,16 +50,9 @@ export type ProtocolError = z.infer<typeof ProtocolError>;
 export const QuestionSchema = z.object({
   id: z.string(),
   title: z.string(),
-  titleHu: z.string().optional(),
-  titleDe: z.string().optional(),
   type: QuestionType,
   required: z.boolean().default(true),
   placeholder: z.string().optional(),
-  unit: z.string().optional(),
-  minValue: z.number().optional(),
-  maxValue: z.number().optional(),
-  calculationFormula: z.string().optional(),
-  calculationInputs: z.string().optional(),
   cellReference: z.string().optional(), // Excel cell reference like "B5" or "A5;B5" for true_false pairs
   sheetName: z.string().optional(), // Sheet name in Excel file
   groupSize: z.number().optional(), // For true_false type: how many questions in this group

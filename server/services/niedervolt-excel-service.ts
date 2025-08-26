@@ -1,6 +1,6 @@
 import JSZip from 'jszip';
 import fs from 'fs';
-import { storage } from '.  //storage';
+import { storage } from '../storage';
 import { templateLoader } from './template-loader';
 
 interface MeasurementRow {

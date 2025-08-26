@@ -1,5 +1,5 @@
-import { storage } from '.  //storage.js';
-import { supabaseStorage } from './supabase-storage.js';
+import { storage } from '../storage';
+import { supabaseStorage } from './supabase-storage';
 import fs from 'fs';
 import path from 'path';
 
@@ -37,7 +37,7 @@ export class TemplateLoaderService {
   }
 
   /**
-   * Download template from Supabase Storage to memory - Environment aware
+   * Download template from Supabase Storage to memory
    * @param publicUrl - Public URL from Supabase
    * @param fileName - Original filename for temp storage
    * @returns Buffer with template data
@@ -53,10 +53,8 @@ export class TemplateLoaderService {
       
       const storagePath = urlParts.slice(bucketIndex + 1).join('/');
       
-      // Create temp directory - Environment aware
-      const tempDir = process.env.NODE_ENV === 'production' 
-        ? '/tmp'./ Vercel serverless requires /tmp
-        : path.join(process.cwd(), 'temp');
+      // Create temp directory
+      const tempDir = path.join(process.cwd(), 'temp');
       if (!fs.existsSync(tempDir)) {
         fs.mkdirSync(tempDir, { recursive: true });
       }
