@@ -395,12 +395,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Read buffer for parsing - check if temp file still exists
-      let buffer;
-      if (fs.existsSync(req.file.path)) {
-        buffer = fs.readFileSync(req.file.path);
-      } else {
-        // Skip parsing if temp file is gone - template was created successfully
+      // For local development, parse questions even if Supabase failed
+      if (!fs.existsSync(req.file.path)) {
         console.log("Template file processed, skipping question parsing");
         return res.json({ success: true, message: "Template uploaded successfully" });
       }
@@ -408,8 +404,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If it's a questions template, parse and create question configs
       if (type === 'questions' || type === 'unified') {
         try {
-          // Use the uploaded file path instead of buffer for more reliable parsing
-          const questions = await excelParserService.parseQuestionsFromExcel(req.file.path);
+          // Use the final file path for parsing (either local fallback or the uploaded temp file)
+          const parseFilePath = newTemplate.filePath.startsWith('http') ? req.file.path : newTemplate.filePath;
+          console.log(`🔍 Parsing questions from: ${parseFilePath}`);
+          const questions = await excelParserService.parseQuestionsFromExcel(parseFilePath);
           
           console.log(`Parsed ${questions.length} questions from ${type} template`);
           
@@ -418,17 +416,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             await storage.createQuestionConfig({
               templateId: newTemplate.id,
               questionId: question.questionId,
-              title: question.title,
-              titleHu: question.titleHu || null,
-              titleDe: question.titleDe || null,
+              // Note: language is stored in the template, not individual questions
+              title: language === 'hu' ? (question.titleHu || question.title) : (question.titleDe || question.title),
               type: question.type,
               required: question.required,
               placeholder: question.placeholder || null,
               cellReference: question.cellReference || null,
               sheetName: question.sheetName || null,
               multiCell: question.multiCell || false,
-              groupName: question.groupName || null,
-              groupNameDe: question.groupNameDe || null,
+              groupName: language === 'hu' ? question.groupName : (question.groupNameDe || question.groupName),
               groupOrder: question.groupOrder || 0,
               unit: question.unit || null,
               minValue: question.minValue || null,
@@ -437,6 +433,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               calculationInputs: question.calculationInputs || null,
             });
           }
+          
+          console.log(`✅ Successfully saved ${questions.length} questions to database`);
         } catch (parseError) {
           console.error("Error parsing questions:", parseError);
           // Template still created, but parsing failed

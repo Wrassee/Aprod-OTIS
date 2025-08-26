@@ -2,22 +2,22 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 // Removed Wouter routing to prevent re-mounting issues with focus stability
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { LanguageProvider } from "@/components/language-provider";
+import { Toaster } from "./components/ui/toaster";
+import { TooltipProvider } from "./components/ui/tooltip";
+import { LanguageProvider } from "./components/language-provider";
 // Temporarily disabled PWA components for stability
-// import { PWAInstallBanner, OfflineIndicator } from "@/components/pwa-install-banner";
-import { StartScreen } from "@/pages/start-screen";
-import Questionnaire from "@/pages/questionnaire";
-import { NiedervoltTable } from "@/pages/niedervolt-table";
-import { Signature } from "@/pages/signature";
-import { Completion } from "@/pages/completion";
-import { Admin } from "@/pages/admin";
-import { ProtocolPreview } from "@/pages/protocol-preview";
-import { SmartHelpWizard } from "@/components/smart-help-wizard";
-import { FormData, MeasurementRow } from "@/lib/types";
+// import { PWAInstallBanner, OfflineIndicator } from "./components/pwa-install-banner";
+import { StartScreen } from "./pages/start-screen";
+import Questionnaire from "./pages/questionnaire";
+import { NiedervoltTable } from "./pages/niedervolt-table";
+import { Signature } from "./pages/signature";
+import { Completion } from "./pages/completion";
+import { Admin } from "./pages/admin";
+import { ProtocolPreview } from "./pages/protocol-preview";
+import { SmartHelpWizard } from "./components/smart-help-wizard";
+import { FormData, MeasurementRow } from "./lib/types";
 import { AnswerValue, ProtocolError } from "../shared/schema.js";
-import NotFound from "@/pages/not-found";
+import NotFound from "./pages/not-found";
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState<'start' | 'questionnaire' | 'niedervolt' | 'signature' | 'completion' | 'admin' | 'protocol-preview'>('start');
