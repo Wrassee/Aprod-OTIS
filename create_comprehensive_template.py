@@ -153,7 +153,7 @@ def create_comprehensive_template():
             'MultiCell': 'nem'
         },
         
-        # Calculated questions
+        # Calculated questions - must be in SAME GROUP as measurements!
         {
             'ID': 'calc1',
             'Title_Hun': 'Teljes lift magasság',
@@ -161,16 +161,16 @@ def create_comprehensive_template():
             'Type': 'calculated',
             'Cél/Placeholder': 'J40',
             'Unit': 'mm',
-            'calculation_formula': 'A + B + C',
+            'calculation_formula': 'm1 + m2 + m3',
             'calculation_inputs': 'm1,m2,m3',
             'min_value': '2000',
             'max_value': '50000',
-            'Blokk neve HU': 'Számítások',
-            'Order': 1,
+            'Blokk neve HU': 'Mérések',  # SAME as measurement group!
+            'Order': 4,  # After measurements
             'Kell': 'nem',
             'Leírás/Placeholder': 'Automatikusan számított érték',
             'Munkalap neve': 'Protocol',
-            'Blokk neve DE': 'Berechnungen',
+            'Blokk neve DE': 'Messungen',  # SAME as measurement group!
             'MultiCell': 'nem'
         },
         
