@@ -37,9 +37,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createProtocol(insertProtocol: InsertProtocol): Promise<Protocol> {
+    // JAVÍTVA: A Drizzle a Date objektumot helyesen kezeli
+    const dataWithDate = { ...insertProtocol, createdAt: new Date() };
     const [protocol] = await db
       .insert(protocols)
-      .values(insertProtocol)
+      .values(dataWithDate)
       .returning();
     return protocol;
   }
@@ -64,9 +66,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createTemplate(insertTemplate: InsertTemplate): Promise<Template> {
+    // JAVÍTVA: A Drizzle a Date objektumot helyesen kezeli
+    const dataWithDate = { ...insertTemplate, uploadedAt: new Date() };
     const [template] = await db
       .insert(templates)
-      .values(insertTemplate)
+      .values(dataWithDate)
       .returning();
     return template;
   }
@@ -125,7 +129,7 @@ export class DatabaseStorage implements IStorage {
     console.log(`🔄 Activating template: ${template.name} (${template.type}, ${template.language})`);
     
     // First, deactivate ALL templates of the same type and language
-    const deactivateResult = await db
+    await db
       .update(templates)
       .set({ isActive: false })
       .where(
@@ -135,10 +139,8 @@ export class DatabaseStorage implements IStorage {
         )
       );
     
-    console.log(`✅ Deactivated ${deactivateResult.changes} templates`);
-
     // Then activate the specified template
-    const activateResult = await db
+    await db
       .update(templates)
       .set({ isActive: true })
       .where(eq(templates.id, id));
@@ -161,9 +163,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createQuestionConfig(insertConfig: InsertQuestionConfig): Promise<QuestionConfig> {
+    // JAVÍTVA: A Drizzle a Date objektumot helyesen kezeli
+    const dataWithDate = { ...insertConfig, createdAt: new Date() };
     const [config] = await db
       .insert(questionConfigs)
-      .values(insertConfig)
+      .values(dataWithDate)
       .returning();
     return config;
   }
