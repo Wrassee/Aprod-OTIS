@@ -4,7 +4,6 @@ import multer from "multer";
 import express from "express";
 import path from "path";
 import fs from "fs";
-// --- JAVÍTOTT IMPORTOK ---
 import { storage } from "./storage.js";
 import { testConnection } from "./db.js";
 import { insertProtocolSchema, insertTemplateSchema, insertQuestionConfigSchema } from "../shared/schema.js"; 
@@ -15,11 +14,9 @@ import { excelParserService } from "./services/excel-parser.js";
 import { niedervoltExcelService } from "./services/niedervolt-excel-service.js";
 import { errorRoutes } from "./routes/error-routes.js";
 import { supabaseStorage } from "./services/supabase-storage.js";
-// --- JAVÍTÁSOK VÉGE ---
 import { z } from "zod";
 import JSZip from "jszip";
 
-// JAVÍTVA: Környezetfüggő feltöltési mappa, ami a Vercelen és localhoston is működik
 const uploadDir = process.env.NODE_ENV === 'production'
   ? '/tmp'
   : path.join(process.cwd(), 'uploads');
@@ -44,17 +41,10 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  const dbConnected = await testConnection();
-  if (!dbConnected) {
-    throw new Error('Failed to connect to database');
-  }
-
-  // JAVÍTVA: Az Express szolgálja ki a public mappát, hogy a logó biztosan működjön
+  await testConnection();
   app.use(express.static(path.join(process.cwd(), 'public')));
-  
   app.use('/api/errors', errorRoutes);
   
-  // Create protocol
   app.post("/api/protocols", async (req, res) => {
     try {
       const protocolData = insertProtocolSchema.parse(req.body);
@@ -66,7 +56,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get protocol by ID
+  app.get("/api/protocols/preview", async (req, res) => {
+    try {
+      const protocols = await storage.getAllProtocols();
+      const latestProtocol = protocols[protocols.length - 1];
+      if (!latestProtocol) {
+        const mockProtocol = {
+          id: 'preview-mock',
+          receptionDate: new Date().toISOString().split('T')[0],
+          answers: { '1': 'Példa Átvevő', '2': 'Példa Cím', '3': '1000', '4': 'Minden rendben' },
+          errors: [],
+          signature: '',
+          signatureName: 'Példa Aláíró',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        return res.json(mockProtocol);
+      }
+      res.json(latestProtocol);
+    } catch (error) {
+      console.error("Error fetching protocol preview:", error);
+      res.status(500).json({ message: "Failed to fetch protocol preview" });
+    }
+  });
+
   app.get("/api/protocols/:id", async (req, res) => {
     try {
       const protocol = await storage.getProtocol(req.params.id);
@@ -80,7 +93,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Email PDF
   app.post("/api/protocols/email", async (req, res) => {
     try {
       const { formData, language, recipient } = req.body;
@@ -104,7 +116,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Download Excel
   app.post("/api/protocols/download-excel", async (req, res) => {
     try {
       const { formData, language } = req.body;
@@ -123,8 +134,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to generate Excel" });
     }
   });
-
-  // Upload images to Supabase Storage
+  
   app.post("/api/upload", async (req, res) => {
     try {
       const { imageData, fileName } = req.body;
@@ -167,30 +177,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       const { name, type, language } = req.body;
       if (!name || !type || !language) {
-        if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-        return res.status(400).json({ message: "Missing required fields: name, type, language" });
+        if(fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+        return res.status(400).json({ message: "Missing required fields" });
       }
 
-      const timestamp = Date.now();
-      const fileName = `${timestamp}-${req.file.originalname}`;
-      const storagePath = `templates/${fileName}`;
-      
+      const storagePath = `templates/${Date.now()}-${req.file.originalname}`;
       const publicUrl = await supabaseStorage.uploadFile(req.file.path, storagePath);
       
-      const newTemplate = await storage.createTemplate({
-        name,
-        type,
-        language,
-        fileName: req.file.originalname,
-        filePath: publicUrl,
-        isActive: false,
-      });
+      await storage.createTemplate({ name, type, language, fileName: req.file.originalname, filePath: publicUrl, isActive: false });
 
       if (fs.existsSync(req.file.path)) {
         fs.unlinkSync(req.file.path);
       }
       
-      res.json(newTemplate);
+      res.json({ success: true, url: publicUrl });
     } catch (error) {
       console.error("Error uploading template:", error);
       res.status(500).json({ message: "Failed to upload template" });
@@ -207,14 +207,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get active questions for questionnaire
   app.get("/api/questions/:language", async (req, res) => {
     try {
       const { language } = req.params;
       let questionsTemplate;
       const typesToTry = ['unified', 'questions'];
       const languagesToTry = ['multilingual', language];
-
       for (const type of typesToTry) {
         for (const lang of languagesToTry) {
           questionsTemplate = await storage.getActiveTemplate(type, lang);
@@ -224,27 +222,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       if (!questionsTemplate) {
-        console.warn(`No active template found for language ${language}.`);
         return res.status(404).json({ message: "No active questions template found" });
       }
       
-      // JAVÍTVA: A sablon letöltésének és feldolgozásának logikája
       const filePath = questionsTemplate.filePath;
       if (!filePath || !filePath.startsWith('http')) {
         throw new Error("Template file path is not a valid Supabase URL.");
       }
 
       const tempPath = path.join('/tmp', `template-${Date.now()}-${questionsTemplate.fileName}`);
-      
       const urlParts = filePath.split('/');
       const storagePathIndex = urlParts.findIndex(part => part === 'object') + 2;
       const storagePath = urlParts.slice(storagePathIndex).join('/');
       
       await supabaseStorage.downloadFile(storagePath, tempPath);
-      const templateBuffer = fs.readFileSync(tempPath);
-      const questions = await excelParserService.parseQuestionsFromExcel(templateBuffer);
+      
+      // JAVÍTVA: A helyes fájl PATH átadása, nem a buffer
+      const questions = await excelParserService.parseQuestionsFromExcel(tempPath); 
+      
       fs.unlinkSync(tempPath);
-      // --- JAVÍTÁS VÉGE ---
 
       const formattedQuestions = questions.map(config => {
         let groupName = (language === 'de' && config.groupNameDe) ? config.groupNameDe : config.groupName;
@@ -278,7 +274,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get niedervolt devices from template with fallback
   app.get("/api/niedervolt/devices", async (req, res) => {
     try {
       const { niedervoltService } = await import("./services/niedervolt-service.js");
