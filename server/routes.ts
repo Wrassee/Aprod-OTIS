@@ -42,7 +42,7 @@ const upload = multer({
 
 export async function registerRoutes(app: Express): Promise<Server> {
   await testConnection();
-  app.use(express.static(path.join(process.cwd(), 'public')));
+  app.use(express.static(path.join(process.cwd(), 'dist')));
   app.use('/api/errors', errorRoutes);
   
   app.post("/api/protocols", async (req, res) => {
