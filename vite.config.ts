@@ -3,20 +3,14 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 
 export default defineConfig({
-  // MEGHATÁROZZUK A PROJEKT GYÖKERÉT: a 'client' mappa
-  root: 'client',
-  
-  // A Vercel számára a kimenetet a fő 'dist' mappába tesszük
-  build: {
-    outDir: '../dist'
-  },
-
   plugins: [react()],
   resolve: {
     alias: {
-      // Az aliasoknak is a 'client/src'-re kell mutatniuk
-      "@": path.resolve(__dirname, "./client/src"),
+      "@": path.resolve(__dirname, "./src"),
       "@shared": path.resolve(__dirname, "./shared"),
+      // Az "@assets" aliast kivettem, ha nincs rá szükséged,
+      // de ha van "attached_assets" mappád a gyökérben, visszateheted:
+      // "@assets": path.resolve(__dirname, "./attached_assets"),
     },
   },
 });
