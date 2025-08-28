@@ -1,12 +1,10 @@
 {
   "extends": "./tsconfig.json",
-  "include": ["server/**/*", "api/**/*", "shared/**/*"],
-  "exclude": ["client"],
   "compilerOptions": {
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "outDir": "dist",
-    "noEmit": false,
-    "types": ["node"]
-  }
+    "noEmit": false
+  },
+  "include": ["server/**/*.ts", "api/**/*.ts", "shared/**/*.ts"]
 }
