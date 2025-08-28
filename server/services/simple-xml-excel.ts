@@ -1,7 +1,7 @@
 import JSZip from 'jszip';
 import * as fs from 'fs';
-import { storage } from '../storage.js'.js;
-import { templateLoader } from './template-loader.js'.js;
+import { storage } from '../storage\.js';
+import { templateLoader } from './template-loader\.js';
 import type { FormData } from '../../shared/types'.js;
 
 class SimpleXmlExcelService {

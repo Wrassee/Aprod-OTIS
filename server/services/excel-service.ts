@@ -1,9 +1,9 @@
 import * as XLSX from 'xlsx';
 import type { FormData } from '../../shared/types'.js;
-import { storage } from '../storage.js'.js;
-import { excelParserService } from './excel-parser.js'.js;
-import { simpleXmlExcelService } from './simple-xml-excel.js'.js;
-import { templateLoader } from './template-loader.js'.js;
+import { storage } from '../storage\.js';
+import { excelParserService } from './excel-parser\.js';
+import { simpleXmlExcelService } from './simple-xml-excel\.js';
+import { templateLoader } from './template-loader\.js';
 import fs from 'fs';
 
 class ExcelService {
