@@ -1,7 +1,7 @@
 import JSZip from 'jszip';
 import fs from 'fs';
-import { storage } from '../storage.js';
-import { templateLoader } from './template-loader.js';
+import { storage } from '../storage.js'.js;
+import { templateLoader } from './template-loader.js'.js;
 
 interface MeasurementRow {
   id: string;

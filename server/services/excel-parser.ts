@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import { QuestionType, type InsertQuestionConfig } from '../../shared/schema.js';
+import { QuestionType, type InsertQuestionConfig } from '../../shared/schema.js'.js;
 
 export interface ParsedQuestion {
   questionId: string;

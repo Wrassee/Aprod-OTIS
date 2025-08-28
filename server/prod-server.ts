@@ -1,4 +1,4 @@
-import app from './app.js';
+import app from './app.js'.js;
 import { createServer } from 'http';
 
 const port = process.env.PORT || 10000; // Render a PORT változót használja

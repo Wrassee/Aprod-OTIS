@@ -1,4 +1,4 @@
-import { Question } from '../../shared/schema.js';
+import { Question } from '../../shared/schema.js'.js;
 
 export interface MeasurementCalculationResult {
   questionId: string;
