@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["client/src/**/*", "shared/**/*"],
+  "compilerOptions": {
+    "noEmit": true,
+    "module": "ESNext",
+    "jsx": "preserve",
+    "moduleResolution": "bundler",
+    "types": ["vite/client"],
+    "allowImportingTsExtensions": true,
+    "paths": {
+      "@/*": ["./client/src/*"],
+      "@shared/*": ["./shared/*"]
+    }
+  }
+}
