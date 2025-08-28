@@ -1,4 +1,4 @@
-import { ProtocolError } from '../../shared/schema\.js';
+import { ProtocolError } from '../../shared/schema.js';
 import * as XLSX from 'xlsx';
 import * as fs from 'fs';
 import * as path from 'path';

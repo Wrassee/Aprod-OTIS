@@ -2,7 +2,7 @@ import { type Protocol, type InsertProtocol, type Template, type InsertTemplate,
 import { randomUUID } from "crypto";
 import { db } from './db.js';
 import { eq, and, desc } from 'drizzle-orm';
-import { protocols, templates, questionConfigs } from '../shared/schema\.js';
+import { protocols, templates, questionConfigs } from '../shared/schema.js';
 
 export interface IStorage {
   // Protocols
