@@ -30,7 +30,7 @@ This full-stack TypeScript application digitalizes the OTIS elevator acceptance 
   - **Implemented**: Conditional logic in multer configuration and PDF service
 - **Frontend Structure Fixes**: 
   - **Moved**: All React components to root /src directory structure
-  - **Updated**: Tailwind config to point to correct paths (./src/**/*.{js,jsx,ts,tsx})
+  - **Updated**: Tailwind config to point to correct paths (./src/**/*..jsx,ts,tsx})
   - **Fixed**: Static asset paths (OTIS logo renamed to otis-logo.png)
 - **Excel Question Parsing**: Enhanced with debug logging
   - **Fixed**: Parser now accepts file paths instead of buffers

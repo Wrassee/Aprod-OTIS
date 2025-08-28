@@ -1,6 +1,6 @@
 import { type Protocol, type InsertProtocol, type Template, type InsertTemplate, type QuestionConfig, type InsertQuestionConfig } from "../shared/schema.js";
 import { randomUUID } from "crypto";
-import { db } from './db.js'.js;
+import { db } from './db.js';
 import { eq, and, desc } from 'drizzle-orm';
 import { protocols, templates, questionConfigs } from '../shared/schema.js'.js;
 
