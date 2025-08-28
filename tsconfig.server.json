@@ -1,14 +1,12 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "module": "ESNext",
+    "module": "CommonJS",
     "moduleResolution": "Node",
-    "target": "ESNext",
     "outDir": "dist",
     "noEmit": false,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true
+    "resolveJsonModule": true
   },
   "include": ["server/**/*.ts", "api/**/*.ts", "shared/**/*.ts"]
 }
