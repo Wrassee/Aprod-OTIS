@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import { FormData } from '../../shared/types';
+import { FormData } from '../../shared/types.js';
 import { storage } from '../storage.js';
 import fs from 'fs';
 

@@ -1,265 +1,388 @@
-import * as XLSX from 'xlsx';
-import { QuestionType, type InsertQuestionConfig } from '../../shared/schema.js';
+import * as XLSX from "xlsx";
+import fs from "fs";
+import { QuestionType } from "../../shared/schema.js";
 
+/*--------------------------------------------------------------
+  Interface – a single parsed question definition
+--------------------------------------------------------------*/
 export interface ParsedQuestion {
   questionId: string;
   title: string;
   titleHu?: string;
   titleDe?: string;
+  /** union‑type defined in shared/schema */
   type: QuestionType;
   required: boolean;
   placeholder?: string;
   cellReference?: string;
   sheetName?: string;
-  multiCell?: boolean; // New field to control multi-cell behavior for yes_no_na
-  groupName?: string; // Group/block name for organizing questions (Hungarian)
-  groupNameDe?: string; // German group/block name
-  groupOrder?: number; // Order within the group
-  unit?: string; // Unit for measurement questions
-  minValue?: number; // Minimum value for validation
-  maxValue?: number; // Maximum value for validation
-  calculationFormula?: string; // Formula for calculated questions
-  calculationInputs?: string; // Comma-separated input question IDs
+  multiCell?: boolean;
+  groupName?: string;
+  groupNameDe?: string;
+  groupOrder?: number;
+  unit?: string;
+  minValue?: number;
+  maxValue?: number;
+  calculationFormula?: string;
+  calculationInputs?: string;
 }
 
-class ExcelParserService {
+/*--------------------------------------------------------------
+  Service – Excel parsing / template handling
+--------------------------------------------------------------*/
+export class ExcelParserService {
+  /*------------------- 1️⃣  Parse questions from an Excel file -------------------*/
   async parseQuestionsFromExcel(filePath: string): Promise<ParsedQuestion[]> {
     try {
       console.log(`🔍 Parsing questions from: ${filePath}`);
-      
-      // Check if file exists
-      const fs = await import('fs');
+
       if (!fs.existsSync(filePath)) {
         throw new Error(`File not found: ${filePath}`);
       }
-      
-      // Read Excel file - use require for better compatibility
-      const XLSX = require('xlsx');
-      console.log(`📚 Using XLSX version: ${XLSX.version}`);
+
+      /*--- read workbook ------------------------------------------------------*/
       const workbook = XLSX.readFile(filePath);
-      const sheetName = workbook.SheetNames[0]; // Use first sheet
-      const worksheet = workbook.Sheets[sheetName];
-      
-      // Convert sheet to array of arrays  
-      const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[];
-      console.log(`📊 Found ${data.length} rows in Excel file`);
-      
-      const questions: ParsedQuestion[] = [];
-      
-      // Expected columns: ID, Title_EN, Title_HU, Title_DE, Type, Required, Placeholder, CellReference, MultiCell, Group, Order
-      const headerRow = data[0];
-      if (!headerRow || headerRow.length < 4) {
-        throw new Error('Invalid Excel format. Expected columns: ID, Title_EN, Title_HU, Title_DE, Type, Required, Placeholder, CellReference, MultiCell, Group, Order');
+      const firstSheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[firstSheetName];
+
+      /*--- transform to a 2‑dimensional array (rows × columns) --------------*/
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as any[][];
+      if (!rows.length) {
+        throw new Error("Excel file is empty");
       }
-      
-      // Find column indices
-      const getColumnIndex = (possibleNames: string[]) => {
-        return possibleNames.reduce((index, name) => {
-          if (index === -1) {
-            return headerRow.findIndex((col: string) => 
-              col?.toString().toLowerCase().trim().includes(name.toLowerCase())
-            );
-          }
-          return index;
-        }, -1);
+
+      const header = rows[0];
+      if (!header || header.length < 3) {
+        throw new Error(
+          "Invalid Excel format – need at least ID, Title and Type columns",
+        );
+      }
+
+      /*--- flexible column index lookup --------------------------------------*/
+      const colIndex = (aliases: string[]) => {
+        for (const a of aliases) {
+          const i = header.findIndex(
+            (c) => typeof c === "string" && c.toLowerCase().includes(a),
+          );
+          if (i !== -1) return i;
+        }
+        return -1;
       };
-      
-      const idIndex = getColumnIndex(['id', 'question_id', 'questionid']);
-      const titleIndex = getColumnIndex(['title', 'title_en', 'question']);
-      const titleHuIndex = getColumnIndex(['title_hun', 'title_hu', 'hungarian', 'magyar']);
-      const titleDeIndex = getColumnIndex(['title_de', 'german', 'deutsch']);
-      const typeIndex = getColumnIndex(['type', 'input_type', 'field_type']);
-      
-      console.log(`🔍 Excel Column Detection:
-        ID Index: ${idIndex} (${headerRow[idIndex]})
-        Title Index: ${titleIndex} (${headerRow[titleIndex]})
-        Type Index: ${typeIndex} (${headerRow[typeIndex]})
-        Header Row: ${JSON.stringify(headerRow)}`);
-      const requiredIndex = getColumnIndex(['required', 'mandatory', 'kötelező', 'kell']);
-      const placeholderIndex = getColumnIndex(['placeholder', 'hint', 'example', 'cél', 'leírás']);
-      // Cell reference column - search for multiple possible names
-      const cellRefIndex = getColumnIndex(['cell_reference', 'cellreference', 'cél/placeholder', 'cell', 'reference']);
-      // MultiCell column 
-      const multiCellIndex = getColumnIndex(['multicell', 'multi_cell', 'multi']);
-      // Group/block names
-      const groupNameIndex = getColumnIndex(['group', 'blokk', 'blokk neve hu', 'group_name']);
-      const groupNameDeIndex = getColumnIndex(['group_de', 'blokk neve de', 'group_name_de']);
-      const groupOrderIndex = getColumnIndex(['order', 'sort', 'sorrend']);
-      const unitIndex = getColumnIndex(['unit', 'egység']);
-      const minValueIndex = getColumnIndex(['min', 'min_value', 'minimum']);
-      const maxValueIndex = getColumnIndex(['max', 'max_value', 'maximum']);
-      const sheetNameIndex = getColumnIndex(['sheet', 'munkalap', 'munkalap neve']);
-      const calculationFormulaIndex = getColumnIndex(['calculation_formula', 'formula', 'képlet', 'formel']);
-      const calculationInputsIndex = getColumnIndex(['calculation_inputs', 'inputs', 'bemenet', 'eingabe', 'bemenetek', 'eingaben']);
-      
-      if (idIndex === -1 || titleIndex === -1 || typeIndex === -1) {
-        throw new Error('Required columns not found: ID, Title, Type');
+
+      const idIdx = colIndex(["id", "question_id", "questionid"]);
+      const titleIdx = colIndex(["title", "title_en", "question"]);
+      const titleHuIdx = colIndex([
+        "title_hun",
+        "title_hu",
+        "hungarian",
+        "magyar",
+      ]);
+      const titleDeIdx = colIndex([
+        "title_de",
+        "german",
+        "deutsch",
+        "title_deu",
+      ]);
+      const typeIdx = colIndex(["type", "input_type", "field_type"]);
+      const requiredIdx = colIndex([
+        "required",
+        "mandatory",
+        "kötelező",
+        "kell",
+      ]);
+      const placeholderIdx = colIndex([
+        "placeholder",
+        "hint",
+        "example",
+        "cél",
+        "leírás",
+      ]);
+      const cellRefIdx = colIndex([
+        "cell_reference",
+        "cellreference",
+        "cell",
+        "reference",
+      ]);
+      const multiCellIdx = colIndex(["multicell", "multi_cell", "multi"]);
+      const groupNameIdx = colIndex([
+        "group",
+        "blokk",
+        "group_name",
+        "blokk neve hu",
+      ]);
+      const groupNameDeIdx = colIndex([
+        "group_de",
+        "blokk neve de",
+        "group_name_de",
+      ]);
+      const groupOrderIdx = colIndex(["order", "sort", "sorrend"]);
+      const unitIdx = colIndex(["unit", "egység"]);
+      const minIdx = colIndex(["min", "min_value", "minimum"]);
+      const maxIdx = colIndex(["max", "max_value", "maximum"]);
+      const sheetNameIdx = colIndex([
+        "sheet",
+        "munkalap",
+        "munkalap neve",
+      ]);
+      const calcFormulaIdx = colIndex([
+        "calculation_formula",
+        "formula",
+        "képlet",
+        "formel",
+      ]);
+      const calcInputsIdx = colIndex([
+        "calculation_inputs",
+        "inputs",
+        "bemenet",
+        "eingabe",
+        "bemenetek",
+        "eingaben",
+      ]);
+
+      /*--- sanity check ------------------------------------------------------*/
+      if (idIdx === -1 || titleIdx === -1 || typeIdx === -1) {
+        throw new Error(
+          `Missing required columns. Header: ${JSON.stringify(header)}`,
+        );
       }
-      
-      // Parse data rows (skip header)
-      for (let i = 1; i < data.length; i++) {
-        const row = data[i];
-        if (!row || !row[idIndex] || !row[titleIndex]) continue;
-        
-        const type = this.parseQuestionType(row[typeIndex]?.toString());
-        if (!type) continue;
-        
-        const question: ParsedQuestion = {
-          questionId: row[idIndex].toString(),
-          title: row[titleIndex].toString(),
-          titleHu: titleHuIndex !== -1 ? row[titleHuIndex]?.toString() : undefined,
-          titleDe: titleDeIndex !== -1 ? row[titleDeIndex]?.toString() : undefined,
+
+      /*--- iterate over data rows -------------------------------------------*/
+      const questions: ParsedQuestion[] = [];
+
+      for (let r = 1; r < rows.length; r++) {
+        const row = rows[r];
+        if (!row || !row[idIdx] || !row[titleIdx]) continue;
+
+        const type = this.parseQuestionType(
+          row[typeIdx]?.toString(),
+        );
+        if (!type) continue; // unknown/unsupported type → skip
+
+        const q: ParsedQuestion = {
+          questionId: row[idIdx].toString(),
+          title: row[titleIdx].toString(),
+          titleHu:
+            titleHuIdx !== -1
+              ? row[titleHuIdx]?.toString()
+              : undefined,
+          titleDe:
+            titleDeIdx !== -1
+              ? row[titleDeIdx]?.toString()
+              : undefined,
           type,
-          required: requiredIndex !== -1 ? this.parseBoolean(row[requiredIndex]) : true,
-          placeholder: placeholderIndex !== -1 ? row[placeholderIndex]?.toString() : undefined,
-          cellReference: cellRefIndex !== -1 ? row[cellRefIndex]?.toString() : undefined,
-          sheetName: sheetName,
-          multiCell: multiCellIndex !== -1 ? this.parseBoolean(row[multiCellIndex]) : false,
-          groupName: groupNameIndex !== -1 ? row[groupNameIndex]?.toString() : undefined,
-          groupNameDe: groupNameDeIndex !== -1 ? row[groupNameDeIndex]?.toString() : undefined,
-          groupOrder: groupOrderIndex !== -1 ? parseInt(row[groupOrderIndex]?.toString()) || 0 : 0,
-          unit: unitIndex !== -1 ? row[unitIndex]?.toString() : undefined,
-          minValue: minValueIndex !== -1 ? parseFloat(row[minValueIndex]?.toString()) : undefined,
-          maxValue: maxValueIndex !== -1 ? parseFloat(row[maxValueIndex]?.toString()) : undefined,
-          calculationFormula: calculationFormulaIndex !== -1 ? row[calculationFormulaIndex]?.toString() : undefined,
-          calculationInputs: calculationInputsIndex !== -1 ? row[calculationInputsIndex]?.toString() : undefined,
+          required:
+            requiredIdx !== -1
+              ? this.parseBoolean(row[requiredIdx])
+              : false, // default to false (safer than true)
+          placeholder:
+            placeholderIdx !== -1
+              ? row[placeholderIdx]?.toString()
+              : undefined,
+          cellReference:
+            cellRefIdx !== -1
+              ? row[cellRefIdx]?.toString()
+              : undefined,
+          sheetName:
+            sheetNameIdx !== -1
+              ? row[sheetNameIdx]?.toString()
+              : firstSheetName,
+          multiCell:
+            multiCellIdx !== -1
+              ? this.parseBoolean(row[multiCellIdx])
+              : false,
+          groupName:
+            groupNameIdx !== -1
+              ? row[groupNameIdx]?.toString()
+              : undefined,
+          groupNameDe:
+            groupNameDeIdx !== -1
+              ? row[groupNameDeIdx]?.toString()
+              : undefined,
+          groupOrder:
+            groupOrderIdx !== -1
+              ? parseInt(row[groupOrderIdx]?.toString() ?? "0", 10)
+              : 0,
+          unit:
+            unitIdx !== -1 ? row[unitIdx]?.toString() : undefined,
+          minValue:
+            minIdx !== -1
+              ? parseFloat(row[minIdx]?.toString())
+              : undefined,
+          maxValue:
+            maxIdx !== -1
+              ? parseFloat(row[maxIdx]?.toString())
+              : undefined,
+          calculationFormula:
+            calcFormulaIdx !== -1
+              ? row[calcFormulaIdx]?.toString()
+              : undefined,
+          calculationInputs:
+            calcInputsIdx !== -1
+              ? row[calcInputsIdx]?.toString()
+              : undefined,
         };
-        
-        questions.push(question);
+
+        questions.push(q);
       }
-      
+
       return questions;
-    } catch (error) {
-      console.error('Error parsing Excel file:', error);
-      throw new Error(`Failed to parse Excel file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } catch (err) {
+      console.error("Error parsing Excel file:", err);
+      throw new Error(
+        err instanceof Error
+          ? err.message
+          : "Unexpected error while parsing Excel",
+      );
     }
   }
-  
-  async extractTemplateInfo(buffer: Buffer): Promise<{ sheets: string[], cellReferences: string[] }> {
+
+  /*------------------- 2️⃣  Extract basic template info -------------------*/
+  async extractTemplateInfo(
+    buffer: Buffer,
+  ): Promise<{ sheets: string[]; cellReferences: string[] }> {
     try {
-      const workbook = XLSX.read(buffer, { type: 'buffer' });
-      const sheets = workbook.SheetNames;
-      const cellReferences: string[] = [];
-      
-      // Extract cell references from all sheets
-      sheets.forEach(sheetName => {
-        const worksheet = workbook.Sheets[sheetName];
-        const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1:Z100');
-        
-        for (let row = range.s.r; row <= Math.min(range.e.r, 50); row++) {
-          for (let col = range.s.c; col <= Math.min(range.e.c, 25); col++) {
-            const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
-            const cell = worksheet[cellAddress];
-            if (cell && cell.v) {
-              cellReferences.push(`${sheetName}!${cellAddress}`);
+      const wb = XLSX.read(buffer, { type: "buffer" });
+      const sheets = wb.SheetNames;
+      const refs: string[] = [];
+
+      sheets.forEach((name) => {
+        const ws = wb.Sheets[name];
+        const range = XLSX.utils.decode_range(ws["!ref"] ?? "A1:Z100");
+        const maxRow = Math.min(range.e.r, 50);
+        const maxCol = Math.min(range.e.c, 25);
+
+        for (let r = range.s.r; r <= maxRow; r++) {
+          for (let c = range.s.c; c <= maxCol; c++) {
+            const addr = XLSX.utils.encode_cell({ r, c });
+            const cell = ws[addr];
+            if (cell?.v) {
+              refs.push(`${name}!${addr}`);
             }
           }
         }
       });
-      
-      return { sheets, cellReferences: cellReferences.slice(0, 100) }; // Limit to first 100
-    } catch (error) {
-      console.error('Error extracting template info:', error);
-      throw new Error('Failed to extract template information');
+
+      return {
+        sheets,
+        cellReferences: refs.slice(0, 100), // cap for safety
+      };
+    } catch (err) {
+      console.error("Error extracting template info:", err);
+      throw new Error("Failed to read template information");
     }
   }
-  
-  async populateTemplate(templateBuffer: Buffer, answers: Record<string, any>, questionConfigs: any[]): Promise<Buffer> {
+
+  /*------------------- 3️⃣  Populate a template with answers ---------------*/
+  async populateTemplate(
+    templateBuffer: Buffer,
+    answers: Record<string, any>,
+    configs: ParsedQuestion[],
+  ): Promise<Buffer> {
     try {
-      const workbook = XLSX.read(templateBuffer, { type: 'buffer' });
-      
-      // Map answers to cell references
-      questionConfigs.forEach(config => {
-        if (config.cellReference && answers[config.questionId] !== undefined) {
-          const [sheetName, cellRef] = config.cellReference.includes('!') 
-            ? config.cellReference.split('!')
-            : [config.sheetName || workbook.SheetNames[0], config.cellReference];
-          
-          if (workbook.Sheets[sheetName]) {
-            const worksheet = workbook.Sheets[sheetName];
-            const value = this.formatAnswerForExcel(answers[config.questionId], config.type);
-            
-            // Set cell value
-            worksheet[cellRef] = {
-              v: value,
-              t: typeof value === 'number' ? 'n' : 's'
-            };
-          }
+      const wb = XLSX.read(templateBuffer, { type: "buffer" });
+
+      configs.forEach((cfg) => {
+        const answer = answers[cfg.questionId];
+        if (cfg.cellReference && answer !== undefined) {
+          const [sheetName, cellRef] = cfg.cellReference.includes("!")
+            ? cfg.cellReference.split("!")
+            : [
+                cfg.sheetName || wb.SheetNames[0],
+                cfg.cellReference,
+              ];
+          const ws = wb.Sheets[sheetName];
+          if (!ws) return;
+
+          const value = this.formatAnswerForExcel(answer, cfg.type);
+          const { r, c } = XLSX.utils.decode_cell(cellRef);
+          XLSX.utils.sheet_add_aoa(ws, [[value]], {
+            origin: { r, c },
+          });
         }
       });
-      
-      // Generate buffer
-      const buffer = XLSX.write(workbook, { 
-        type: 'buffer', 
-        bookType: 'xlsx',
-        compression: true 
+
+      return XLSX.write(wb, {
+        type: "buffer",
+        bookType: "xlsx",
+        compression: true,
       });
-      
-      return buffer;
-    } catch (error) {
-      console.error('Error populating template:', error);
-      throw new Error('Failed to populate Excel template');
+    } catch (err) {
+      console.error("Error populating template:", err);
+      throw new Error("Failed to fill Excel template");
     }
   }
-  
-  private parseQuestionType(typeStr: string): QuestionType | null {
-    if (!typeStr) return null;
-    
-    const type = typeStr.toLowerCase().trim();
-    
-    if (['yes_no', 'yes_no_na', 'yesno', 'boolean', 'bool'].includes(type)) {
-      return 'yes_no_na';
-    }
-    if (['true_false', 'truefalse', 'true/false', 'binary'].includes(type)) {
-      return 'true_false';
-    }
-    if (['measurement', 'measure', 'mérés', 'messung', 'numeric_with_unit'].includes(type)) {
-      return 'measurement';
-    }
-    if (['calculated', 'calc', 'számított', 'berechnet', 'computed'].includes(type)) {
-      return 'calculated';
-    }
-    if (['number', 'numeric', 'num', 'int', 'integer', 'float'].includes(type)) {
-      return 'number';
-    }
-    if (['text', 'string', 'str', 'textarea', 'memo'].includes(type)) {
-      return 'text';
-    }
-    
+
+  /*------------------- Helper: map raw type string → QuestionType --------*/
+  private parseQuestionType(
+    raw?: string,
+  ): QuestionType | null {
+    if (!raw) return null;
+    const t = raw.toLowerCase().trim();
+
+    // Adjusted to match the literals defined in shared/schema
+    if (["yes_no", "yesno", "bool", "boolean"].includes(t))
+      return "yes_no";
+    if (["true_false", "truefalse", "binary", "tf"].includes(t))
+      return "true_false";
+    if (
+      [
+        "measurement",
+        "measure",
+        "numeric_with_unit",
+        "mérés",
+        "messung",
+      ].includes(t)
+    )
+      return "measurement";
+    if (
+      ["calculated", "calc", "computed", "számított", "berechnet"].includes(
+        t,
+      )
+    )
+      return "calculated";
+    if (["number", "numeric", "int", "integer", "float", "decimal"].includes(t))
+      return "number";
+    if (["text", "string", "str", "textarea", "memo"].includes(t))
+      return "text";
+
     return null;
   }
-  
+
+  /*------------------- Helper: boolean parsing ---------------------------*/
   private parseBoolean(value: any): boolean {
-    if (typeof value === 'boolean') return value;
-    if (typeof value === 'string') {
-      const str = value.toLowerCase().trim();
-      return ['true', 'yes', 'igen', 'ja', '1', 'x'].includes(str);
+    if (typeof value === "boolean") return value;
+    if (typeof value === "number") return value !== 0;
+    if (typeof value === "string") {
+      const lv = value.toLowerCase().trim();
+      return ["true", "yes", "igen", "ja", "1", "x"].includes(lv);
     }
-    if (typeof value === 'number') return value !== 0;
-    return true; // Default to required
+    return false;
   }
-  
-  private formatAnswerForExcel(answer: any, type: string): any {
+
+  /*------------------- Helper: format answer for Excel -------------------*/
+  private formatAnswerForExcel(answer: any, type: QuestionType): any {
     switch (type) {
-      case 'yes_no_na':
-        if (answer === 'yes') return 'Yes';
-        if (answer === 'no') return 'No';
-        if (answer === 'na') return 'N/A';
-        return answer;
-      case 'true_false':
-        if (answer === 'true') return 'X';
-        if (answer === 'false') return '-';
-        return answer;
-      case 'measurement':
-      case 'calculated':
-        return typeof answer === 'number' ? answer : parseFloat(answer) || 0;
-      case 'number':
-        return typeof answer === 'number' ? answer : parseFloat(answer) || 0;
-      case 'text':
+      case "yes_no":
+        if (answer === "yes" || answer === true) return "Yes";
+        if (answer === "no" || answer === false) return "No";
+        return answer?.toString() ?? "";
+      case "true_false":
+        if (answer === "true") return "X";
+        if (answer === "false") return "-";
+        return answer?.toString() ?? "";
+      case "measurement":
+      case "calculated":
+      case "number":
+        const num = parseFloat(answer);
+        return isNaN(num) ? "" : num;
+      case "text":
       default:
-        return answer?.toString() || '';
+        return answer?.toString?.() ?? "";
     }
   }
 }
 
+/*--------------------------------------------------------------
+  Export a singleton – same usage as before (e.g. in routes)
+--------------------------------------------------------------*/
 export const excelParserService = new ExcelParserService();

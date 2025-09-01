@@ -2,7 +2,7 @@ import JSZip from 'jszip';
 import * as fs from 'fs';
 import { storage } from '../storage.js';
 import { templateLoader } from './template-loader.js';
-import type { FormData } from '../../shared/types';
+import type { FormData } from '../../shared/types.js';
 
 class SimpleXmlExcelService {
   async generateExcelFromTemplate(formData: FormData, language: string): Promise<Buffer> {
@@ -303,7 +303,7 @@ class SimpleXmlExcelService {
           if (!isNaN(numValue)) {
             mappings.push({
               cell: config.cellReference,
-              value: String(numValue),
+              value: String(cellValue),
               label: config.title || `Question ${questionId}`
             });
           }

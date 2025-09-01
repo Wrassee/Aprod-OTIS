@@ -1,6 +1,6 @@
 // Production-only server entry - NEVER imports vite.ts or any Vite dependencies
 import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
+import { registerRoutes } from "./routes.js";
 import fs from "fs";
 import path from "path";
 
@@ -72,7 +72,7 @@ app.use((req, res, next) => {
     
     // Test database connection
     console.log('Testing database connection...');
-    const { testConnection } = await import("./db");
+    const { testConnection } = await import("./db.js");
     await testConnection();
     console.log('Database connection successful');
     

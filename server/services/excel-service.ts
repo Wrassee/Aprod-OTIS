@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import type { FormData } from '../../shared/types';
+import type { FormData } from '../../shared/types.js';
 import { storage } from '../storage.js';
 import { excelParserService } from './excel-parser.js';
 import { simpleXmlExcelService } from './simple-xml-excel.js';

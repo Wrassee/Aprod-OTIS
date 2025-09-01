@@ -9,9 +9,9 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "baseUrl": ".",
-    "types": ["node"],
     "paths": {
       "@shared/*": ["./shared/*"]
-    }
+    },
+    "types": ["node"]
   }
 }

@@ -1,16 +1,27 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "target": "ES2022",                 // vagy ES2023 – modernebb funkciók
+    "module": "NodeNext",               // marad, de a következő sorral megoldjuk a kiterjesztést
+    "moduleResolution": "node16",       // <‑ ez kényszeríti a *.js/.ts kiterjesztést
     "outDir": "./dist",
     "noEmit": false,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noImplicitAny": true,              // biztos, hogy minden típus expliciten meg legyen adva
+    "allowJs": true,                    // ha esetleg .js importok is előfordulnak
+    "baseUrl": ".",                     // a root‑hoz viszonyítva működnek a paths aliasok
+    "paths": {
+      "@shared/*": ["./shared/*"]
+    }
   },
-  "include": ["server/**/*.ts", "api/**/*.ts", "shared/**/*.ts"]
+  "include": [
+    "server/**/*.ts",
+    "api/**/*.ts",
+    "shared/**/*.ts"
+  ],
+  "exclude": ["node_modules", "dist"]
 }
