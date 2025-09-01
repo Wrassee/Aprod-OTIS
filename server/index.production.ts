@@ -68,11 +68,11 @@ app.use((req, res, next) => {
     // Other ports are firewalled. Default to 5000 if not specified.
     const PORT = Number(process.env.PORT) || 5000;
     server.listen({
-      port,
+      PORT,
       host: "0.0.0.0",
       reusePort: true,
     }, () => {
-      log(`serving on port ${port}`, 'express');
+      log(`serving on port ${PORT}`, 'express');
     });
   } catch (error) {
     console.error('Failed to start server:', error);

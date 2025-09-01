@@ -9,7 +9,7 @@ const server = createServer(app);
   const { registerRoutes } = await import('./routes.js'); // .js kell
   await registerRoutes(app);
 
-  server.listen(port, () => {
-    console.log(`✅ Server is running on port ${port}`);
+  server.listen(PORT, () => {
+    console.log(`✅ Server is running on port ${PORT}`);
   });
 })();

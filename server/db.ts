@@ -6,13 +6,14 @@ import ws from "ws";
 import * as schema from "../shared/schema.js";
 import path from 'path';
 import fs from 'fs';
-import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
-import type { NeonDatabase } from 'drizzle-orm/neon-serverless';
 
-let db: BetterSQLite3Database<typeof schema> | NeonDatabase<typeof schema>;
+// Típus definíciók
+type DbType = ReturnType<typeof drizzleSqlite> | ReturnType<typeof drizzleNeon>;
+
+let db: DbType;
 let connectionTest: () => Promise<boolean>;
 
-// Production környezet (Vercel)
+// Production környezet (Render/Vercel)
 if (process.env.NODE_ENV === 'production') {
   console.log('Database: Initializing Neon (PostgreSQL) connection for production...');
   
@@ -22,7 +23,7 @@ if (process.env.NODE_ENV === 'production') {
 
   neonConfig.webSocketConstructor = ws;
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  db = drizzleNeon(pool, { schema });
+  db = drizzleNeon(pool, { schema }) as DbType;
 
   connectionTest = async () => {
     try {
@@ -34,7 +35,6 @@ if (process.env.NODE_ENV === 'production') {
       return false;
     }
   };
-
 } else {
   // Development környezet (Localhost)
   console.log('Database: Initializing SQLite for local development...');
@@ -47,7 +47,7 @@ if (process.env.NODE_ENV === 'production') {
 
   const sqlite = new Database(dbPath);
   sqlite.pragma('journal_mode = WAL');
-  db = drizzleSqlite(sqlite, { schema });
+  db = drizzleSqlite(sqlite, { schema }) as DbType;
 
   connectionTest = async () => {
     try {
