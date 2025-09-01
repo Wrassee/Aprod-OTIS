@@ -6,9 +6,11 @@ import ws from "ws";
 import * as schema from "../shared/schema.js";
 import path from 'path';
 import fs from 'fs';
+import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
+import type { NeonDatabase } from 'drizzle-orm/neon-serverless';
 
-let db;
-let connectionTest;
+let db: BetterSQLite3Database<typeof schema> | NeonDatabase<typeof schema>;
+let connectionTest: () => Promise<boolean>;
 
 // Production környezet (Vercel)
 if (process.env.NODE_ENV === 'production') {

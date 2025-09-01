@@ -3,8 +3,8 @@ import express, { type Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import fs from "fs";
 import path from "path";
-import { storage } from "./storage";
-import { testConnection } from "./db";
+import { storage } from "./storage.js";
+import { testConnection } from "./db.js";
 
 const app = express();
 
@@ -89,7 +89,7 @@ async function registerRoutes(app: express.Express): Promise<Server> {
     try {
       const lang = req.params.lang || 'hu';
       // Use available storage methods
-      const protocols = await storage.getProtocols();
+      const protocols = await storage.getAllProtocols();
       // Extract questions from protocols or return empty array
       const questions = protocols.length > 0 ? [] : [];
       res.json(questions);
@@ -102,7 +102,7 @@ async function registerRoutes(app: express.Express): Promise<Server> {
   app.get('/api/admin/templates', async (req, res) => {
     try {
       // Use available storage methods
-      const templates = await storage.getTemplateList();
+      const templates = await storage.getAllTemplates();
       res.json(templates);
     } catch (error) {
       console.error('Error fetching templates:', error);
@@ -135,14 +135,10 @@ async function registerRoutes(app: express.Express): Promise<Server> {
       return;
     }
 
-    const port = parseInt(process.env.PORT || '5000', 10);
-    server.listen({
-      port,
-      host: "0.0.0.0",
-      reusePort: true,
-    }, () => {
-      log(`serving on port ${port}`);
-    });
+    const PORT = Number(process.env.PORT) || 5000;
+server.listen(PORT, "0.0.0.0", () => {
+  log(`serving on port ${PORT}`);
+});
   } catch (error) {
     console.error('Failed to start production server:', error);
     process.exit(1);
