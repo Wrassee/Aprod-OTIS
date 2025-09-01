@@ -2,7 +2,7 @@ import JSZip from 'jszip';
 import { XMLParser, XMLBuilder } from 'fast-xml-parser';
 import * as fs from 'fs';
 import { storage } from '../storage.js';
-import type { FormData } from '../../client/src/lib/types'.js;
+import type { FormData } from '../../client/src/lib/types';
 
 // FormData interface imported from types
 
