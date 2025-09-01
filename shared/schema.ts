@@ -1,5 +1,4 @@
 import { relations } from "drizzle-orm";
-// JAVÍTVA: A PostgreSQL-kompatibilis típusokat importáljuk
 import { pgTable, text, timestamp, boolean, jsonb, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -9,17 +8,18 @@ export const protocols = pgTable("protocols", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   receptionDate: text("reception_date").notNull(),
   language: text("language").notNull(),
-  // JAVÍTVA: JSONB típust használunk a strukturált adatokhoz
   answers: jsonb("answers").notNull().default({}),
   errors: jsonb("errors").notNull().default([]),
   signature: text("signature"),
   signatureName: text("signature_name"),
   completed: boolean("completed").notNull().default(false),
-  // JAVÍTVA: Helyes időbélyeg a PostgreSQL számára
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// --- Common Zod Schemas & Types ---
 export const ErrorSeverity = z.enum(["critical", "medium", "low"]);
+export type ErrorSeverity = z.infer<typeof ErrorSeverity>;
+
 export const ProtocolError = z.object({
   id: z.string(),
   title: z.string(),
@@ -27,40 +27,32 @@ export const ProtocolError = z.object({
   severity: ErrorSeverity,
   images: z.array(z.string()).default([]),
 });
+// JAVÍTVA: Hiányzó típus export hozzáadva
+export type ProtocolError = z.infer<typeof ProtocolError>;
 
-export const insertProtocolSchema = createInsertSchema(protocols).omit({
-  id: true,
-  createdAt: true,
-});
-
-export type InsertProtocol = z.infer<typeof insertProtocolSchema>;
+export const insertProtocolSchema = createInsertSchema(protocols);
 export type Protocol = typeof protocols.$inferSelect;
+export type InsertProtocol = typeof protocols.$inferInsert;
 
 
 // --- Template Management ---
 export const templates = pgTable("templates", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   name: text("name").notNull(),
-  type: text("type").notNull(), // "questions" or "protocol"
+  type: text("type").notNull(),
   fileName: text("file_name").notNull(),
   filePath: text("file_path").notNull(),
   language: text("language").notNull().default("multilingual"),
-  // JAVÍTVA: Helyes időbélyeg a PostgreSQL számára
   uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
   isActive: boolean("is_active").notNull().default(false),
 });
 
-export const insertTemplateSchema = createInsertSchema(templates).omit({
-  id: true,
-  uploadedAt: true,
-});
-
-export type InsertTemplate = z.infer<typeof insertTemplateSchema>;
+export const insertTemplateSchema = createInsertSchema(templates);
 export type Template = typeof templates.$inferSelect;
+export type InsertTemplate = typeof templates.$inferInsert;
 
 
-// --- Question Configurations ---
-// Ez az egyetlen, "mindenható" definíció a kérdésekre.
+// --- Question Configurations (Single Source of Truth) ---
 export const questionConfigs = pgTable("question_configs", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   templateId: text("template_id").notNull().references(() => templates.id),
@@ -81,16 +73,15 @@ export const questionConfigs = pgTable("question_configs", {
   minValue: integer("min_value"),
   maxValue: integer("max_value"),
   calculationFormula: text("calculation_formula"),
-  calculationInputs: jsonb("calculation_inputs"), // JAVÍTVA: JSONB a bemeneteknek
-  // JAVÍTVA: Helyes időbélyeg a PostgreSQL számára
+  calculationInputs: jsonb("calculation_inputs"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const insertQuestionConfigSchema = createInsertSchema(questionConfigs).omit({
-  id: true,
-  createdAt: true,
-});
+// JAVÍTVA: A QuestionType-ot a `type` oszlop alapján definiáljuk, ha szükséges
+// Ha a 'type' oszlop csak bizonyos értékeket vehet fel, itt lehetne szűkíteni Zod-dal.
+// Egyelőre string-ként kezeljük, ahogy a DB-ben van.
 
+export const insertQuestionConfigSchema = createInsertSchema(questionConfigs);
 export type QuestionConfig = typeof questionConfigs.$inferSelect;
 export type InsertQuestionConfig = typeof questionConfigs.$inferInsert;
 
