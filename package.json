@@ -5,7 +5,9 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && tsc --project tsconfig.server.json",
+    "build:client": "vite build",
+    "build:server": "tsc --project tsconfig.server.json",
+    "build": "npm run build:client && npm run build:server",
     "start": "node dist/server/prod-server.js"
   },
   "dependencies": {
