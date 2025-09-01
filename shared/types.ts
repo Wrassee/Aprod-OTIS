@@ -1,11 +1,30 @@
 // shared/types.ts
-// --------------------------------------------------
-// 1️⃣ Általános segédtypusok & enumok
-// --------------------------------------------------
-export type UUID = string;          // általános UUID alias
-export type ISODateString = string; // ISO‑8601 dátum‑/idő string
+// ------------------------------------------------------------
+// 1️⃣ General‑purpose types & enums
+// ------------------------------------------------------------
 
-/** Hibák súlyossága – egyezik a DB‑en definiált enum‑mal */
+/**
+ * Plain string alias for UUID values.
+ *
+ * Using a dedicated alias makes the intent of the field explicit
+ * while keeping the runtime type unchanged (still `string`).
+ */
+export type UUID = string;
+
+/**
+ * ISO‑8601 formatted date‑time string.
+ *
+ * All timestamps coming from the database (`timestamp with time zone`)
+ * are represented with this type.
+ */
+export type ISODateString = string;
+
+/**
+ * Severity levels for `ErrorItem.severity`.
+ *
+ * The literal tuple is exported as a **const** so that TypeScript can
+ * infer a union type (`"low" | "medium" | "high" | "critical"`).
+ */
 export const ErrorSeverityEnum = [
   "low",
   "medium",
@@ -14,7 +33,9 @@ export const ErrorSeverityEnum = [
 ] as const;
 export type ErrorSeverity = typeof ErrorSeverityEnum[number];
 
-/** Kérdés‑típusok – a `question_configs.type` oszlophoz */
+/**
+ * Question types for `QuestionConfig.type`.
+ */
 export const QuestionTypeEnum = [
   "text",
   "number",
@@ -27,7 +48,9 @@ export const QuestionTypeEnum = [
 ] as const;
 export type QuestionType = typeof QuestionTypeEnum[number];
 
-/** Template‑típusok – a `templates.type` oszlophoz */
+/**
+ * Template categories for `Template.type`.
+ */
 export const TemplateTypeEnum = [
   "protocol",
   "questions",
@@ -35,36 +58,42 @@ export const TemplateTypeEnum = [
 ] as const;
 export type TemplateType = typeof TemplateTypeEnum[number];
 
-// --------------------------------------------------
-// 2️⃣ Hibák és mérőeszközök
-// --------------------------------------------------
+// ------------------------------------------------------------
+// 2️⃣ Errors & measurement data
+// ------------------------------------------------------------
+
+/**
+ * Single error record – mirrors the `errors` table.
+ */
 export interface ErrorItem {
-  /** Egyedi azonosító */
+  /** Primary key */
   id: UUID;
 
-  /** Rövid leírás */
+  /** Short description */
   description: string;
 
-  /** Kategória (pl. “electrical”, “mechanical”) */
+  /** Category – e.g. “electrical”, “mechanical” */
   category: string;
 
-  /** Súlyosság – enum */
+  /** Severity – restricted to the `ErrorSeverity` enum */
   severity: ErrorSeverity;
 
-  /** Opcionális helyszíninformáció */
+  /** Optional location information */
   location?: string;
 
-  /** Kép URL (ha van) */
+  /** Optional image URL */
   imageUrl?: string;
 
-  /** Egyéb megjegyzések */
+  /** Free‑form notes */
   notes?: string;
 
-  /** Létrehozás időpontja */
+  /** Creation timestamp */
   createdAt: ISODateString;
 }
 
-/** Niedervolt‑mérőadat */
+/**
+ * Niedervolt‑measurement record – mirrors the `niedervolt_measurements` table.
+ */
 export interface NiedervoltMeasurement {
   id: UUID;
   measurementType: string;
@@ -76,91 +105,120 @@ export interface NiedervoltMeasurement {
   notes: string;
 }
 
-// --------------------------------------------------
-// 3️⃣ Form‑adatok (Protocol beviteli struktúra)
-// --------------------------------------------------
+// ------------------------------------------------------------
+// 3️⃣ Form data (the JSON payload stored in `protocols.form_data`)
+// ------------------------------------------------------------
+
 export interface FormData {
-  /** Kérdés‑válasz párok – szabad JSON */
+  /** Arbitrary question‑answer map */
   answers: Record<string, unknown>;
 
-  /** Dobozba érkezés dátuma (ISO‑8601) */
+  /** Optional reception date (ISO‑8601) */
   receptionDate?: ISODateString;
 
-  /** Nyelv (pl. “hu”, “de”) */
+  /** Language code – e.g. “hu”, “de” */
   language?: string;
 
-  /** Aláírás (base64 vagy URL) – DB‑ben `signature` */
+  /** Base64 or URL representation of the signature */
   signature?: string;
 
-  /** Aláíró neve – DB‑ben `signature_name` */
+  /** Human‑readable name of the signer */
   signatureName?: string;
 
-  /** Protokoll befejezve? – DB‑ben `completed` */
+  /** Flag indicating whether the protocol is completed */
   completed?: boolean;
 
-  /** Hibák listája */
+  /** List of errors attached to the form */
   errors?: ErrorItem[];
 
-  /** Speciális mérési adatok */
+  /** Optional list of low‑voltage measurements */
   niedervoltMeasurements?: NiedervoltMeasurement[];
 }
 
-// --------------------------------------------------
-// 4️⃣ Question konfiguráció (question_configs)
-// --------------------------------------------------
+// ------------------------------------------------------------
+// 4️⃣ Question configuration (table `question_configs`)
+// ------------------------------------------------------------
+
 export interface QuestionConfig {
   id: UUID;
-  templateId: UUID;          // foreign key → templates.id
-  questionId: string;        // kérdés egyedi azonosítója
-  title: string;             // alapértelmezett cím
-  titleHu?: string;          // magyar nyelvű cím
-  titleDe?: string;          // német nyelvű cím
-  type: QuestionType;        // enum‑alapú típus
-  required: boolean;         // kötelező mező?
+  /** FK → `templates.id` */
+  templateId: UUID;
+  /** Unique identifier of the question inside the template */
+  questionId: string;
+  /** Default title (fallback language) */
+  title: string;
+  /** Hungarian title */
+  titleHu?: string;
+  /** German title */
+  titleDe?: string;
+  /** Question type – limited to `QuestionType` */
+  type: QuestionType;
+  /** Whether the field is mandatory */
+  required: boolean;
+  /** Placeholder text shown in the UI */
   placeholder?: string;
+  /** Optional Excel‑style cell reference (e.g. “A1”) */
   cellReference?: string;
-  sheetName?: string;        // pl. “Sheet1”
-  multiCell?: boolean;       // több cella egy kérdéshez?
+  /** Optional sheet name */
+  sheetName?: string;
+  /** If the question spans multiple cells */
+  multiCell?: boolean;
+  /** Logical grouping name */
   groupName?: string;
+  /** Group name in German */
   groupNameDe?: string;
-  groupOrder?: number;       // sorrend a csoportban
+  /** Order of the group */
+  groupOrder?: number;
+  /** Unit label (e.g. “mm”, “kg”) */
   unit?: string;
+  /** Minimum numeric value (if applicable) */
   minValue?: number;
+  /** Maximum numeric value (if applicable) */
   maxValue?: number;
+  /** Formula used for calculated fields */
   calculationFormula?: string;
-  /** ID‑k listája, amik a képletben szerepelnek (JSONB) */
+  /** List of question IDs that feed the formula (stored as JSONB) */
   calculationInputs?: string[];
 }
 
-// --------------------------------------------------
-// 5️⃣ Template‑definíció (templates)
-// --------------------------------------------------
+// ------------------------------------------------------------
+// 5️⃣ Template definition (table `templates`)
+// ------------------------------------------------------------
+
 export interface Template {
   id: UUID;
-  name: string;                     // emberi olvasható név
-  type: TemplateType;               // enum‑alapú típus
-  language: string;                 // pl. “multilingual”, “hu”, “de”
-  fileName: string;                 // feltöltött fájl neve
-  filePath: string;                 // teljes elérési út a storage‑ban
-  uploadedAt: ISODateString;        // DB‑os `uploaded_at`
-  isActive: boolean;                // látható / használható?
+  /** Human‑readable name */
+  name: string;
+  /** Category – limited to `TemplateType` */
+  type: TemplateType;
+  /** Language of the stored file – “multilingual”, “hu”, “de”, … */
+  language: string;
+  /** Original filename */
+  fileName: string;
+  /** Full storage path (e.g. “templates/xyz.xlsx”) */
+  filePath: string;
+  /** Upload timestamp */
+  uploadedAt: ISODateString;
+  /** Whether the template is currently active */
+  isActive: boolean;
 }
 
-// --------------------------------------------------
-// 6️⃣ Protokoll rekord (protocols)
-// --------------------------------------------------
+// ------------------------------------------------------------
+// 6️⃣ Protocol record (table `protocols`)
+// ------------------------------------------------------------
+
 export interface Protocol {
   id: UUID;
 
-  /** Form adatok, beleértve answers, errors, stb. */
+  /** JSONB column that contains the entire `FormData` payload */
   formData: FormData;
 
-  /** Nyelvi beállítás – a `protocols.language` oszlop */
+  /** Language code – mirrors the column `language` */
   language: string;
 
-  /** Létrehozás időpontja */
+  /** Record creation timestamp */
   createdAt: ISODateString;
 
-  /** Utolsó módosítás – szinkron a DB‑s `updated_at`‑al (ha van) */
+  /** Timestamp of the last update (optional, maps to `updated_at`) */
   updatedAt?: ISODateString;
 }
