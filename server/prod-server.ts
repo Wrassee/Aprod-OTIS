@@ -1,12 +1,12 @@
 import app from './app.js';
 import { createServer } from 'http';
 
-const port = process.env.PORT || 10000; // Render a PORT változót használja
+const port: number = Number(process.env.PORT) || 10000; // mindig number
+
 const server = createServer(app);
 
 (async () => {
-  // A registerRoutes aszinkron, ezért itt is így hívjuk meg
-  const { registerRoutes } = await import('./routes.js');
+  const { registerRoutes } = await import('./routes.js'); // .js kell
   await registerRoutes(app);
 
   server.listen(port, () => {
