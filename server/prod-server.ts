@@ -1,12 +1,3 @@
-// --- EZ A RÉSZ KERÜL A FÁJL ELEJÉRE ---
-import dotenv from 'dotenv';
-
-// A Render a /etc/secrets/ mappába teszi a titkos fájlokat
-const secretFilePath = '/etc/secrets/aprod-otis-secrets';
-dotenv.config({ path: secretFilePath });
-// --- EDDIG TART AZ ÚJ RÉSZ ---
-
-
 import app from './app.js';
 import { createServer } from 'http';
 
