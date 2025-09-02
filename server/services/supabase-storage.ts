@@ -81,13 +81,16 @@ export class SupabaseStorageService {
       .from(this.bucketName)
       .getPublicUrl(storagePath);
       
-    console.log(`Direct URL: ${publicUrl}`);
+    console.log(`Correct Direct URL: ${publicUrl}`);
 
     try {
       // 2. Használunk egy egyszerű 'fetch' kérést a letöltéshez
       const response = await fetch(publicUrl);
 
       if (!response.ok) {
+        // Részletesebb hibalogolás
+        const errorBody = await response.text();
+        console.error(`Direct download failed. Status: ${response.status}. Body: ${errorBody}`);
         throw new Error(`Direct download failed with status: ${response.status} ${response.statusText}`);
       }
 
