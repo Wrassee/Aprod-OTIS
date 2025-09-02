@@ -8,7 +8,7 @@
     "build:client": "vite build",
     "build:server": "tsc --project tsconfig.server.json",
     "build": "npm run build:client && npm run build:server",
-    "start": "node --env-file=.env dist/server/prod-server.js"
+    "start": "node dist/server/prod-server.js"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.16.0",
