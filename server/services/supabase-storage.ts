@@ -2,25 +2,30 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { promises as fs } from 'fs';
 import path from 'path';
 
-// Környezeti változók ellenőrzése
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
-const bucketName = process.env.SUPABASE_BUCKET;
-
-// VISSZAÁLLÍTOTT ELLENŐRZÉS: Ez oldja meg a TS2345 build hibákat.
-// Biztosítja a fordítót, hogy ezek a változók nem lesznek 'undefined'.
-if (!supabaseUrl || !supabaseServiceKey || !bucketName) {
-  throw new Error('Missing Supabase configuration. Please check VITE_SUPABASE_URL, SUPABASE_SERVICE_KEY, and SUPABASE_BUCKET environment variables.');
-}
-
-const supabase: SupabaseClient = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  }
-});
-
 export class SupabaseStorageService {
+  private supabase: SupabaseClient;
+  private bucketName: string;
+
+  constructor() {
+    // A konfiguráció és az ellenőrzés beköltözik a konstruktorba
+    const supabaseUrl = process.env.VITE_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
+    const bucketNameFromEnv = process.env.SUPABASE_BUCKET;
+
+    // Ez az ellenőrzés itt már helyesen szűkíti a típust a fordító számára is
+    if (!supabaseUrl || !supabaseServiceKey || !bucketNameFromEnv) {
+      throw new Error('Missing Supabase configuration. Please check VITE_SUPABASE_URL, SUPABASE_SERVICE_KEY, and SUPABASE_BUCKET environment variables.');
+    }
+
+    // Az osztály tulajdonságainak beállítása
+    this.bucketName = bucketNameFromEnv;
+    this.supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
+  }
   
   /**
    * Fájl feltöltése a Supabase Storage-be. Ha a bucket nem létezik, megpróbálja létrehozni.
@@ -30,12 +35,12 @@ export class SupabaseStorageService {
    */
   async uploadFile(filePath: string, storagePath: string): Promise<string> {
     try {
-      console.log(`📤 Uploading ${filePath} to ${bucketName}/${storagePath}`);
+      console.log(`📤 Uploading ${filePath} to ${this.bucketName}/${storagePath}`);
       
       const fileBuffer = await fs.readFile(filePath);
       
-      const { error } = await supabase.storage
-        .from(bucketName)
+      const { error } = await this.supabase.storage
+        .from(this.bucketName)
         .upload(storagePath, fileBuffer, {
           cacheControl: '3600',
           upsert: true,
@@ -44,15 +49,15 @@ export class SupabaseStorageService {
 
       if (error) {
         if (error.message.includes('Bucket not found')) {
-            console.warn(`Bucket "${bucketName}" not found. Attempting to create it...`);
+            console.warn(`Bucket "${this.bucketName}" not found. Attempting to create it...`);
             await this.createBucketIfNotExists();
             return this.uploadFile(filePath, storagePath);
         }
         throw error;
       }
 
-      const { data: { publicUrl } } = supabase.storage
-        .from(bucketName)
+      const { data: { publicUrl } } = this.supabase.storage
+        .from(this.bucketName)
         .getPublicUrl(storagePath);
 
       console.log(`✅ File uploaded successfully: ${publicUrl}`);
@@ -71,17 +76,12 @@ export class SupabaseStorageService {
   async downloadFile(storagePath: string, localPath: string): Promise<void> {
     try {
       console.log(`📥 Downloading ${storagePath} to ${localPath}`);
-      const { data, error } = await supabase.storage
-        .from(bucketName)
+      const { data, error } = await this.supabase.storage
+        .from(this.bucketName)
         .download(storagePath);
 
-      if (error) {
-        throw error;
-      }
-
-      if (!data) {
-        throw new Error('No data received from storage.');
-      }
+      if (error) { throw error; }
+      if (!data) { throw new Error('No data received from storage.'); }
 
       const buffer = Buffer.from(await data.arrayBuffer());
       
@@ -97,29 +97,20 @@ export class SupabaseStorageService {
   }
 
   /**
-   * VISSZAÁLLÍTOTT METÓDUS: Ez oldja meg a TS2339 build hibát.
    * Ellenőrzi, hogy egy fájl létezik-e a storage-ben anélkül, hogy letöltené.
    * @param storagePath A keresett fájl elérési útja.
    * @returns Igaz, ha a fájl létezik.
    */
   async fileExists(storagePath: string): Promise<boolean> {
     try {
-      // A fájlokat a szülő mappájukban listázzuk
       const parentDir = path.dirname(storagePath);
       const fileName = path.basename(storagePath);
 
-      const { data, error } = await supabase.storage
-        .from(bucketName)
-        .list(parentDir, {
-          limit: 1, // Elég egyezést keresni
-          search: fileName,
-        });
+      const { data, error } = await this.supabase.storage
+        .from(this.bucketName)
+        .list(parentDir, { limit: 1, search: fileName });
       
-      if (error) {
-        // Hiba esetén (pl. mappa nem létezik) feltételezzük, hogy a fájl sem létezik
-        return false;
-      }
-
+      if (error) { return false; }
       return data.length > 0;
     } catch {
       return false;
@@ -127,12 +118,12 @@ export class SupabaseStorageService {
   }
   
   private async createBucketIfNotExists(): Promise<void> {
-    const { data } = await supabase.storage.getBucket(bucketName);
+    const { data } = await this.supabase.storage.getBucket(this.bucketName);
     if (data) return;
     
-    const { error } = await supabase.storage.createBucket(bucketName, { public: true });
-    if (error) throw new Error(`Failed to create bucket "${bucketName}": ${error.message}`);
-    console.log(`✅ Bucket "${bucketName}" created successfully.`);
+    const { error } = await this.supabase.storage.createBucket(this.bucketName, { public: true });
+    if (error) throw new Error(`Failed to create bucket "${this.bucketName}": ${error.message}`);
+    console.log(`✅ Bucket "${this.bucketName}" created successfully.`);
   }
 
   private getContentType(fileName: string): string {
