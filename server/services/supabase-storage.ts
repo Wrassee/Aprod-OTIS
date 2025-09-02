@@ -5,6 +5,7 @@ import path from 'path';
 export class SupabaseStorageService {
   private supabase: SupabaseClient;
   private bucketName: string;
+  private supabaseUrl: string;
 
   constructor() {
     const supabaseUrl = process.env.VITE_SUPABASE_URL;
@@ -15,6 +16,7 @@ export class SupabaseStorageService {
       throw new Error('Missing Supabase configuration. Please check VITE_SUPABASE_URL, SUPABASE_SERVICE_KEY, and SUPABASE_BUCKET environment variables.');
     }
 
+    this.supabaseUrl = supabaseUrl;
     this.bucketName = bucketNameFromEnv;
     this.supabase = createClient(supabaseUrl, supabaseServiceKey, {
       auth: {
@@ -62,18 +64,32 @@ export class SupabaseStorageService {
   async downloadFile(storagePath: string, localPath: string): Promise<void> {
     console.log(`📥 Initiating download for: ${storagePath}`);
 
-    const pathWithoutBucket = storagePath.startsWith(`${this.bucketName}/`)
-      ? storagePath.substring(this.bucketName.length + 1)
-      : storagePath;
+    // JAVÍTÁS: Ellenőrizzük, hogy már teljes URL-e a storagePath
+    let cleanPath: string;
+    
+    if (storagePath.startsWith('http')) {
+      // Ha teljes URL, akkor csak a relatív részt használjuk
+      const urlPattern = new RegExp(`${this.supabaseUrl}/storage/v1/object/public/${this.bucketName}/(.+)`);
+      const match = storagePath.match(urlPattern);
       
-    // === EZ A VÉGLEGES JAVÍTÁS ===
-    // Dekódoljuk az útvonalat, hogy a %20 -> szóköz legyen,
-    // így a getPublicUrl már helyesen fogja újra kódolni.
-    const decodedPath = decodeURIComponent(pathWithoutBucket);
+      if (match) {
+        cleanPath = decodeURIComponent(match[1]);
+        console.log(`🔧 Extracted relative path from full URL: ${cleanPath}`);
+      } else {
+        throw new Error(`Invalid Supabase storage URL format: ${storagePath}`);
+      }
+    } else {
+      // Ha relatív elérési út
+      const pathWithoutBucket = storagePath.startsWith(`${this.bucketName}/`)
+        ? storagePath.substring(this.bucketName.length + 1)
+        : storagePath;
+      
+      cleanPath = decodeURIComponent(pathWithoutBucket);
+    }
       
     const { data: { publicUrl } } = this.supabase.storage
       .from(this.bucketName)
-      .getPublicUrl(decodedPath); // A dekódolt útvonalat használjuk
+      .getPublicUrl(cleanPath);
       
     console.log(`Correct Direct URL: ${publicUrl}`);
 
