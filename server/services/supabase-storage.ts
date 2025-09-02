@@ -1,17 +1,18 @@
-import { createClient } from '@supabase/supabase-js';
-import fs from 'fs';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { promises as fs } from 'fs'; // Aszinkron fájlrendszer modul importálása
 import path from 'path';
 
-// Initialize Supabase client
-const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const bucketName = process.env.SUPABASE_BUCKET!;
+// Környezeti változók ellenőrzése
+const supabaseUrl = process.env.VITE_SUPABASE_URL; // A VITE_ prefix a kliensoldal miatt kellhet, de szerveren is működik
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY; // A rövidebb, javasolt név
+const bucketName = process.env.SUPABASE_BUCKET;
 
 if (!supabaseUrl || !supabaseServiceKey || !bucketName) {
-  throw new Error('Missing Supabase configuration. Please check SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and SUPABASE_BUCKET environment variables.');
+  throw new Error('Missing Supabase configuration. Please check VITE_SUPABASE_URL, SUPABASE_SERVICE_KEY, and SUPABASE_BUCKET environment variables.');
 }
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+// Supabase kliens inicializálása
+const supabase: SupabaseClient = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {
     autoRefreshToken: false,
     persistSession: false
@@ -21,145 +22,85 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 export class SupabaseStorageService {
   
   /**
-   * Upload a file to Supabase Storage
-   * @param filePath - Local file path to upload
-   * @param storagePath - Path in storage bucket
-   * @returns Public URL of uploaded file
+   * Fájl feltöltése a Supabase Storage-be. Ha a bucket nem létezik, megpróbálja létrehozni.
+   * @param filePath A feltöltendő helyi fájl elérési útja.
+   * @param storagePath A cél elérési út a Supabase bucket-ben.
+   * @returns A feltöltött fájl publikus URL-je.
    */
   async uploadFile(filePath: string, storagePath: string): Promise<string> {
     try {
       console.log(`📤 Uploading ${filePath} to ${bucketName}/${storagePath}`);
       
-      // Test bucket access first
-      const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
-      if (bucketError) {
-        throw new Error(`Bucket access failed: ${bucketError.message}`);
-      }
+      const fileBuffer = await fs.readFile(filePath); // Aszinkron fájlolvasás
       
-      // Check if bucket exists
-      const bucketExists = buckets?.find(b => b.name === bucketName);
-      if (!bucketExists) {
-        // Try to create bucket
-        const { data: newBucket, error: createError } = await supabase.storage.createBucket(bucketName, {
-          public: true,
-          allowedMimeTypes: ['image/*', 'application/*'],
-          fileSizeLimit: 50 * 1024 * 1024 // 50MB
-        });
-        
-        if (createError) {
-          throw new Error(`Failed to create bucket: ${createError.message}`);
-        }
-        console.log(`✅ Created bucket: ${bucketName}`);
-      }
-      
-      // Read file content
-      const fileBuffer = fs.readFileSync(filePath);
-      const fileName = path.basename(storagePath);
-      
-      // Upload to Supabase Storage
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from(bucketName)
         .upload(storagePath, fileBuffer, {
           cacheControl: '3600',
-          upsert: true,
-          contentType: this.getContentType(fileName)
+          upsert: true, // Felülírja a fájlt, ha már létezik
+          contentType: this.getContentType(storagePath)
         });
 
       if (error) {
-        throw new Error(`Failed to upload file: ${error.message}`);
+        // Specifikus hibaellenőrzés, ha a bucket nem létezik
+        if (error.message.includes('Bucket not found')) {
+            console.warn(`Bucket "${bucketName}" not found. Attempting to create it...`);
+            await this.createBucketIfNotExists();
+            // Újrapróbálkozás a feltöltéssel a bucket létrehozása után
+            return this.uploadFile(filePath, storagePath);
+        }
+        throw error; // Más hiba esetén dobja tovább
       }
 
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from(bucketName)
         .getPublicUrl(storagePath);
 
       console.log(`✅ File uploaded successfully: ${publicUrl}`);
       return publicUrl;
-    } catch (error) {
-      console.error('❌ Upload failed:', error);
-      throw error;
+    } catch (error: any) {
+      console.error(`❌ Upload failed for ${filePath}:`, error.message);
+      throw new Error(`Failed to upload file: ${error.message}`);
     }
   }
 
   /**
-   * Download a file from Supabase Storage to local path
-   * @param storagePath - Path in storage bucket
-   * @param localPath - Local path to save file
+   * Fájl letöltése a Supabase Storage-ből és mentése egy helyi útvonalra.
+   * @param storagePath A letöltendő fájl elérési útja a bucket-ben.
+   * @param localPath A helyi útvonal, ahova a fájlt menteni kell.
    */
   async downloadFile(storagePath: string, localPath: string): Promise<void> {
     try {
+      console.log(`📥 Downloading ${storagePath} to ${localPath}`);
       const { data, error } = await supabase.storage
         .from(bucketName)
         .download(storagePath);
 
       if (error) {
-        throw new Error(`Failed to download file: ${error.message}`);
+        throw error; // Az eredeti, részletesebb hibaobjektumot dobjuk tovább
       }
 
       if (!data) {
-        throw new Error('No data received from storage');
+        throw new Error('No data received from storage.');
       }
 
-      // Convert blob to buffer and save
-      const arrayBuffer = await data.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
+      const buffer = Buffer.from(await data.arrayBuffer());
       
-      // Ensure directory exists
       const dir = path.dirname(localPath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
+      await fs.mkdir(dir, { recursive: true }); // Aszinkron mappa létrehozás
       
-      fs.writeFileSync(localPath, buffer);
-      console.log(`✅ File downloaded successfully: ${localPath}`);
-    } catch (error) {
-      console.error('❌ Download failed:', error);
-      throw error;
+      await fs.writeFile(localPath, buffer); // Aszinkron fájlírás
+      console.log(`✅ File downloaded successfully to: ${localPath}`);
+    } catch (error: any) {
+      console.error(`❌ Download failed for ${storagePath}:`, error.message);
+      // Itt az eredeti hibaobjektumot adjuk tovább, ami több információt tartalmazhat
+      throw new Error(`Failed to download file: ${error.message || 'Unknown error'}`);
     }
   }
 
   /**
-   * Get public URL for a file in storage
-   * @param storagePath - Path in storage bucket
-   * @returns Public URL
-   */
-  getPublicUrl(storagePath: string): string {
-    const { data: { publicUrl } } = supabase.storage
-      .from(bucketName)
-      .getPublicUrl(storagePath);
-    
-    return publicUrl;
-  }
-
-  /**
-   * List files in a storage directory
-   * @param prefix - Directory prefix to search
-   * @returns Array of file objects
-   */
-  async listFiles(prefix: string = ''): Promise<any[]> {
-    try {
-      const { data, error } = await supabase.storage
-        .from(bucketName)
-        .list(prefix, {
-          limit: 100,
-          offset: 0
-        });
-
-      if (error) {
-        throw new Error(`Failed to list files: ${error.message}`);
-      }
-
-      return data || [];
-    } catch (error) {
-      console.error('❌ List files failed:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Delete a file from storage
-   * @param storagePath - Path in storage bucket
+   * Fájl törlése a Supabase Storage-ből.
+   * @param storagePath A törlendő fájl elérési útja.
    */
   async deleteFile(storagePath: string): Promise<void> {
     try {
@@ -168,54 +109,48 @@ export class SupabaseStorageService {
         .remove([storagePath]);
 
       if (error) {
-        throw new Error(`Failed to delete file: ${error.message}`);
+        throw error;
       }
-
       console.log(`✅ File deleted successfully: ${storagePath}`);
-    } catch (error) {
-      console.error('❌ Delete failed:', error);
-      throw error;
+    } catch (error: any) {
+      console.error(`❌ Delete failed for ${storagePath}:`, error.message);
+      throw new Error(`Failed to delete file: ${error.message}`);
     }
   }
-
+  
   /**
-   * Check if a file exists in storage
-   * @param storagePath - Path in storage bucket
-   * @returns Boolean indicating if file exists
+   * Ellenőrzi, hogy egy bucket létezik-e.
+   * @returns Igaz, ha a bucket létezik.
    */
-  async fileExists(storagePath: string): Promise<boolean> {
-    try {
-      const { data, error } = await supabase.storage
-        .from(bucketName)
-        .download(storagePath);
-
-      return !error && !!data;
-    } catch {
-      return false;
-    }
+  private async bucketExists(): Promise<boolean> {
+    const { data, error } = await supabase.storage.getBucket(bucketName);
+    return !error && !!data;
   }
 
   /**
-   * Get file info from storage
-   * @param storagePath - Path in storage bucket
-   * @returns File metadata
+   * Létrehozza a konfigban megadott bucket-et, ha az még nem létezik.
    */
-  async getFileInfo(storagePath: string): Promise<any> {
-    try {
-      const files = await this.listFiles(path.dirname(storagePath));
-      const fileName = path.basename(storagePath);
-      
-      return files.find(file => file.name === fileName);
-    } catch (error) {
-      console.error('❌ Get file info failed:', error);
-      throw error;
+  async createBucketIfNotExists(): Promise<void> {
+    if (await this.bucketExists()) {
+        console.log(`Bucket "${bucketName}" already exists.`);
+        return;
     }
+    
+    const { error } = await supabase.storage.createBucket(bucketName, {
+      public: true, // Legyen publikus a könnyebb elérés érdekében
+      allowedMimeTypes: ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'image/*', 'application/pdf'],
+    });
+
+    if (error) {
+      throw new Error(`Failed to create bucket "${bucketName}": ${error.message}`);
+    }
+    console.log(`✅ Bucket "${bucketName}" created successfully.`);
   }
 
   /**
-   * Get content type based on file extension
-   * @param fileName - Name of the file
-   * @returns MIME type
+   * Tartalomtípus meghatározása a fájlnév kiterjesztése alapján.
+   * @param fileName A fájl neve.
+   * @returns A MIME típus.
    */
   private getContentType(fileName: string): string {
     const ext = path.extname(fileName).toLowerCase();
@@ -226,14 +161,10 @@ export class SupabaseStorageService {
       '.png': 'image/png',
       '.jpg': 'image/jpeg',
       '.jpeg': 'image/jpeg',
-      '.gif': 'image/gif',
-      '.txt': 'text/plain',
-      '.json': 'application/json'
     };
-    
     return contentTypes[ext] || 'application/octet-stream';
   }
 }
 
-// Export singleton instance
+// Singleton instance exportálása
 export const supabaseStorage = new SupabaseStorageService();
