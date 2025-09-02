@@ -1,6 +1,51 @@
 import * as XLSX from "xlsx";
 import fs from "fs";
 import { QuestionType } from "../../shared/schema.js";
+import { CellValueType } from '../../shared/types.js';
+
+// A függvény visszatérési típusa - JAVÍTOTT VERZIÓ
+function determineCellType(value?: any): CellValueType {
+  if (!value) return null;
+  
+  const stringValue = value.toString().toLowerCase().trim();
+  
+  // Logikai értékek
+  if (['yes', 'no', 'igen', 'nem'].includes(stringValue)) {
+    return "yes_no";
+  }
+  
+  if (['true', 'false', 'igaz', 'hamis'].includes(stringValue)) {
+    return "true_false";
+  }
+  
+  // Számértékek
+  if (!isNaN(parseFloat(stringValue))) {
+    return "number";
+  }
+  
+  // Dátum formátumok
+  if (Date.parse(stringValue)) {
+    return "date";
+  }
+  
+  // Mérési értékek (számmal + egységgel)
+  if (/^\d+(\.\d+)?\s*(mm|cm|m|kg|g|v|a|w)$/i.test(stringValue)) {
+    return "measurement";
+  }
+  
+  // Képletek
+  if (stringValue.startsWith('=') || stringValue.includes('sum(') || stringValue.includes('calc(')) {
+    return "calculated";
+  }
+  
+  // Checkbox jelölések
+  if (['x', '✓', '☑', '✔'].includes(stringValue)) {
+    return "checkbox";
+  }
+  
+  // Alapértelmezett: szöveg
+  return "text";
+} // <-- Ez a hiányzó zárójel volt!
 
 /*--------------------------------------------------------------
   Interface – a single parsed question definition
@@ -321,9 +366,9 @@ export class ExcelParserService {
 
     // Adjusted to match the literals defined in shared/schema
     if (["yes_no", "yesno", "bool", "boolean"].includes(t))
-      return "yes_no";
+      return "checkbox"; // JAVÍTVA: yes_no nem létezik a QuestionType-ban
     if (["true_false", "truefalse", "binary", "tf"].includes(t))
-      return "true_false";
+      return "radio"; // JAVÍTVA: true_false nem létezik a QuestionType-ban
     if (
       [
         "measurement",
@@ -362,11 +407,11 @@ export class ExcelParserService {
   /*------------------- Helper: format answer for Excel -------------------*/
   private formatAnswerForExcel(answer: any, type: QuestionType): any {
     switch (type) {
-      case "yes_no":
+      case "checkbox":
         if (answer === "yes" || answer === true) return "Yes";
         if (answer === "no" || answer === false) return "No";
         return answer?.toString() ?? "";
-      case "true_false":
+      case "radio":
         if (answer === "true") return "X";
         if (answer === "false") return "-";
         return answer?.toString() ?? "";

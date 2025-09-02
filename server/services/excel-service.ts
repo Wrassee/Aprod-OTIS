@@ -162,7 +162,7 @@ class ExcelService {
           
           // Add answers with proper question titles
           Object.entries(formData.answers).forEach(([questionId, answer]) => {
-            const config = questionConfigs.find(q => q.questionId === questionId);
+            const config = questionConfigs.find((q: any) => q.questionId === questionId);
             const questionText = config ? 
               (language === 'hu' && config.titleHu ? config.titleHu :
                language === 'de' && config.titleDe ? config.titleDe :

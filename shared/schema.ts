@@ -83,7 +83,7 @@ export const QuestionTypeEnum = z.enum([
   "select",
   "checkbox",
 ]);
-export type QuestionType = z.infer<typeof QuestionTypeEnum>;
+export type QuestionType = "number" | "date" | "select" | "text" | "checkbox" | "radio" | "measurement" | "calculated" | "true_false" | "yes_no_na";
 
 export const questionConfigs = pgTable("question_configs", {
   id: text("id")

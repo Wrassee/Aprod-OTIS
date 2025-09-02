@@ -1,12 +1,13 @@
 // server/db.ts
 // ------------------------------------------------------------
-// 1️⃣ Imports – mindegyik relatív útvonal .js‑kiterjesztéssel
+// 1️⃣ Imports
 // ------------------------------------------------------------
 import { drizzle as drizzleSqlite } from "drizzle-orm/better-sqlite3";
 import { drizzle as drizzleNeon } from "drizzle-orm/neon-serverless";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import Database from "better-sqlite3";
 import ws from "ws";
+import type { InferSelectModel, InferInsertModel } from "drizzle-orm";
 
 import * as schema from "../shared/schema.js";
 
@@ -14,16 +15,33 @@ import path from "node:path";
 import fs from "node:fs";
 
 // ------------------------------------------------------------
-// 2️⃣ DB típusdefiníciók
+// 2️⃣ Re-export schema tables and types
 // ------------------------------------------------------------
-type DbType = ReturnType<typeof drizzleSqlite> | ReturnType<typeof drizzleNeon>;
+
+// Táblák exportálása
+export const { protocols, templates, questionConfigs } = schema;
+
+// Típusok exportálása - ezeket hiányolta a storage.ts
+export type Protocol = InferSelectModel<typeof protocols>;
+export type InsertProtocol = InferInsertModel<typeof protocols>;
+export type Template = InferSelectModel<typeof templates>;
+export type InsertTemplate = InferInsertModel<typeof templates>;
+export type QuestionConfig = InferSelectModel<typeof questionConfigs>;
+export type InsertQuestionConfig = InferInsertModel<typeof questionConfigs>;
+
+// ------------------------------------------------------------
+// 3️⃣ DB típusdefiníciók és inicializálás
+// ------------------------------------------------------------
+
+type SqliteDb = ReturnType<typeof drizzleSqlite>;
+type NeonDb = ReturnType<typeof drizzleNeon>;
+type DbType = SqliteDb | NeonDb;
 
 let db: DbType;
-// a helyi változó más néven, hogy ne ütközzön az exporttal
 let testConnectionFn: () => Promise<boolean>;
 
 // ------------------------------------------------------------
-// 3️⃣ Production – Neon PostgreSQL (Render / Vercel / Railway)
+// 4️⃣ Production – Neon PostgreSQL (Render / Vercel / Railway)
 // ------------------------------------------------------------
 if (process.env.NODE_ENV === "production") {
   console.log("🔧 Initializing Neon (PostgreSQL) connection – production mode");
@@ -40,9 +58,9 @@ if (process.env.NODE_ENV === "production") {
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
   // Drizzle‑Postgres‑adapter
-  db = drizzleNeon(pool, { schema }) as DbType;
+  db = drizzleNeon(pool, { schema });
 
-  // egyszerű “SELECT 1” health‑check
+  // egyszerű "SELECT 1" health‑check
   testConnectionFn = async () => {
     try {
       await pool.query("SELECT 1");
@@ -56,7 +74,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 // ------------------------------------------------------------
-// 4️⃣ Development – SQLite (local)
+// 5️⃣ Development – SQLite (local)
 // ------------------------------------------------------------
 else {
   console.log("🔧 Initializing SQLite – development mode");
@@ -75,9 +93,9 @@ else {
   sqlite.pragma("journal_mode = WAL");
 
   // Drizzle‑SQLite‑adapter
-  db = drizzleSqlite(sqlite, { schema }) as DbType;
+  db = drizzleSqlite(sqlite, { schema });
 
-  // egyszerű “SELECT 1” health‑check
+  // egyszerű "SELECT 1" health‑check
   testConnectionFn = async () => {
     try {
       sqlite.prepare("SELECT 1").get();
@@ -91,8 +109,25 @@ else {
 }
 
 // ------------------------------------------------------------
-// 5️⃣ Exportálás – a többi modul könnyen importálhatja
+// 6️⃣ Database utilities
+// ------------------------------------------------------------
+
+/**
+ * Type guard to check if db is PostgreSQL
+ */
+export function isPostgresDb(database: DbType): database is NeonDb {
+  return process.env.NODE_ENV === "production";
+}
+
+/**
+ * Type guard to check if db is SQLite
+ */
+export function isSqliteDb(database: DbType): database is SqliteDb {
+  return process.env.NODE_ENV !== "production";
+}
+
+// ------------------------------------------------------------
+// 7️⃣ Exportálás
 // ------------------------------------------------------------
 export { db };
-// a változó neve most már **testConnection**, a belső változó **testConnectionFn**
 export const testConnection = testConnectionFn;

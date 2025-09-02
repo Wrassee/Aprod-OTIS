@@ -49,6 +49,23 @@ export const QuestionTypeEnum = [
 export type QuestionType = typeof QuestionTypeEnum[number];
 
 /**
+ * Cell value types for Excel parsing - includes all possible cell types
+ * used in the excel-parser service.
+ */
+export const CellValueTypeEnum = [
+  "text",
+  "number", 
+  "date",
+  "select",
+  "checkbox",
+  "yes_no",      // új
+  "true_false",  // új
+  "measurement", // új
+  "calculated",  // új
+] as const;
+export type CellValueType = typeof CellValueTypeEnum[number] | null;
+
+/**
  * Template categories for `Template.type`.
  */
 export const TemplateTypeEnum = [
@@ -72,7 +89,7 @@ export interface ErrorItem {
   /** Short description */
   description: string;
 
-  /** Category – e.g. “electrical”, “mechanical” */
+  /** Category – e.g. "electrical", "mechanical" */
   category: string;
 
   /** Severity – restricted to the `ErrorSeverity` enum */
@@ -116,7 +133,7 @@ export interface FormData {
   /** Optional reception date (ISO‑8601) */
   receptionDate?: ISODateString;
 
-  /** Language code – e.g. “hu”, “de” */
+  /** Language code – e.g. "hu", "de" */
   language?: string;
 
   /** Base64 or URL representation of the signature */
@@ -157,7 +174,7 @@ export interface QuestionConfig {
   required: boolean;
   /** Placeholder text shown in the UI */
   placeholder?: string;
-  /** Optional Excel‑style cell reference (e.g. “A1”) */
+  /** Optional Excel‑style cell reference (e.g. "A1") */
   cellReference?: string;
   /** Optional sheet name */
   sheetName?: string;
@@ -169,7 +186,7 @@ export interface QuestionConfig {
   groupNameDe?: string;
   /** Order of the group */
   groupOrder?: number;
-  /** Unit label (e.g. “mm”, “kg”) */
+  /** Unit label (e.g. "mm", "kg") */
   unit?: string;
   /** Minimum numeric value (if applicable) */
   minValue?: number;
@@ -191,11 +208,11 @@ export interface Template {
   name: string;
   /** Category – limited to `TemplateType` */
   type: TemplateType;
-  /** Language of the stored file – “multilingual”, “hu”, “de”, … */
+  /** Language of the stored file – "multilingual", "hu", "de", … */
   language: string;
   /** Original filename */
   fileName: string;
-  /** Full storage path (e.g. “templates/xyz.xlsx”) */
+  /** Full storage path (e.g. "templates/xyz.xlsx") */
   filePath: string;
   /** Upload timestamp */
   uploadedAt: ISODateString;
@@ -221,4 +238,28 @@ export interface Protocol {
 
   /** Timestamp of the last update (optional, maps to `updated_at`) */
   updatedAt?: ISODateString;
+}
+
+// ------------------------------------------------------------
+// 7️⃣ XML Excel parsing types
+// ------------------------------------------------------------
+
+/**
+ * Payload for XML Excel processing
+ */
+export interface XmlExcelPayload {
+  templateId: UUID;
+  fileName: string;
+  filePath: string;
+  language: string;
+}
+
+/**
+ * Parsed row data from Excel processing
+ */
+export interface ParsedRow {
+  questionId: string;
+  value: unknown;
+  cellReference?: string;
+  sheetName?: string;
 }

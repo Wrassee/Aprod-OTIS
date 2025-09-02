@@ -343,7 +343,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Extract the storage path from the public URL
       const urlParts = filePath.split("/");
       const storagePathIndex = urlParts.findIndex(
-        (p) => p === "object",
+        (p: unknown) => p === "object"
       );
       if (storagePathIndex === -1) {
         throw new Error("Unable to parse Supabase storage URL");

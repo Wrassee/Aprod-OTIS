@@ -294,7 +294,7 @@ class SimpleXmlExcelService {
           
           mappings.push({
             cell: config.cellReference,
-            value: cellValue,
+            value: String(cellValue), // Fix: convert to string
             label: config.title || `Question ${questionId}`
           });
         } else if (config.type === 'measurement') {
@@ -303,7 +303,7 @@ class SimpleXmlExcelService {
           if (!isNaN(numValue)) {
             mappings.push({
               cell: config.cellReference,
-              value: String(cellValue),
+              value: String(numValue), // Fix: use numValue instead of undefined cellValue
               label: config.title || `Question ${questionId}`
             });
           }

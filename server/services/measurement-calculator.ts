@@ -76,10 +76,9 @@ export class MeasurementCalculator {
     // ---------------------------------------------------------------
     // 2️⃣  Prepare the expression – replace each input id with its value
     // ---------------------------------------------------------------
-    const inputIds = question.calculationInputs
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
+    const inputIds = typeof question.calculationInputs === 'string' 
+      ? question.calculationInputs.split(",").map((s: string) => s.trim()).filter(Boolean)
+      : [];
 
     let formula = question.calculationFormula;
     let allInputsAvailable = true;
@@ -148,8 +147,8 @@ export class MeasurementCalculator {
     // ---------------------------------------------------------------
     const withinLimits = this.checkLimits(
       rounded,
-      question.minValue,
-      question.maxValue,
+      question.minValue ?? undefined,
+      question.maxValue ?? undefined,
     );
 
     return {
@@ -161,9 +160,9 @@ export class MeasurementCalculator {
         ? undefined
         : this.getLimitError(
             rounded,
-            question.minValue,
-            question.maxValue,
-            question.unit,
+            question.minValue ?? undefined,
+            question.maxValue ?? undefined,
+            question.unit ?? undefined,
           ),
     };
   }

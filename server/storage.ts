@@ -14,10 +14,10 @@ import {
   protocols,
   templates,
   questionConfigs,
-} from "./db.js"; // <-- <-- **IMPORTANT** – use the db module, not shared/schema
+} from "./db.js"; 
 
-import { db } from "./db.js";                     // Drizzle‑Postgres connection
-import { eq, and, desc } from "drizzle-orm";    // Drizzle helpers
+import { db } from "./db.js";                       // Drizzle connection
+import { eq, and, desc } from "drizzle-orm";     // Drizzle helpers
 
 // ------------------------------------------------------------
 // 2️⃣ IStorage interface – unchanged
@@ -57,17 +57,17 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   /* ---------- Protocols ---------- */
   async getProtocol(id: string) {
-    const [protocol] = await db.select().from(protocols).where(eq(protocols.id, id));
+    const [protocol] = await (db as any).select().from(protocols).where(eq(protocols.id, id));
     return protocol ?? undefined;
   }
 
   async createProtocol(protocol: InsertProtocol) {
-    const [created] = await db.insert(protocols).values(protocol).returning();
+    const [created] = await (db as any).insert(protocols).values(protocol).returning();
     return created;
   }
 
   async updateProtocol(id: string, updates: Partial<Protocol>) {
-    const [updated] = await db
+    const [updated] = await (db as any)
       .update(protocols)
       .set(updates)
       .where(eq(protocols.id, id))
@@ -76,22 +76,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllProtocols() {
-    return await db.select().from(protocols).orderBy(desc(protocols.createdAt));
+    return await (db as any).select().from(protocols).orderBy(desc(protocols.createdAt));
   }
 
   /* ---------- Templates ---------- */
   async getTemplate(id: string) {
-    const [tpl] = await db.select().from(templates).where(eq(templates.id, id));
+    const [tpl] = await (db as any).select().from(templates).where(eq(templates.id, id));
     return tpl ?? undefined;
   }
 
   async createTemplate(template: InsertTemplate) {
-    const [created] = await db.insert(templates).values(template).returning();
+    const [created] = await (db as any).insert(templates).values(template).returning();
     return created;
   }
 
   async updateTemplate(id: string, updates: Partial<Template>) {
-    const [updated] = await db
+    const [updated] = await (db as any)
       .update(templates)
       .set(updates)
       .where(eq(templates.id, id))
@@ -100,14 +100,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllTemplates() {
-    return await db.select().from(templates).orderBy(desc(templates.uploadedAt));
+    return await (db as any).select().from(templates).orderBy(desc(templates.uploadedAt));
   }
 
   async getActiveTemplate(type: string, language: string) {
     console.log(`🔍 Looking for active template – type=${type}, language=${language}`);
 
     // 1️⃣ Exact language match
-    let [tpl] = await db
+    let [tpl] = await (db as any)
       .select()
       .from(templates)
       .where(and(eq(templates.type, type), eq(templates.language, language), eq(templates.isActive, true)));
@@ -115,7 +115,7 @@ export class DatabaseStorage implements IStorage {
     // 2️⃣ Fallback to multilingual
     if (!tpl) {
       console.log(`🔍 No exact match – trying multilingual`);
-      [tpl] = await db
+      [tpl] = await (db as any)
         .select()
         .from(templates)
         .where(and(eq(templates.type, type), eq(templates.language, "multilingual"), eq(templates.isActive, true)));
@@ -130,7 +130,7 @@ export class DatabaseStorage implements IStorage {
     if (!target) throw new Error("Template not found");
 
     // Use a transaction to keep the two updates atomic
-    await db.transaction(async (tx) => {
+    await (db as any).transaction(async (tx: any) => {
       await tx
         .update(templates)
         .set({ isActive: false })
@@ -143,23 +143,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteTemplate(id: string) {
-    const result = await db.delete(templates).where(eq(templates.id, id)).returning();
+    const result = await (db as any).delete(templates).where(eq(templates.id, id)).returning();
     return result.length > 0;
   }
 
   /* ---------- Question Configurations ---------- */
   async getQuestionConfig(id: string) {
-    const [cfg] = await db.select().from(questionConfigs).where(eq(questionConfigs.id, id));
+    const [cfg] = await (db as any).select().from(questionConfigs).where(eq(questionConfigs.id, id));
     return cfg ?? undefined;
   }
 
   async createQuestionConfig(config: InsertQuestionConfig) {
-    const [created] = await db.insert(questionConfigs).values(config).returning();
+    const [created] = await (db as any).insert(questionConfigs).values(config).returning();
     return created;
   }
 
   async updateQuestionConfig(id: string, updates: Partial<QuestionConfig>) {
-    const [updated] = await db
+    const [updated] = await (db as any)
       .update(questionConfigs)
       .set(updates)
       .where(eq(questionConfigs.id, id))
@@ -168,12 +168,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteQuestionConfig(id: string) {
-    const result = await db.delete(questionConfigs).where(eq(questionConfigs.id, id)).returning();
+    const result = await (db as any).delete(questionConfigs).where(eq(questionConfigs.id, id)).returning();
     return result.length > 0;
   }
 
   async getQuestionConfigsByTemplate(templateId: string) {
-    return await db
+    return await (db as any)
       .select()
       .from(questionConfigs)
       .where(eq(questionConfigs.templateId, templateId))
@@ -181,7 +181,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteQuestionConfigsByTemplate(templateId: string) {
-    const result = await db
+    const result = await (db as any)
       .delete(questionConfigs)
       .where(eq(questionConfigs.templateId, templateId))
       .returning();
@@ -195,13 +195,12 @@ export class DatabaseStorage implements IStorage {
     // type safe while still being schema‑agnostic.
     const hasLanguageColumn = "language" in questionConfigs;
     if (hasLanguageColumn) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return await db
+      return await (db as any)
         .select()
-        .from(questionConfigs as any)
+        .from(questionConfigs)
         .where(eq((questionConfigs as any).language, lang));
     }
-    return await db.select().from(questionConfigs);
+    return await (db as any).select().from(questionConfigs);
   }
 }
 
