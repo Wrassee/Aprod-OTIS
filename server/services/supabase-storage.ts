@@ -69,30 +69,42 @@ export class SupabaseStorageService {
   }
 
   /**
-   * Fájl letöltése a Supabase Storage-ből és mentése egy helyi útvonalra.
+   * Fájl letöltése a Supabase Storage-ből direkt fetch kéréssel, kikerülve a Supabase klienst.
    * @param storagePath A letöltendő fájl elérési útja a bucket-ben.
    * @param localPath A helyi útvonal, ahova a fájlt menteni kell.
    */
   async downloadFile(storagePath: string, localPath: string): Promise<void> {
-    try {
-      console.log(`📥 Downloading ${storagePath} to ${localPath}`);
-      const { data, error } = await this.supabase.storage
-        .from(this.bucketName)
-        .download(storagePath);
-
-      if (error) { throw error; }
-      if (!data) { throw new Error('No data received from storage.'); }
-
-      const buffer = Buffer.from(await data.arrayBuffer());
+    console.log(`📥 Bypassing Supabase client, direct download initiated for: ${storagePath}`);
+    
+    // 1. Lekérjük a fájl publikus URL-jét
+    const { data: { publicUrl } } = this.supabase.storage
+      .from(this.bucketName)
+      .getPublicUrl(storagePath);
       
+    console.log(`Direct URL: ${publicUrl}`);
+
+    try {
+      // 2. Használunk egy egyszerű 'fetch' kérést a letöltéshez
+      const response = await fetch(publicUrl);
+
+      if (!response.ok) {
+        throw new Error(`Direct download failed with status: ${response.status} ${response.statusText}`);
+      }
+
+      // 3. Alakítjuk át a választ bufferré
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      // 4. Elmentjük a fájlt
       const dir = path.dirname(localPath);
       await fs.mkdir(dir, { recursive: true });
-      
       await fs.writeFile(localPath, buffer);
-      console.log(`✅ File downloaded successfully to: ${localPath}`);
+
+      console.log(`✅ Direct download successful, file saved to: ${localPath}`);
+
     } catch (error: any) {
-      console.error(`❌ Download failed for ${storagePath}:`, error.message);
-      throw new Error(`Failed to download file: ${error.message || 'Unknown error'}`);
+      console.error(`❌ Direct download failed for ${storagePath}:`, error);
+      throw new Error(`Failed to download file via direct fetch: ${error.message || 'Unknown error'}`);
     }
   }
 
