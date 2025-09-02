@@ -1,0 +1,668 @@
+* [33m05e22f9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mvegleges-javitas[m[33m, [m[1;31morigin/vegleges-javitas[m[33m, [m[1;31morigin/HEAD[m[33m)[m Visszaállítás
+* [33m09f467c[m Final javítások deploy megy 23
+* [33m80332d7[m Final javítások deploy megy 22
+* [33m6d0da15[m Final javítások deploy megy 21
+* [33mce9929c[m Final javítások deploy megy 20
+* [33m858289d[m Final javítások deploy megy 19
+* [33m1d894e6[m Final javítások deploy megy 18
+* [33m1d840c9[m Final javítások deploy megy 17
+* [33m3d86072[m Final javítások deploy megy 16
+* [33mb95de00[m Final javítások deploy megy 15
+* [33m821f16f[m Final javítások deploy megy 14
+* [33m6a819a8[m Final javítások deploy megy 13
+* [33m65486ee[m Final javítások deploy megy 12
+* [33macac332[m Final javítások deploy megy 11
+* [33mec5ffd8[m Final javítások deploy megy 10
+* [33m7a26a8b[m Final javítások deploy megy 9
+* [33m406ea04[m Final javítások deploy megy 8
+* [33me95e616[m Final javítások deploy megy 7
+* [33maa4c846[m Final javítások deploy megy 6
+* [33mbae9071[m Final javítások deploy megy 5
+* [33m832ed03[m Final javítások deploy megy 4
+* [33md4d2fe5[m Final javítások deploy megy 3
+* [33m3179c97[m Final javítások deploy megy 2
+* [33m9c0af73[m Final javítások deploy megy 1
+* [33m64f0d6e[m Final javítások deploy megy
+* [33md730a1f[m Final javítások a Andropid segítséggel
+* [33mee2bcb7[m Final javítások a supabase segítséggel 1
+* [33m7b594c6[m Final javítások a supabase segítséggel
+* [33mefafe93[m fix: db.ts 1
+* [33m3896278[m fix: db.ts
+* [33mf2d131c[m fix: pár dolog
+* [33m3e5ec52[m fix: schema.ts
+* [33ma36d3ce[m fix: use NodeNext module for server build
+* [33mb0adee8[m Final Vercel deployment fixes
+* [33m4c4ada2[m Final fix: Correct 7
+* [33mc7d4d1a[m Final fix: Correct 6
+* [33mdd90db6[m Final fix: Correct 5
+* [33m348bd0d[m Final fix: Correct 4
+* [33m7c200e5[m Final fix: Correct 3
+* [33m132e287[m Final fix: Correct 2
+* [33m551e8cb[m Final fix: Correct 1
+* [33mdae130f[m Final fix: Correct all server-side module imports
+* [33ma3fa606[m Final fix: Correct all server-side module imports
+* [33m1f9796b[m Átállás Renderre 17
+* [33m1873e47[m Átállás Renderre 16
+* [33m5249de3[m Átállás Renderre 15
+* [33m77e576b[m Átállás Renderre 13
+* [33m5ed287b[m Átállás Renderre 12
+* [33m0bb8610[m Átállás Renderre 11
+* [33m1b9ce9d[m Átállás Renderre 10
+* [33m83a7817[m Átállás Renderre 9
+* [33m816602e[m Átállás Renderre 8
+* [33m8cbc82f[m Átállás Renderre 7
+* [33m9149845[m Átállás Renderre 5
+* [33ma90deed[m Átállás Renderre 4
+* [33mc584f2d[m Átállás Renderre 3
+* [33m277df76[m Átállás Renderre 2
+* [33m7b13b90[m Átállás Renderre 1
+* [33m342e07f[m Átállás Renderre
+* [33m447ee31[m Final fix: Vercel megint is má
+* [33ma9db2aa[m Final fix: Vercel megint is má
+* [33mf80a7a4[m Final fix: Vercel megint is
+* [33md11f696[m Final fix: Vercel megint is
+* [33m0eb0d19[m Final fix: Vercel megint
+* [33m0678fa6[m Final fix: Vercel
+* [33m7350a96[m Final fix: Vercel
+* [33m123916a[m Final fix: Correct all server-side module imports
+* [33m41702ad[m Fix storage
+* [33m2cb0d76[m Fix 2 fájl SQL helyett
+* [33m4132080[m Fix(server): Add .js extension to all relative imports
+* [33m969cd44[m VÉGLEGES javítás, .js gondok
+* [33m867f70a[m VÉGLEGES javítás, tiszta
+* [33m6df627a[m VÉGLEGES javítás, tiszta lappal meg még kicsi meg még valami is
+* [33m16810cd[m VÉGLEGES javítás, tiszta lappal meg még kicsi meg még valami
+* [33ma88bc88[m VÉGLEGES javítás, tiszta lappal meg még kicsi
+* [33m91ef009[m[33m ([m[1;31morigin/main[m[33m)[m routes csere deploy miatt
+* [33m52f7b30[m vercel.json csere deploy miatt
+* [33m5fefe37[m routes.ts csere deploy miatt
+* [33m3d60bc8[m Vercel csere deploy miatt
+* [33ma224e7b[m Vite csere deploy miatt
+* [33m9006314[m[33m ([m[1;31morigin/refactor-replit[m[33m)[m Teljes refaktorálás a Replit AI alapján
+* [33m2cab993[m Streamline deployment by removing custom server and Vite dependencies
+* [33m2fc5768[m Complete verification checklist for local development environment
+* [33ma62c213[m Update to version 0.4.9 with email integration and user feedback
+* [33m0de1164[m Provide feedback when sending inspection reports via email
+* [33m9b43ca5[m Add email sending functionality and provide user feedback
+* [33m4a0f5ad[m Update email service to use Resend's test domain for sending
+* [33mb3b1482[m Restore previous database state for stability
+* [33m6b98719[m Restored to '36e70eec8fb9331bfb37f6d50b43be800c08814f'
+* [33m832fed5[m Saved your changes before rolling back
+* [33m6a2a596[m Update logic to exclude false values for true/false questions
+* [33m1865b4d[m Restore correct behavior for true/false questions in inspection forms
+* [33mde24bda[m Update database files for improved data integrity
+* [33m2eebb4b[m Fix production build and deployment issues for the lift inspection app
+* [33m35911a8[m Fix email sending errors and ensure plain text for error logging
+* [33m36e70ee[m Improve protocol preview and fix PDF generation issues
+* [33ma202106[m Update application database for improved performance
+* [33m54bd776[m Integrate Resend for sending protocol inspection emails
+* [33m8db730f[m Add PDF preview and error logging to inspection reports
+* [33meba1736[m Fix errors when displaying protocol issues and improve template loading
+* [33m17fad43[m Improve protocol saving by handling answers and errors correctly
+* [33m2edf8cf[m Make Niedervolt UI appear after all template questions are answered
+* [33mbece278[m Add direct access to the Niedervolt measurements section from the admin menu
+* [33md3fb288[m Disable template-based niedervolt device loading for UI consistency
+* [33mb5e2fa4[m Improve input field appearance by hiding number spinners
+* [33me32a6b5[m Ensure calculated values display correctly in the inspection interface
+* [33m0e5b51e[m Update Excel parsing to improve data extraction and multilingual support
+* [33mc9f62ed[m Restore functionality for loading inspection templates and displaying logos
+* [33m8c31f02[m Restored to '1ba4037ded40d0bfbf16893f73d27aa0b6fbf760'
+* [33m85aba68[m Saved your changes before rolling back
+* [33m0d191b1[m Fix calculation errors and improve input handling for measurements
+* [33me09a5de[m Fix error that occurs when displaying a list of errors
+* [33m72448a1[m Enhance questionnaire functionality and improve language support
+* [33m542dd33[m Update questionnaire UI and fix issues with question rendering
+* [33m6eedeb5[m Refine measurement input and calculation logic for accuracy
+* [33m067e79d[m Restore previous inspection data and functionality
+* [33m02a88f2[m Fix measurement page errors and restore styling
+* [33ma2953c7[m Restore measurement calculation functionality for inspections
+* [33m1a93684[m Fix calculation logic and update UI for measurement data
+* [33m9e5f9b2[m Simplify template uploads and improve calculation accuracy
+* [33mf36e1c9[m Enable automatic calculation of measurement values and fix UI issues
+* [33mc43053c[m Ensure calculated values appear with measurements on the same page
+* [33mfdaf547[m Improve handling of multilingual questions and template data storage
+* [33mc0079a2[m Fix Excel parsing and logo display for improved app functionality
+* [33m1ba4037[m Restore logo display and ensure correct template loading for inspections
+* [33m68ac81a[m Improve logo display and template activation logic
+* [33m6a39168[m Fix issues with question display and logo visibility
+* [33m7444525[m Update project structure and component imports for better organization
+* [33m084eb3e[m Improve file upload processing and data parsing for inspection templates
+* [33md960425[m Improve Excel file processing and project structure for deployment
+* [33mc30eda0[m Update project structure and imports for better compatibility
+* [33mfce835b[m Switch to SQLite database for local data storage
+* [33m69f68a3[m Restored to '0b1f969fd4bc8cbc0d6cfc8ec2bbafd4ced002e1'
+* [33mc0fba01[m Saved your changes before rolling back
+* [33mab28b16[m Correct import paths and file references throughout the application
+* [33m5f98861[m Improve PDF generation from Excel data for inspections
+* [33md13db26[m Enhance input handling and PWA stability with caching mechanisms
+* [33mbd832a4[m Restored to 'c07705a2fdd059200101df8bfd400c6de34666a2'
+* [33m0b1f969[m Saved your changes before rolling back
+* [33me535173[m Remove Vite dependencies and ensure a clean production build
+* [33mbc4dc24[m Eliminate Vite bundling errors for robust production deployment
+* [33m2d4485c[m Prevent build failures by using dynamic Vite imports and exclude dependencies
+* [33m055e469[m Improve deployment reliability by preventing Vite bundling issues
+* [33mf909ba7[m Improve build process to avoid Vite dependencies in production
+* [33m3c6600d[m Create a production-safe server entry point, removing Vite dependencies
+* [33mb6ceb19[m Update project documentation to reflect user language preference
+* [33m72c1819[m Fix deployment errors by removing Vite dependencies from production builds
+* [33m56c1aac[m Fix deployment errors by safely handling development dependencies
+* [33m35c86f5[m Resolve production build failures by isolating server logic
+* [33m710be35[m Resolve production build failures by removing Vite dependencies
+* [33mc2dc912[m Fix production deployment issues by isolating Vite dependencies
+* [33me7e12ce[m Streamline production build by removing all Vite dependencies
+* [33mb9a4e71[m Fix deployment issues by separating production and development server configurations
+* [33m47e64d0[m Fix production build by separating Vite development dependencies
+* [33mb1a265f[m Fix deployment to exclude development-specific Vite imports
+* [33m6305f1d[m Fix production build to exclude development dependencies
+* [33mc07705a[m Prepare application for production deployment on Vercel and Render
+* [33m613757d[m Update template creation to use Supabase service role key
+* [33m9aa71e1[m Streamline template upload process and improve data handling
+* [33mb5dbe7b[m Integrate cloud storage with local fallback for files
+* [33ma12bc2c[m Migrate file storage to Supabase and update backend routes
+* [33m168c813[m Integrate Supabase Storage for file uploads and template management
+* [33md82dad6[m Stabilize navigation and input validation for user inspections
+* [33me6f8d07[m Improve navigation by allowing users to press enter to move to the next field
+* [33m24b93fe[m Fix text input field not working with enter key on first page
+* [33m08ffccd[m Improve input handling by allowing only numbers and specific characters
+* [33mea273aa[m Improve input validation and navigation for inspection tables
+* [33ma13ef36[m Move AI helper button to center and improve input navigation Improve form filling by moving the AI helper to the bottom center and enabling cursor to jump to the next cell after pressing Enter.
+* [33m66641a6[m Reposition AI assistant button and improve device loading logic
+* [33m9f73b46[m Move AI assistant button and fix device deselection in the menu
+* [33m2bde296[m Fix issue with deselecting devices in the inspection menu
+* [33mb67004e[m Fix error logging and device selection functionality
+* [33me0746a8[m Enable users to remove devices from the low voltage measurements list
+* [33mecb0e6e[m Improve inspection forms with better data handling and translations
+* [33me93ddc4[m Update inspection table and create backup page
+* [33m2a0c0d2[m Fix device selection and measurement handling for inspections
+* [33m8dbf13d[m Improve the layout and functionality of the Niedervolt installation page Align the header structure, reposition the device selection button, and fix issues with device selection logic.
+* [33m113fb6c[m Enhance Niedervolt inspection by adding new icons and refining layout
+* [33m2a2cb81[m Update inspection forms and improve user interface layout
+* [33m30e8c41[m Improve how device names are displayed in the inspection table
+* [33mf68a838[m Add options to filter devices and include custom entries
+* [33m3cc4b3e[m Add device data for table view
+* [33mcae9f45[m Fix error when displaying low-voltage device data
+* [33ma254e0e[m Fetch inspection questions from Excel template or use defaults
+* [33m3e2966f[m Update data handling to properly display and manage dropdown selections
+* [33m6cc564a[m Populate low voltage measurement table with device data
+* [33m219b450[m Add intelligent help and guidance to inspection protocols
+* [33m64bdaec[m Prepare application for Vercel deployment and serverless functions
+* [33m33a9b8d[m Migrate the application to Vercel for deployment
+* [33m98356ce[m Restored to '87dbe797d837e0b2e6f06855ab27f348ea86cd79'
+* [33meab3e73[m Saved your changes before rolling back
+* [33m30dc72b[m Saved your changes before starting work
+* [33md5b331e[m Improve template parsing to support OTIS multilingual templates
+* [33mdf18fa1[m Improve Excel file handling and question parsing for inspection templates
+* [33m0cbd4e0[m Improve template handling by automatically extracting question data
+* [33m85ca63a[m Fix file upload errors and improve template handling in the application
+* [33m228244f[m Improve template uploads with error messages and form handling
+* [33m0784331[m Enable offline functionality and local data storage for the application
+* [33m9e492d2[m Enable users to download problem reports on the protocol completion page
+* [33mc2b24b8[m Always display error export options on completion page for documentation
+* [33m87dbe79[m Update application version to reflect the latest improvements and fixes
+* [33m15241ef[m Restored to 'e47cbdb9d88f7c6797ac23f654e053f6071ca42e'
+* [33mb606828[m Saved your changes before rolling back
+* [33ma023e71[m Add new interface for low voltage measurements to the final inspection page
+* [33m6b61e80[m Update the application version number to reflect the latest changes
+* [33me47cbdb[m Enable complete offline support and data persistence for the application
+* [33m1ee7906[m Retain entered data in measurement fields when navigating between sections
+* [33m6294d1e[m Improve input validation and protect data integrity during inspections
+* [33mfb059f2[m Restrict measurement fields to only accept numeric input and decimal points
+* [33m014537e[m Improve data handling and error prevention for a more stable experience
+* [33m56d5e6a[m Prevent the same error from being added multiple times to the error list
+* [33m360600f[m Improve new protocol initialization and add navigation to signature page
+* [33mae8f636[m Ensure starting a new inspection protocol completely clears all data
+* [33m0323ba8[m Disable PWA install banner and service worker for improved app stability
+* [33m95b7975[m Disable PWA features to prevent app crashes in the current preview
+* [33ma0b37b8[m Enable protocol completion and prevent errors during saving process
+* [33mf510948[m Temporarily disable installable app features to prevent application crashes
+* [33m89e4b3f[m Enable admins to download uploaded Excel templates and Otis protocol files
+* [33m6f865c9[m Ensure error list PDFs are reliably generated and can be opened correctly
+* [33mf5aa8f8[m Enable users to preview and download a list of identified errors
+* [33mbbdb68f[m Enable users to generate and download error reports in multiple formats
+* [33mc817d37[m Confirm that users can install and use the app as a Progressive Web App
+* [33me0c8c54[m Announce the completion of the Progressive Web App conversion
+* [33m40c2af7[m Make application installable and usable offline for increased accessibility
+* [33m916651b[m Finalize application with bug fixes, UI improvements and stability updates
+* [33m19d88a2[m Improve the reliability of the Excel file download process for inspections
+* [33m6e745b4[m Improve application stability and fix error during the Excel download
+* [33mc1ef158[m Improve the save button appearance and feedback on the low voltage page
+* [33mb7901be[m Improve overall app stability and fix several reported user interface issues
+* [33m0e04bfb[m Improve error submission form by adjusting size and scrolling behavior
+* [33maf95948[m Improve error reporting interface and resolve layout issues
+* [33m1bb7d35[m Improve save button behavior and provide visual feedback on save status
+* [33m291e89f[m Make the initial inspection pages consistently display in a two-column layout
+* [33md85a3b2[m Restore the two-column layout for questions on the first two inspection pages
+* [33m75932bf[m Restored to 'c12f2a95ad3482f70a8b6d325e24363881ddafb1'
+* [33mcf880c9[m Saved your changes before rolling back
+* [33m497d585[m Improve app stability and fix layout issues for a better user experience
+* [33m4322c2e[m Improve layout of true/false questions for better readability on larger screens
+* [33mc12f2a9[m Improve focus stability by replacing page routing and fixing layout issues
+* [33mb427409[m Restored to '45cc9f289d3b306db2f46f7a859a235f5d93d97f'
+* [33ma6e738a[m Saved your changes before rolling back
+* [33mef48f19[m Restored to '859be1da0c8e11016c6cb06f1ad91dd308920338'
+* [33m735e15e[m Saved your changes before rolling back
+* [33m23aa73c[m Show progress of the inspection within the user interface
+* [33m91329b2[m Restored to '7536d0838ea8719e38505853eba4c54043744cb6'
+* [33mbe93f66[m Saved your changes before rolling back
+* [33m3024162[m Restore the prior design and remove measurements table from the interface
+* [33m7536d08[m Render different sections without losing data during navigation
+* [33m60aeb6f[m Improve user experience by fixing focus issues and adding new measurement tool
+* [33m859be1d[m Improve input field focus and data handling on the measurement page
+* [33m26380c9[m Ensure that measurement data is correctly loaded and displayed on the screen
+* [33mc1c10ba[m Improve the user experience by preventing focus loss during data entry
+* [33mbc35440[m Improve data entry by keeping the focus on input fields longer
+* [33mead8013[m Improve how low voltage readings are handled to prevent data loss
+* [33mb893e10[m Improve handling of low voltage measurements to prevent app crashes
+* [33m587b136[m Improve the performance of low voltage measurement input fields
+* [33m45cc9f2[m Improve data input by preventing focus loss when editing measurement rows
+* [33m2a75118[m Improve user experience when inputting data on the low voltage page
+* [33m1aadb0b[m Update the application version number shown in the admin interface
+* [33mc30ca9b[m Improve user interface consistency and fix minor issues on various pages
+* [33m70753b3[m Automatically populate the date field with today's date when it's empty
+* [33m172c5d3[m Show correct group numbers while completing the inspection process
+* [33m46133ac[m Add section title to measurement screen, matching other sections
+* [33m75e3d54[m Improve questionnaire display and group assignments for accurate data input
+* [33m31ded48[m Remove blank questionnaire pages that do not contain any questions
+* [33m7c8bd58[m Improve progress display and remove unnecessary question group
+* [33m56a947f[m Improve page numbering and progress display during inspections
+* [33m859a621[m Improve data entry with a date picker and navigation enhancements
+* [33md6f2bbc[m Unify the appearance of the header to match other pages in the application
+* [33ma4c0d97[m Ensure header is always visible on the voltage measurements page
+* [33m6ffc347[m Show users exactly where they are in the low voltage measurement process
+* [33mc957dc1[m Advance to the next section of the current form being filled in
+* [33m26285f7[m Restored to '3f102d9967a2993fc2bbce87acc808eb207461fb'
+* [33m3018fce[m Saved your changes before rolling back
+* [33mf00ac55[m Ensure the "complete" state isn't shown prematurely on measurement pages
+* [33mada69e2[m Always proceed to the Niedervolt measurements page after each section
+* [33m3f102d9[m Improve data input and prevent constant re-rendering of the measurement table
+* [33m7d4c278[m Improve data handling and user interface for a smoother inspection experience
+* [33m473684d[m Improve the display and functionality of the Niedervolt measurements page
+* [33ma5980bb[m Explain how to customize measurement questions in the Excel template
+* [33m67a3e99[m Enhance the measurements page with a refreshed modern design
+* [33m59e8b1a[m Add support for Niedervolt measurements to inspection reports
+* [33m47773c3[m Improve signature capture with a more stable and reliable drawing experience
+* [33mfaa5148[m Improve signature capture and initialization process on the inspection form
+* [33m9c6feb6[m Improve signature input on tablet by fixing initialization and drawing errors
+* [33m9082afd[m Mark the current version as production ready with UI and feature updates
+* [33mc49f7f7[m Improve readability of measurement descriptions on data entry screen
+* [33m4a78b5a[m Relocate error reporting prompt for better user experience and visibility
+* [33m62ac00c[m Relocate error message to indicate measurement issues on the page
+* [33mf88aad2[m Restored to 'a769c95956487ef44b1b78a021c12071c20c351e'
+* [33m4713877[m Saved your changes before rolling back
+* [33md9c2d3e[m Enhance measurement input with wider fields and improved styling
+* [33m6ce465b[m Increase the number of characters allowed in measurement input fields
+* [33mbbd9943[m Increase maximum input length for lift measurements on inspection forms
+* [33m4d5a76b[m Improve visibility of measurement input fields and stabilize styling
+* [33m4617320[m Improve the appearance of measurement input fields and signature capture
+* [33me674bf7[m Enhance measurement input and signature capture for better user experience
+* [33m7ff8411[m Improve the appearance and functionality of measurement inputs on tablets
+* [33m48b0047[m Improve the appearance of input fields and signature areas on forms
+* [33m55c12f4[m Improve the appearance and legibility of measurement input and signature fields
+* [33m11478bb[m Improve user interface appearance and fix issues on the signature page
+* [33m22fd72d[m Improve the size of measurement input fields and fix signature capture
+* [33mb1df830[m Improve how name input works and increase size of measurement cells
+* [33m77f6064[m Improve signature input by only preventing canvas interaction defaults
+* [33ma769c95[m Update the application version number displayed in the admin interface
+* [33m920eaed[m Remove the application version number from the main screens
+* [33m09ef9a0[m Update application version number shown in the user interface
+* [33m3157278[m Finalize measurement input optimization with enhanced stability
+* [33mc630ec9[m Increase the size of input fields to properly display five characters
+* [33mebdf2b7[m Improve appearance of measurement input fields to address width issues
+* [33m02ee2cc[m Limit the number of characters allowed in measurement input fields
+* [33m03c27c0[m Improve the way users enter measurement values on the inspection forms
+* [33mbd212e2[m Improve user experience by preventing form submission on Enter keypress
+* [33mec67841[m Improve input responsiveness in measurement fields and prevent UI flickering
+* [33m881c10e[m Allow users to enter numbers in the measurement input fields
+* [33md157e3a[m Limit the number of characters allowed in measurement input fields
+* [33m01a2f31[m Improve how measurement values are handled for inspection questions
+* [33mf461d47[m Restrict the length of numeric inputs and reduce the cell size
+* [33mc2635d4[m Limit the length of measurement input fields to a maximum of five digits
+* [33m7f4b996[m Improve the appearance of measurement input fields on the inspection form
+* [33m036fbf8[m Improve measurement input, clarify error messages, and allow signature completion
+* [33m21254ed[m Update starting screen with hardcoded translations for language selection
+* [33mea2e63e[m Remove the option to start a new protocol directly from the home screen
+* [33m9d256bd[m Add button to clear data and start a new inspection protocol
+* [33m4574ae2[m Add button to start a new protocol and clear existing data on the app
+* [33m8bf8c49[m Ensure starting a new protocol clears the existing list of errors
+* [33mf8e0192[m Finalize the new application version with perfect Excel output
+* [33m69f78b6[m Confirm that creating Excel reports is now fully functional and reliable
+* [33m2c7d837[m Improve the way the app finds questions, fixing form issues for users
+* [33m9b2e0fb[m Improve Excel generation to correctly display inspection form data
+* [33me2b6c60[m Restored to 'e46eeb6a4f6ce975325c3cb63a9c3c80a87da21f'
+* [33mef1403e[m Saved your changes before rolling back
+* [33mfa78f5d[m Restored to '1e2f7632c3b802db94793a677cbdffdff29ff9ee'
+* [33m6e8c994[m Saved your changes before rolling back
+* [33m9784dc0[m Restore previous Excel functionality to ensure accurate data export
+* [33me8a0e48[m Implement improved Excel handling for reports while maintaining format
+* [33me39c938[m Restored to 'e46eeb6a4f6ce975325c3cb63a9c3c80a87da21f'
+* [33m1e2f763[m Saved your changes before rolling back
+* [33m85c9756[m Preserve current Excel functionality before UI rollback operation
+* [33m4a98e50[m Revamp measurement data display for improved user experience and clarity
+* [33m376c04b[m Restore measurement system to capture and validate inspection data
+* [33mede1688[m Allow users to proceed even when measurement system is temporarily disabled
+* [33mfbbfdd2[m Temporarily disable the measurement system for improved stability
+* [33mf23c9aa[m Remove debugging messages to improve user experience and interface speed
+* [33m499a2fb[m Improve measurement input by preventing re-renders and adding input validation
+* [33m8247421[m Improve data input for measurements and display helpful debugging messages
+* [33m826156c[m Improve user experience and fix input issues during form filling
+* [33ma6ff411[m Show measurement questions to users so they can properly fill out form
+* [33m59ef576[m Update inspection forms to reflect the most recent changes and fixes
+* [33m70bf13f[m Reintroduce measurement system after rollback to previous version
+* [33m145995c[m Restored to 'e1807de3b70ace0bda35f2039987aa15c760b9f9'
+* [33m9331628[m Saved your changes before rolling back
+* [33m415ed45[m Document measurement feature before rollback due to Excel issues
+* [33me46eeb6[m Improve preservation of Excel formatting when creating reports
+* [33m5d81418[m Improve reliability when generating Excel files with user-provided answers
+* [33m07d00c4[m Provide a clean Excel template to prevent file corruption after download
+* [33m54fece0[m Fill in missing data in generated Excel files, ensuring all fields are populated
+* [33mca9b7fe[m Improve Excel report generation by streamlining data insertion process
+* [33m5038233[m Improve Excel file compatibility and fix errors related to text encoding
+* [33me02fefe[m Adjust Excel generation to include only basic form data, excluding measurements
+* [33m77a68e4[m Investigate and fix errors in generating Excel files from inspection data
+* [33m4c57179[m Improve Excel file generation to ensure correct format and style
+* [33m513e146[m Restore Excel generation functionality to create protocol documents
+* [33m4e4cba0[m Revert to prior version of excel generation to address recent issues
+* [33mbdc9f45[m Improve user experience when entering printed name and adds fixed excel template
+* [33m6420ef2[m Update the Hungarian language Excel template for generating reports
+* [33ma277b76[m Improve accuracy of data in the generated Excel files for inspection protocols
+* [33m6876db5[m Fix the navigation problem that occurs when trying to go back from signature
+* [33m41a9cbb[m Improve signature page by fixing navigation and name input issues
+* [33ma8ae8ca[m Improve error handling by allowing deletion of auto-generated errors
+* [33mc2f9864[m Enable users to return to the questionnaire from the signature page
+* [33m06a4b3a[m Improve error handling and display when values are out of allowed ranges
+* [33m6bff7c2[m Improve how the application remembers inspection data between uses
+* [33m17f5512[m Enable manual error saving and improve Excel file generation reliability
+* [33mf3e9692[m Temporarily store errors to prevent content loss during error creation
+* [33mc484dc6[m Improve visual error alerts to be more consistent with other warnings
+* [33mb796961[m Allow users to create error reports when values are out of bounds
+* [33m930d498[m Provide real-time feedback on out-of-bound measurement values
+* [33m41c6697[m Improve the way out-of-bounds calculation errors are handled and displayed
+* [33m8df00e1[m Prevent calculation button from clearing the measurement input fields
+* [33me1628d1[m Prevent the application from crashing when user presses the calculate button
+* [33m890b9f9[m Ensure calculations outside allowed ranges trigger error messages immediately
+* [33m24084ff[m Improve how errors are handled when displaying assessment results to the user
+* [33m5af4aca[m Ensure calculations trigger error checks even without manual submission
+* [33m0d6824b[m Ensure measurement calculations work correctly with multiple input fields
+* [33m0a6a31f[m Improve user experience by preventing flickering during text input
+* [33md01df39[m Improve user experience by preventing the form from constantly reloading
+* [33mb86553a[m Improve user interface performance by reducing unnecessary updates
+* [33ma97f4de[m Enhance data input and calculation features for lift inspections
+* [33mf085bf4[m Improve input system to properly display calculated measurement values
+* [33mbffd2f8[m Improve user experience by preventing unnecessary page refreshes
+* [33m996eec1[m Improve user interface responsiveness by delaying updates during typing
+* [33m91b7947[m Improve data handling and fix Excel output issues for measurement system
+* [33m78d3ee2[m Improve user experience by addressing UI input lag and cursor issues
+* [33mbe4dd38[m Restore data entry to its previous stable version with improved stability
+* [33m96213dd[m Improve data entry and fix Excel file generation issues
+* [33ma00693b[m Prevent constant refreshing while users input measurement values
+* [33mbe19dde[m Improve the way numbers and text appear in the generated Excel files
+* [33m206804a[m Improve data input into Excel templates while maintaining formatting
+* [33mad6b542[m Fix calculation errors and ensures stable Excel file generation
+* [33m3e5995d[m Improve data handling and Excel file generation for a more stable experience
+* [33mb8d4e9d[m Prevent loss of entered data and corrupted files during lift inspections
+* [33me7b7a0c[m Fix issue where errors are not reported and prevents progress in inspection
+* [33mec92be6[m Prevent loss of entered measurement data and corrupted Excel exports
+* [33mddd22b0[m Ensure measurement values are correctly saved and displayed in the protocol
+* [33ma9b4d30[m Fix measurement data loss and improve question template retrieval logic
+* [33mcddb88a[m Improve handling of out-of-bounds data and report generation
+* [33m23559a3[m Improve error handling when users fill out measurement questionnaires
+* [33m27c2521[m Highlight out-of-range calculated values and automatically report them
+* [33m1a3fbc9[m Fix calculation issues and enable the next button to work correctly
+* [33m3bf9e01[m Improve the way measurements are handled on the form
+* [33mcd4d7f8[m Improve data entry by preventing UI updates and cursor jumps
+* [33m452c71e[m Enhance measurement input appearance based on user feedback for better UX
+* [33m95d8034[m Implement a new table layout for measurement and calculated questions
+* [33m7e6442f[m Implement a unified template for lift inspections that successfully parses all data
+* [33m29f73ed[m Add updated inspection templates with latest changes and improvements
+* [33mc022590[m Enable support for all question types by updating the Excel template
+* [33mae4df07[m Ensure all types of questions are displayed, including measurements and calculations
+* [33m16a7e57[m Unify question template upload, supporting all question types in one file
+* [33mc197f1b[m Restored to '755c252f1d646b475f25e39434de695421e78a2b'
+* [33m585063d[m Saved your changes before rolling back
+* [33m0e44d61[m Revert questionnaire UI to original design based on user feedback
+* [33m008327a[m Display measurement and calculation questions with a new table layout
+* [33meeb2970[m Show examples of the Excel template structure and question types
+* [33m583dcaf[m Implement single Excel template for streamlined inspection process
+* [33ma76517e[m Introduce new format and database entries for inspection templates
+* [33m28ef9b7[m Unify Excel templates to manage all question types in a single file
+* [33med7b268[m Restructure questionnaire layout to display questions in a list format
+* [33mc495705[m Refactor question layout and remove formula details from calculated results
+* [33m755c252[m Improve calculation accuracy by listening to all input sources
+* [33m187691c[m Improve error messages and add debugging info for calculation issues
+* [33mc292af6[m Enable real-time calculation of inspection values and fix UI input issues
+* [33m942d603[m Improve data entry stability and user experience in measurement fields
+* [33m43971a7[m Improve measurement input and calculation accuracy for questionnaires
+* [33m9757328[m Add support for measurement and calculated questions from Excel files
+* [33m58751fc[m Explain how to add measurement questions using Excel templates
+* [33me1807de[m Enable the system to process and validate measurement data using calculations
+* [33mf764bef[m Enable complete German translation across the entire application
+* [33m5314f3a[m Improve language selection and persistence across the inspection application
+* [33m65b505e[m Improve language loading and context in the questionnaire section
+* [33m520217d[m Improve language support and overall user experience within the forms
+* [33m09dba2c[m Improve interface translations for German and Hungarian languages
+* [33m2a49fad[m Improve multilingual support and fix errors in questionnaire
+* [33mcac0568[m Ensure the questionnaire interface fully supports both Hungarian and German
+* [33m86d1b58[m Add German translations to the questionnaire error messages and buttons
+* [33maad7d38[m Improve German translation on admin page for better user experience
+* [33m2e6a4ad[m Update the admin panel to display the current version number
+* [33mdaf6418[m Update application name to OTIS APROD across all relevant documentation
+* [33m4f6266b[m Finalize version 0.2 with custom file naming and enhanced features
+* [33mf9c4ba8[m Update file naming convention for downloaded inspection reports
+* [33macd0cc1[m Rename downloaded files to include the unique Otis Lift identifier
+* [33mfb218b2[m Mark the application as fully operational after final production fixes
+* [33m79520a6[m Ensure protocol completion button correctly finalizes and submits inspection data
+* [33m655df05[m Ensure users can always proceed by saving data and fixing the "next" button
+* [33mce15b8f[m Improve user interface by preventing unnecessary page refreshes
+* [33me32f8c7[m Improve how the application displays error messages to the user
+* [33mcf154cc[m Fix issues where data was lost when navigating between different pages
+* [33m17ee583[m Ensure all data entered on the first page is saved and included in reports
+* [33m2175a36[m Improve form data saving and persistence to avoid losing progress
+* [33mb03f44a[m Improve form behavior by preventing unnecessary reloads or data loss
+* [33m2040b86[m Improve questionnaire loading and prevent unnecessary component re-renders
+* [33mbfe2aa3[m Improve page navigation and ensure proper loading of the inspection form
+* [33mf80b9b6[m Improve questionnaire loading and prevent unnecessary re-renders
+* [33mc19d1a1[m Prevent questionnaire from reloading to avoid data loss during saving
+* [33m522bf50[m Improve form performance by preventing unnecessary reloads
+* [33m908a10c[m Make navigation work correctly between different sections of the app
+* [33mb42fbe2[m Improve how the questionnaire loads, fixing a potential performance issue
+* [33m504b7f0[m Improve app navigation and fix questionnaire re-rendering issues
+* [33m4d8e450[m Improve form data saving by ensuring data consistency and app stability
+* [33m6809445[m Improve form data persistence and component lifecycle management
+* [33m9bc3861[m Prevent unnecessary re-rendering of the questionnaire form component
+* [33m6d70226[m Improve language updates and question loading for a smoother experience
+* [33m59d0fbe[m Stop automatic saving and only save form data when manually prompted
+* [33m5ef4004[m Improve the questionnaire to ensure form is functioning as expected
+* [33md4d3e09[m Improve the look and feel of the save button on the inspection form
+* [33m466e792[m Improve data entry and prevent accidental form submissions on questionnaires
+* [33m1a0c976[m Prevent page refresh when using buttons on the questionnaire
+* [33m7333ca7[m Improve save functionality by logging and fixing issues on different pages
+* [33m315a75b[m Generate perfectly formatted PDFs that mirror the original Excel files
+* [33m51b2adb[m Generate accurate PDF protocols preserving Excel formatting and layout
+* [33m4535b88[m Enable PDF download functionality for completed inspection reports
+* [33m7cf10ec[m Generate protocol reports as PDFs for easy sharing and archival
+* [33mfba6d20[m Include updated inspection protocol template to improve data collection
+* [33m0aed5fd[m Fix critical error that prevents generating Excel files in multilingual mode
+* [33m6204ffc[m Restored to 'b26582745f9424d22874a26b24b735c5f38fa6f5'
+* [33mb97e000[m Saved your changes before rolling back
+* [33me653f4d[m Improve PDF creation ensuring protocol completion even when problems arise
+* [33md4414d2[m Improve PDF report generation to include support for multiple languages
+* [33mb265827[m Confirm that multilingual template upload works and is validated by user
+* [33mabe0b4b[m Unify multilingual question templates for Hungarian and German
+* [33mce9564f[m Implement improved data saving system with status updates for the user
+* [33m560a5f2[m Give users visual feedback when their form data is being saved
+* [33m7fd8f01[m Ensure true/false questions are correctly displayed in Excel reports
+* [33mfc76af5[m Make sure true/false answers are saved correctly in the inspection protocol
+* [33mda2d1ce[m Improve the accuracy of answers in generated Excel documents
+* [33m60a6170[m Correctly represent true/false questions in generated Excel files
+* [33m4271510[m Improve the reliability of the true/false selection on the user interface
+* [33m5d0a4dd[m Improve how true/false questions are handled in the inspection forms
+* [33m3b60744[m Enable users to select true/false options more reliably on the interface
+* [33mbe15341[m Improve the reliability of true/false questions and prevent page refresh
+* [33mc4b0da1[m Improve radio button behavior to prevent page refresh and flickering
+* [33ma2918f5[m Enhance true/false questions with visual indicators and remove explanation
+* [33ma3f336f[m Display true/false questions as a grouped list with labeled columns
+* [33m1c52627[m Update the way true/false questions are displayed in inspection forms
+* [33md6e4b39[m Restored to '3b7ee070e96a07f1a2f45eb376644550a2ac84fd'
+* [33mb794400[m Saved your changes before rolling back
+* [33m5fed9cc[m Improve questionnaire layout for easier data entry and better use of space
+* [33m3b7ee07[m Improve template preview to show associated questions and cell details
+* [33m54cc8e3[m Enable template previews on the admin page for better management
+* [33mf287024[m Update inspection form template to include missing question configurations
+* [33mab38073[m Update application to support true/false questions and improve input options
+* [33ma533725[m Enable the application to correctly identify true/false questions
+* [33me5ac438[m Enable new question format and add example for excel template
+* [33m6b989b1[m Enable users to answer questions with true/false radio button groups
+* [33m54b688f[m Show the current version number on the administrator settings page
+* [33m5c5e52e[m Adjust spacing between the title and language selector on the start screen
+* [33md25fabe[m Adjust spacing on the start screen for better visual appeal
+* [33md3320cc[m Restored to 'feedb8ac7493b14d1bb64a199d68b8e69e1eae13'
+* [33m14c6a62[m Saved your changes before rolling back
+* [33mc67cffc[m Increase the size of the main welcome message on the application's start page
+* [33me92a2a0[m Move logo closer to the top of the screen to improve visual layout
+* [33mfeedb8a[m Reduce spacing on the welcome screen for a cleaner and more modern look
+* [33me72efd6[m Reduce the gap between the logo and text for a cleaner interface
+* [33m40cf4cc[m Improve the appearance of the main slogan on the welcome screen
+* [33mca1aa9e[m Improve readability of the main welcome message on the application
+* [33m17b7490[m Update the application's opening message to include a trademark symbol
+* [33m9a292b0[m Increase the size of the slogan text to improve readability
+* [33m7d1b021[m Restored to '36377a968e6b7169a156f77c5826b74cfaef4e79'
+* [33m95c1e06[m Saved your changes before rolling back
+* [33m27e5949[m Update the overall look and feel of the user interface across the application
+* [33m5c3c58c[m Update the application's fonts to improve the user interface appearance
+* [33mc7ace6c[m Update the welcome screen to have a more elegant and refined appearance
+* [33m15be497[m Update the look of the main screen to use a more readable font
+* [33ma735d50[m Reduce the slogan size to improve the look and feel on smaller screens
+* [33m0cafbbb[m Update the "Made to move you" slogan to match official style guidelines
+* [33m36377a9[m Update the tagline to match the company's official branding guidelines
+* [33mf71b26a[m Correct text displayed on final page for improved user experience
+* [33m8565006[m Revert date formatting for a simpler and more direct date display
+* [33m6dbd284[m Ensure the date format is correct on the inspection form in all languages
+* [33m3188c42[m Display dates in the correct format based on the selected language
+* [33m9afa998[m Enable signature field and button text to change based on selected language
+* [33mc9e85a5[m Improve language selection and persistence across the entire application
+* [33mebdcd97[m Improve German translation support across the entire user interface
+* [33m0fcd020[m Show all templates and group them by language in the admin panel
+* [33mba6348a[m Add new German language inspection form to the available template list
+* [33m6390078[m Fix issue preventing questions from loading when using German language
+* [33md0cb758[m Add support for displaying lift inspection forms in German language
+* [33mcb774e1[m Enable grouping of questions into blocks controlled by Excel templates
+* [33m17aff95[m Group the questionnaire into logical blocks with descriptive headers
+* [33m033f97d[m Use lowercase "x" for all yes/no/na responses in inspection protocols
+* [33m1228e8b[m Improve finding of cell references and multi-cell columns in templates
+* [33m49a30cf[m Fix issue where questions are not being properly recorded in inspection forms
+* [33m35231f1[m Improve Excel parsing and handle template variations for accurate data injection
+* [33m697b289[m Give users greater control over yes/no/NA questions using Excel templates
+* [33m2d3c734[m Enable configurable multi-cell support for 'yes/no/na' Excel questions
+* [33mdcc1977[m Enable placing "X" in multiple rows/columns based on yes/no/na answers
+* [33m472f18f[m Update application to improve question logic and fix navigation issues
+* [33mce2ca7f[m Add support for marking options with 'X' and enhance template handling
+* [33m4f85202[m Improve the way yes/no/na questions are displayed in Excel reports
+* [33m473201f[m Update Excel question form to support multiple answer cells
+* [33m7027591[m Enable inspection protocols to support multiple answer cells
+* [33m55b84c0[m Improve the display of yes/no/na questions in generated Excel reports
+* [33mc48b123[m Automatically mark yes/no/na questions with an 'X' in Excel templates
+* [33m1b2b121[m Restored to '2aab2a16fd883c8bb68cd7975b92e06345547bf2'
+* [33m7a347c9[m Saved your changes before rolling back
+* [33mee21123[m Improve the reliability of form answers within generated Excel files
+* [33m09bf182[m Update inspection forms for improved character display on all devices
+* [33mda4e509[m Add logging to track cell mapping creation for debugging purposes
+* [33mea4aeff[m Improve debugging information when processing user form data
+* [33m83db0cd[m Add detailed logging to examine data being written to Excel templates
+* [33ma5d17ba[m Investigate why form data is not showing up correctly in transformed Excel documents
+* [33m0e9e5ad[m Improve visibility into form processing to investigate missing 'X' characters
+* [33m445b0ae[m Update Excel templates to display 'X' marks instead of yes/no/N/A
+* [33m97552e2[m Clarify which answer options correspond to which specific cells
+* [33mb8761fd[m Enable 'Yes/No/Not Applicable' questions to update Excel templates
+* [33m2aab2a1[m Prepare application for first production release with documentation
+* [33mcd91455[m Improve app stability by ensuring database connectivity on startup
+* [33ma3285e7[m Add test files to examine Excel merged cell visibility issues
+* [33m130ecce[m Make sure entered information always appears correctly in Excel reports
+* [33mc9c9e7a[m Restored to 'e7b25d4ba7fbb4cf563aa38cb4ee78770dbcaf6c'
+* [33m28838cc[m Saved your changes before rolling back
+* [33ma4cd96e[m Fix Excel template issues and ensure correct display of all questionnaire data
+* [33m62eb4f3[m Improve Excel file handling to reliably load data and maintain formatting
+* [33mac85e1d[m Preserve Excel template formatting and improve error handling
+* [33me1952fa[m Improve Excel file generation for better compatibility and reliability
+* [33m988fca8[m Improve data handling to prevent data loss during Excel operations
+* [33m4d93235[m Improve reliability of data display and fix Excel file opening issues
+* [33md800384[m Correctly display city names in Excel exports and improve pattern matching
+* [33me7b25d4[m Improve data handling in Excel files and add support for Hungarian characters
+* [33m1b03a93[m Preserve Excel formatting by modifying the file's XML content directly
+* [33m64e69d5[m Maintain the original look of the Excel template after data injection
+* [33m1058811[m Fix Excel data population and formatting issues in generated documents
+* [33m3a27cf5[m Ensure correct data population and preserve formatting in Excel protocols
+* [33m946e066[m Restore missing navigation and keep the original report style intact
+* [33mad0f13e[m Improve Excel template processing by preserving original data and adjusting ranges
+* [33m5a848bb[m Update Excel template processing to support dynamically mapped cells
+* [33m9b196b4[m Improve reliability of data population in generated Excel files
+* [33m0bf177a[m Preserve original format of Excel questionnaire when adding form data
+* [33m81afa82[m Enable the ability to download inspection data directly as an Excel file
+* [33ma0e9c93[m Generate professional-looking PDF documents from filled Excel data
+* [33mb8a3993[m Improve form generation with dynamic updates and clearer data markers
+* [33m751e970[m Use the active Excel template to create reports with form data
+* [33m3daba98[m Use uploaded Excel templates to populate protocol form data in generated files
+* [33m3bca11c[m Display the uploaded form's content with titles and handle missing data
+* [33m1155bd3[m Enable users to view a detailed preview of the inspection protocol
+* [33mfadf934[m Finalize input fixes and enable protocol preview functionality on the system
+* [33m48b2f81[m Make loading the lift inspection list more responsive and reliable
+* [33m92b87fb[m Provide a list of all inspection protocols and removes the preview feature
+* [33m769dc17[m Improve the reliability and stability of user input fields on forms
+* [33mc633b82[m Improve the user experience on the signature page by fixing input issues
+* [33mb69ee6e[m Improve text input behavior to prevent keyboard focus issues on tablets
+* [33m41c2bdb[m Improve the way users enter their name when providing a signature
+* [33m2ec0757[m Improve user experience by preventing data loss during questionnaire input
+* [33m22fa9c0[m Improve reliability of form field updates when navigating the questionnaire
+* [33m0e69d64[m Improve form input handling and data persistence across the questionnaire
+* [33mfc33d97[m Improve data entry by saving number and text inputs only after they are complete
+* [33ma47534d[m Improve text input and fix UI update issues while typing on the tablet
+* [33m6d8d913[m Improve signature capture and protocol preview for new inspections
+* [33mafb5b9e[m Fix input issues and enable protocol preview on the application
+* [33m1dc869a[m Preserve current page when users navigate through the questionnaire
+* [33m1b85b52[m Improve navigation button behavior and provide visual feedback to users
+* [33m65aaa16[m Improve questionnaire logic and fix potential issues on form navigation
+* [33mae6cf68[m Improve form navigation by dynamically enabling the next button
+* [33me6e35aa[m Improve form validation and fix issues during questionnaire navigation
+* [33md2ec1fa[m Enable progression to the next page when required fields are completed
+* [33m204150f[m Allow users to proceed to the next page even with cached form data
+* [33mbfafcd6[m Ensure all form data is saved before moving to the next section
+* [33m8bd6cf4[m Improve radio button appearance by removing the focus highlight
+* [33m82aa9e5[m Improve user experience by preventing unnecessary UI updates while typing
+* [33m893a94b[m Improve radio button functionality and ensure selections are properly saved
+* [33m7aeff02[m Improve the appearance of the main screen and fix issues with radio buttons
+* [33m5884af2[m Increase the size of the company logo for better visibility on all pages
+* [33m16e515f[m Improve radio button selection and prevent excessive component re-rendering
+* [33m564d751[m Fix image loading and UI layout issues reported by users during testing
+* [33m1d66bea[m Improve tablet app form by translating labels and managing question states
+* [33m32e0c39[m Improve questionnaire with better stability and display company logo
+* [33maad39af[m Update application's interface with company logo for improved branding
+* [33m149ecbc[m Improve questionnaire stability and prevent unwanted page navigations
+* [33ma7d1405[m Improve questionnaire loading and isolate answer change handling for efficiency
+* [33mab938ac[m Improve the questionnaire loading and streamline radio button interactions
+* [33md86cd22[m Improve form interaction by using a more efficient radio button component
+* [33md65b68f[m Resume progress where users left off when starting a new inspection
+* [33m8e32e1f[m Improve user interaction by preventing accidental navigation on radio clicks
+* [33mc861b2f[m Implement fully isolated radio button to prevent event propagation
+* [33m3c6dc73[m Improve radio button responsiveness and prevent unintended re-renders
+* [33m077d2f4[m Document progress on UI improvements, completed features, and ongoing issues
+* [33m7df2510[m Improve radio button responsiveness when selecting options in the inspection form
+* [33m711ea0b[m Improve radio button input and prevent accidental page transitions
+* [33m3f383fd[m Load questions dynamically and improve UI navigation during input
+* [33me113447[m Improve the app's stability by fixing UI flickering and cleaning up files
+* [33m0fa6780[m Eliminate flickering issue with radio button inputs on the tablet application
+* [33m84ac7fd[m Improve radio button interaction and allow deletion of old templates
+* [33me7b44e1[m Improve text input stability and prevent flickering during field changes
+* [33mf93d0ed[m Improve questionnaire interface by loading static questions to prevent flickering
+* [33m34192af[m Improve text field stability and questionnaire data loading for smooth input
+* [33m6002f64[m Improve app stability and data handling during questionnaire completion
+* [33me55b655[m Improve text input and prevent focus loss for form fields on the tablet
+* [33me2b811a[m Improve signature capture and form saving for a smoother user experience
+* [33m7b3c51c[m Implement a simpler signature input and change text field to Hungarian
+* [33mbf12ffc[m Improve signature capture and address issues with name input field
+* [33m99e716f[m Allow users to enter their printed name when providing their signature
+* [33m30cf00a[m Improve questionnaire navigation and signature input, add template files
+* [33m050359e[m Add home button to navigate users back to the language selection screen
+* [33m97e99b5[m Frissíti a kérdőívet a kiválasztott nyelv használatára és adatbázis perzisztenciára
+* [33m1232973[m Enable persistent storage of app data and improve data management
+* [33m8868538[m Enable administration panel for managing templates and question sets
+* [33m6159c2e[m Create core application features for lift acceptance protocol
+* [33mabe4a52[m Initial commit

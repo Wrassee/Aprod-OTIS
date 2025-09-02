@@ -1,4 +1,4 @@
-# OTIS APROD Version 0.4.1 - Release Notes
+# OTIS APROD Version 0.4.2 - Release Notes
 **Release Date**: January 28, 2025  
 **Status**: PRODUCTION READY ✅
 
