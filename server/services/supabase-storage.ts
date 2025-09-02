@@ -62,15 +62,18 @@ export class SupabaseStorageService {
   async downloadFile(storagePath: string, localPath: string): Promise<void> {
     console.log(`📥 Initiating download for: ${storagePath}`);
 
-    // === EZ A JAVÍTÁS ===
-    // Biztosítjuk, hogy a storagePath ne tartalmazza a bucket nevét az elején.
     const pathWithoutBucket = storagePath.startsWith(`${this.bucketName}/`)
       ? storagePath.substring(this.bucketName.length + 1)
       : storagePath;
       
+    // === EZ A VÉGLEGES JAVÍTÁS ===
+    // Dekódoljuk az útvonalat, hogy a %20 -> szóköz legyen,
+    // így a getPublicUrl már helyesen fogja újra kódolni.
+    const decodedPath = decodeURIComponent(pathWithoutBucket);
+      
     const { data: { publicUrl } } = this.supabase.storage
       .from(this.bucketName)
-      .getPublicUrl(pathWithoutBucket); // A letisztított útvonalat használjuk
+      .getPublicUrl(decodedPath); // A dekódolt útvonalat használjuk
       
     console.log(`Correct Direct URL: ${publicUrl}`);
 
