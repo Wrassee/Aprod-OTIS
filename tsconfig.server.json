@@ -1,31 +1,28 @@
 {
+  "extends": "./tsconfig.json",
   "compilerOptions": {
-    // Alapvető beállítások, nem öröklünk semmit
     "target": "ES2022",
-    "lib": ["ES2023", "DOM"],
+    "module": "NodeNext",
+    "moduleResolution": "node16",
+    "outDir": "./dist",
+    "rootDir": ".", 
+    "noEmit": false,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
     "strict": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true,
-    "noEmit": false,
-
-    // Modulrendszer beállításai
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    
-    // A legfontosabb rész: a helyes útvonalak
-    "outDir": "./dist",
-    "rootDir": "."
+    "noImplicitAny": true,
+    "allowJs": true,
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["./shared/*"]
+    }
   },
   "include": [
     "server/**/*.ts",
-    "shared/**/*.ts"  // <-- Most már ez is benne van
+    "api/**/*.ts",
+    "shared/**/*.ts"
   ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "src" // <-- Fontos, hogy a kliensoldali src mappát kizárjuk
-  ]
+  "exclude": ["node_modules", "dist", "src"]
 }
