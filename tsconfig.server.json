@@ -1,16 +1,33 @@
 {
-  "extends": "./tsconfig.json",
   "compilerOptions": {
+    // Alapvető beállítások
+    "target": "ES2022",
+    "lib": ["ES2023", "DOM"],
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true,
+
+    // Modulrendszer beállításai (ez a legfontosabb rész)
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "outDir": "./dist/server", // <-- Közvetlenül a dist/server mappába fordítunk
-    "rootDir": "./server",     // <-- A forrás egyértelműen a server mappa
+    
+    // Kimeneti mappák beállításai
+    "outDir": "./dist",
+    "rootDir": ".",
+
+    // Egyéb beállítások
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
     "noEmit": false
   },
   "include": [
-    "server/**/*.ts" // <-- Csak és kizárólag a szerveroldali kódot figyeljük
+    "server/**/*.ts",
+    "shared/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "dist",
+    "src" //<- Fontos, hogy a kliensoldali src mappát kizárjuk
   ]
 }
