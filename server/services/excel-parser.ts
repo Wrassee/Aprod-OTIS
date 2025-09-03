@@ -154,4 +154,5 @@ export class ExcelParser {
   }
 }
 
-export const excelParser = new ExcelParser();
+export const excelParserService = new ExcelParser();
+
