@@ -34,11 +34,17 @@ const IsolatedQuestionComponent = memo(({
   }, [onImageUpload]);
 
   const renderInput = useCallback(() => {
+    // ================== DIAGNOSZTIKAI LOG ==================
+    // Ez a sor megmutatja, hogy a komponens pontosan milyen típusú kérdést kap.
+    console.log(`🕵️‍♂️ DEBUG ISOLATED QUESTION | ID: ${question.id} | Title: ${question.title}`, {
+        type_received: `"${question.type}"`, // idézőjelekkel, hogy lássuk a whitespace-t
+        type_length: question.type.length,
+        full_question_object: question
+    });
+    // ========================================================
+
     switch (question.type) {
-      // VÉGLEGES JAVÍTÁS ITT:
-      // Kezeli a 'yes_no_na' típust...
       case 'yes_no_na':
-      // ...és a 'radio' típust is ugyanazzal a logikával.
       case 'radio':
         const radioOptions = [
           { value: 'yes', label: t.yes, id: `${question.id}-yes` },
