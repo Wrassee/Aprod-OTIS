@@ -2,36 +2,29 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 
-// https://vitejs.dev/config/
 export default defineConfig({
-  // MEGHATÁROZZA, HOL VAN A FRONTEND KÓD (KRITIKUS FONTOSSÁGÚ)
-  root: "client",
-  
   plugins: [react()],
 
   resolve: {
     alias: {
-      // A '@' alias most már helyesen a 'client/src' mappára fog mutatni
-      "@": path.resolve(__dirname, "client/src"),
-      "@shared": path.resolve(__dirname, "shared"),
+      // Ezek a te beállításaid, valószínűleg jók, ha a mappaszerkezeted megfelelő.
+      "@": path.resolve(__dirname, "./src"),
+      "@shared": path.resolve(__dirname, "./shared"),
     },
   },
 
+  // ✨ EZ A HIÁNYZÓ RÉSZ ✨
+  // A server blokk felel a helyi fejlesztői szerver működéséért.
   server: {
     proxy: {
+      // Minden olyan kérés, ami a '/api' útvonallal kezdődik...
       '/api': {
-        target: 'https://aprod-otis-5gsy.onrender.com', // A te Render URL-ed
+        // ...továbbítódik erre a célcímre.
+        target: 'https://aprod-otis-5gsy.onrender.com/', // ❗️ CSERÉLD KI A RENDEREN FUTÓ ALKALMAZÁSOD URL-JÉRE!
+        
+        // Ez a beállítás szükséges ahhoz, hogy a cél szerver elfogadja a kérést.
         changeOrigin: true,
-        secure: false,
-      },
-    },
-  },
-
-  build: {
-    // MEGHATÁROZZA, HOVA KERÜLJÖN A KÉSZ WEBOLDAL (FONTOS A DEPLOYHOZ)
-    outDir: path.resolve(__dirname, "dist"),
-    // A 'dist' mappa tartalmát minden build előtt törli a tisztaság érdekében
-    emptyOutDir: true, 
+      }
+    }
   }
 });
-
