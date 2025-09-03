@@ -263,3 +263,6 @@ export class ExcelParserService {
   }
 }
 
+// HIÁNYZÓ RÉSZ: Létrehozzuk és exportáljuk a szolgáltatás egy példányát.
+export const excelParserService = new ExcelParserService();
+
