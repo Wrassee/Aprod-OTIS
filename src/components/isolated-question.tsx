@@ -47,6 +47,7 @@ const IsolatedQuestionComponent = memo(({
             questionId={question.id}
             initialValue={value?.toString() || ''}
             options={radioOptions}
+            onChange={onChange}
           />
         );
         
