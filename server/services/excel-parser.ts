@@ -49,6 +49,8 @@ export class ExcelParserService {
         throw new Error("Invalid Excel format – need at least ID, Title and Type columns");
       }
 
+      console.log(`📋 Header row:`, header);
+
       // Normalizáló függvény az oszlop nevekhez
       const normalize = (str: string) => 
         str.toLowerCase()
@@ -64,8 +66,12 @@ export class ExcelParserService {
             const normalizedCol = normalize(col);
             return normalizedCol.includes(normalizedAlias) || normalizedAlias.includes(normalizedCol);
           });
-          if (index !== -1) return index;
+          if (index !== -1) {
+            console.log(`✅ Found column "${alias}" at index ${index}: "${header[index]}"`);
+            return index;
+          }
         }
+        console.log(`❌ Column not found for aliases:`, aliases);
         return -1;
       };
 
@@ -90,19 +96,28 @@ export class ExcelParserService {
       const calcInputsIdx = colIndex(["calculation_inputs", "inputs"]);
 
       if (idIdx === -1 || titleIdx === -1 || typeIdx === -1) {
-        throw new Error(`Missing required columns. Header: ${JSON.stringify(header)}`);
+        throw new Error(`Missing required columns. Found indices - ID: ${idIdx}, Title: ${titleIdx}, Type: ${typeIdx}`);
       }
 
-      console.log(`📋 Found columns - ID: ${idIdx}, Title: ${titleIdx}, TitleHu: ${titleHuIdx}, Type: ${typeIdx}, Group: ${groupNameIdx}, CellRef: ${cellRefIdx}`);
+      console.log(`📋 Column mapping:
+        ID: ${idIdx} (${header[idIdx]})
+        Title: ${titleIdx} (${header[titleIdx]})
+        TitleHu: ${titleHuIdx} (${titleHuIdx >= 0 ? header[titleHuIdx] : 'not found'})
+        Type: ${typeIdx} (${header[typeIdx]})
+        Group: ${groupNameIdx} (${groupNameIdx >= 0 ? header[groupNameIdx] : 'not found'})
+        CellRef: ${cellRefIdx} (${cellRefIdx >= 0 ? header[cellRefIdx] : 'not found'})`);
 
       const questions: ParsedQuestion[] = [];
       for (let r = 1; r < rows.length; r++) {
         const row = rows[r];
-        if (!row || !row[idIdx] || !row[titleIdx]) continue;
+        if (!row || !row[idIdx] || !row[titleIdx]) {
+          console.log(`⚠️ Skipping empty row ${r}`);
+          continue;
+        }
 
         const type = this.parseQuestionType(row[typeIdx]?.toString());
         if (!type) {
-          console.log(`⚠️  Unknown question type for row ${r}: ${row[typeIdx]}`);
+          console.log(`⚠️ Unknown question type for row ${r}: "${row[typeIdx]}" - skipping`);
           continue;
         }
 
@@ -127,27 +142,42 @@ export class ExcelParserService {
           calculationInputs: calcInputsIdx !== -1 ? row[calcInputsIdx]?.toString() : undefined,
         };
         
-        console.log(`✅ Parsed question ${q.questionId}: ${q.titleHu || q.title} (${q.type}) - Group: ${q.groupName}`);
+        console.log(`✅ Parsed Q${q.questionId}: "${q.titleHu || q.title}" (${q.type}) - Group: "${q.groupName}"`);
         questions.push(q);
       }
       
       console.log(`✅ Successfully parsed ${questions.length} questions.`);
       return questions;
     } catch (err) {
-      console.error("Error parsing Excel file:", err);
+      console.error("❌ Error parsing Excel file:", err);
       throw new Error(err instanceof Error ? err.message : "Unexpected error while parsing Excel");
     }
   }
   
+  // *** KRITIKUS JAVÍTÁS: A frontend "checkbox" és "radio" típusokat vár ***
   private parseQuestionType(raw?: string): QuestionType | null {
     if (!raw) return null;
     const t = raw.toLowerCase().trim();
+    
+    // yes_no_na típust "checkbox"-ra konvertáljuk (igen/nem/nem alkalmazható)
     if (["yes_no", "yes_no_na", "checkbox"].includes(t)) return "checkbox";
+    
+    // true_false típust "radio"-ra konvertáljuk (igaz/hamis választás)
     if (["true_false", "radio"].includes(t)) return "radio";
+    
+    // measurement típus marad measurement
     if (["measurement"].includes(t)) return "measurement";
+    
+    // calculated típus marad calculated  
     if (["calculated"].includes(t)) return "calculated";
+    
+    // number típus marad number
     if (["number"].includes(t)) return "number";
+    
+    // text típus marad text
     if (["text"].includes(t)) return "text";
+    
+    console.log(`⚠️ Unknown question type: "${t}"`);
     return null;
   }
 
@@ -169,12 +199,11 @@ export class ExcelParserService {
       const fileBuffer = fs.readFileSync(filePath);
       const workbook = XLSX.read(fileBuffer, { type: 'buffer' });
       
-      // Az első munkalap neve alapján próbáljuk meghatározni a típust
       const sheetName = workbook.SheetNames[0];
       
       return {
         name: sheetName || 'Unknown',
-        language: 'multilingual', // Alapértelmezett, mivel mindkét nyelv benne van
+        language: 'multilingual',
         type: 'unified',
         version: '1.0'
       };
@@ -196,7 +225,6 @@ export class ExcelParserService {
       // Adatok feltöltése a megfelelő cellákba
       Object.entries(data).forEach(([key, value]) => {
         if (value !== null && value !== undefined) {
-          // Keressük meg a megfelelő cellát a kulcs alapján
           const cellRef = this.findCellReference(worksheet, key);
           if (cellRef) {
             worksheet[cellRef] = { v: value, t: typeof value === 'number' ? 'n' : 's' };
@@ -212,8 +240,6 @@ export class ExcelParserService {
   }
 
   private findCellReference(worksheet: XLSX.WorkSheet, key: string): string | null {
-    // Itt implementálhatnád a logikát, hogy megtaláld a megfelelő cellát
-    // Ez függhet a template struktúrájától
     return null;
   }
 
@@ -222,7 +248,7 @@ export class ExcelParserService {
     if (answer === null || answer === undefined) return '';
     
     switch (type) {
-      case 'checkbox':
+      case 'checkbox':  // yes_no_na típusból
         if (typeof answer === 'string') {
           switch (answer.toLowerCase()) {
             case 'yes':
@@ -236,9 +262,12 @@ export class ExcelParserService {
           }
         }
         break;
-      case 'radio':
+      case 'radio':  // true_false típusból
         if (typeof answer === 'boolean') {
           return answer ? (language === 'hu' ? 'Igen' : 'Ja') : (language === 'hu' ? 'Nem' : 'Nein');
+        }
+        if (typeof answer === 'string') {
+          return answer === 'true' ? (language === 'hu' ? 'Igen' : 'Ja') : (language === 'hu' ? 'Nem' : 'Nein');
         }
         break;
       case 'measurement':
