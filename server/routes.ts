@@ -5,7 +5,6 @@ import express from "express";
 import path from "path";
 import * as fs from "fs";
 
-// --- JAVÍTOTT IMPORTOK ---
 import { storage } from "./storage.js";
 import { testConnection } from "./db.js";
 import { insertProtocolSchema } from "../shared/schema.js"; 
@@ -16,7 +15,7 @@ import { excelParserService } from "./services/excel-parser.js";
 import { errorRoutes } from "./routes/error-routes.js";
 import { supabaseStorage } from "./services/supabase-storage.js";
 
-// JAVÍTVA: Környezetfüggő feltöltési mappa, ami a Vercelen/Renderen és localhoston is működik
+// Feltöltési mappa
 const uploadDir = process.env.NODE_ENV === 'production'
   ? '/tmp'
   : path.join(process.cwd(), 'uploads');
@@ -31,8 +30,10 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024, // 10MB limit
   },
   fileFilter: (req, file, cb) => {
-    if (file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-        file.mimetype === 'application/vnd.ms-excel') {
+    if (
+      file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+      file.mimetype === 'application/vnd.ms-excel'
+    ) {
       cb(null, true);
     } else {
       cb(new Error('Only Excel files are allowed'));
@@ -43,12 +44,16 @@ const upload = multer({
 export async function registerRoutes(app: Express): Promise<Server> {
   await testConnection();
 
-  // JAVÍTVA: Az Express szolgálja ki a 'dist' mappát, hogy a logó és a frontend működjön
-  app.use(express.static(path.join(process.cwd(), 'dist')));
-  
-  app.use('/api/errors', errorRoutes);
-  
-  // Create protocol
+  // ✅ Frontend dist kiszolgálása
+  app.use(express.static(path.join(process.cwd(), "dist")));
+
+  // ✅ Root/public kiszolgálása (pl. otis-logo.png)
+  app.use(express.static(path.join(process.cwd(), "public")));
+
+  // Error routes
+  app.use("/api/errors", errorRoutes);
+
+  // Protocol létrehozása
   app.post("/api/protocols", async (req, res) => {
     try {
       const protocolData = insertProtocolSchema.parse(req.body);
@@ -60,11 +65,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get active questions for questionnaire
+  // Kérdések lekérése
   app.get("/api/questions/:language", async (req, res) => {
     try {
       const { language } = req.params;
-      if (language !== 'hu' && language !== 'de') {
+      if (language !== "hu" && language !== "de") {
         return res.status(400).json({ message: "Invalid language specified" });
       }
 
@@ -74,9 +79,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.warn("No active 'unified/multilingual' template found.");
         return res.status(404).json({ message: "No active questions template found" });
       }
-      
-      // JAVÍTVA: A sablon letöltésének és feldolgozásának logikája
-      const storagePath = questionsTemplate.filePath; // Ez a belső Supabase útvonal
+
+      const storagePath = questionsTemplate.filePath;
       const tempPath = path.join("/tmp", `template-${Date.now()}-${questionsTemplate.fileName}`);
 
       await supabaseStorage.downloadFile(storagePath, tempPath);
@@ -90,14 +94,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const formattedQuestions = questions.map((config) => {
-        let groupName = language === "de" && config.groupNameDe ? config.groupNameDe : config.groupName;
+        let groupName =
+          language === "de" && config.groupNameDe
+            ? config.groupNameDe
+            : config.groupName;
         const typeStr = config.type as string;
         if (typeStr === "measurement" || typeStr === "calculated") {
           groupName = language === "de" ? "Messdaten" : "Mérési adatok";
         }
         return {
           id: config.questionId,
-          title: language === 'hu' ? (config.titleHu || config.title) : (config.titleDe || config.title),
+          title:
+            language === "hu"
+              ? config.titleHu || config.title
+              : config.titleDe || config.title,
           type: config.type,
           required: config.required,
           placeholder: config.placeholder ?? undefined,
@@ -114,7 +124,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       res.json(formattedQuestions);
-
     } catch (error) {
       console.error("❌ Error fetching questions:", error);
       res.status(500).json({ message: "Failed to fetch questions" });
@@ -132,7 +141,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin: Sablon feltöltése
+  // Admin: Feltöltés
   app.post("/api/admin/templates/upload", upload.single("file"), async (req: any, res: any) => {
     try {
       if (!req.file) {
@@ -144,7 +153,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
         return res.status(400).json({ message: "Missing required fields" });
       }
-      
+
       const storagePath = `templates/${Date.now()}-${req.file.originalname}`;
       await supabaseStorage.uploadFile(req.file.path, storagePath);
 
@@ -153,7 +162,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type,
         language,
         fileName: req.file.originalname,
-        filePath: storagePath, // A belső útvonalat mentjük
+        filePath: storagePath,
         isActive: false,
       });
 
@@ -166,7 +175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin: Sablon aktiválása
+  // Admin: Aktiválás
   app.post("/api/admin/templates/:id/activate", async (req, res) => {
     try {
       await storage.setActiveTemplate(req.params.id);
@@ -176,7 +185,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to activate template" });
     }
   });
-  
+
+  // Admin: Törlés
+  app.delete("/api/admin/templates/:id", async (req, res) => {
+    try {
+      const template = await storage.getTemplateById(req.params.id);
+      if (template?.filePath) {
+        await supabaseStorage.deleteFile(template.filePath);
+      }
+      await storage.deleteTemplate(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting template:", error);
+      res.status(500).json({ message: "Failed to delete template" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
