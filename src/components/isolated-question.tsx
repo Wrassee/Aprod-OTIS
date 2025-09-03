@@ -34,14 +34,14 @@ const IsolatedQuestionComponent = memo(({
   }, [onImageUpload]);
 
   const renderInput = useCallback(() => {
-    // ================== DIAGNOSZTIKAI LOG ==================
-    // Ez a sor megmutatja, hogy a komponens pontosan milyen típusú kérdést kap.
+    // A diagnosztikai logot a biztonság kedvéért bent hagyom, de kikommentezem.
+    /*
     console.log(`🕵️‍♂️ DEBUG ISOLATED QUESTION | ID: ${question.id} | Title: ${question.title}`, {
-        type_received: `"${question.type}"`, // idézőjelekkel, hogy lássuk a whitespace-t
+        type_received: `"${question.type}"`,
         type_length: question.type.length,
         full_question_object: question
     });
-    // ========================================================
+    */
 
     switch (question.type) {
       case 'yes_no_na':
@@ -60,6 +60,28 @@ const IsolatedQuestionComponent = memo(({
             onChange={onChange}
           />
         );
+        
+      // ================== HOZZÁADOTT RÉSZ ==================
+      // Ez az ág hiányzott a 'checkbox' típus kezeléséhez.
+      case 'checkbox':
+        return (
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id={question.id}
+              checked={!!value} // Az értéket logikai értékké alakítja
+              onChange={(e) => onChange(e.target.checked)}
+              className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+            />
+            <label
+              htmlFor={question.id}
+              className="text-sm font-medium text-gray-700 select-none cursor-pointer"
+            >
+              {question.placeholder || t.confirm || 'Megerősítés'}
+            </label>
+          </div>
+        );
+      // ======================================================
         
       case 'true_false':
         return (
