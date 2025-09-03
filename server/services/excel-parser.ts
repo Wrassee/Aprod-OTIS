@@ -1,4 +1,5 @@
 import * as XLSX from "xlsx";
+import * as fs from "fs";
 
 export type QuestionType =
   | "yes_no_na"
@@ -27,6 +28,28 @@ export interface ParsedTemplate {
 export class ExcelParser {
   parse(file: ArrayBuffer): ParsedTemplate {
     const workbook = XLSX.read(file, { type: "array" });
+    return this.extractQuestions(workbook);
+  }
+
+  /**
+   * ✅ Új metódus: fájl útvonalról vagy ArrayBufferből is tud olvasni
+   */
+  parseQuestionsFromExcel(file: ArrayBuffer | string): ParsedTemplate {
+    let workbook;
+
+    if (typeof file === "string") {
+      // Ha fájl útvonalat kap
+      const buffer = fs.readFileSync(file);
+      workbook = XLSX.read(buffer, { type: "buffer" });
+    } else {
+      // Ha ArrayBuffer-t kap
+      workbook = XLSX.read(file, { type: "array" });
+    }
+
+    return this.extractQuestions(workbook);
+  }
+
+  private extractQuestions(workbook: XLSX.WorkBook): ParsedTemplate {
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rows: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
@@ -155,4 +178,3 @@ export class ExcelParser {
 }
 
 export const excelParserService = new ExcelParser();
-
