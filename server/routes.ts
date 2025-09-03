@@ -189,7 +189,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin: Törlés
   app.delete("/api/admin/templates/:id", async (req, res) => {
     try {
-      const template = await storage.getTemplateById(req.params.id);
+      const template = await storage.getTemplate(req.params.id);
       if (template?.filePath) {
         await supabaseStorage.deleteFile(template.filePath);
       }
