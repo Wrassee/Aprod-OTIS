@@ -73,6 +73,9 @@ export class ExcelParserService {
       if (rows.length < 2) throw new Error("Excel file must contain a header and at least one data row.");
       
       const header = rows[0];
+      // JAVÍTÁS: Kiírjuk a logba a beolvasott fejlécet a könnyebb hibakeresésért.
+      console.log(`📋 Header found in Excel: [${header.join(', ')}]`);
+      
       const colIndices = this.mapHeaderToIndices(header);
 
       if (colIndices.ID === -1 || colIndices.TITLE === -1 || colIndices.TYPE === -1) {
