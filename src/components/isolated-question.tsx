@@ -35,7 +35,9 @@ const IsolatedQuestionComponent = memo(({
 
   const renderInput = useCallback(() => {
     switch (question.type) {
-      case 'yes_no_na':
+      // JAVÍTÁS ITT: A 'yes_no_na' típust 'radio'-ra cseréltem,
+      // hogy megfeleljen a szerver által küldött adatnak.
+      case 'radio':
         const radioOptions = [
           { value: 'yes', label: t.yes, id: `${question.id}-yes` },
           { value: 'no', label: t.no, id: `${question.id}-no` },
