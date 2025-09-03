@@ -102,13 +102,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (typeStr === "measurement" || typeStr === "calculated") {
           groupName = language === "de" ? "Messdaten" : "Mérési adatok";
         }
+
+        // ======================= JAVÍTÁS ITT =======================
+        // Elcsípjük és kijavítjuk az excel parser által rosszul felismert típust.
+        // Ha a típus 'checkbox', de a placeholder 'Válasszon', akkor az valójában 'radio' kellett volna legyen.
+        let correctedType = config.type;
+        if (config.type === 'checkbox' && config.placeholder === 'Válasszon') {
+            correctedType = 'radio';
+            console.log(`🔧 Correcting type for question ID: ${config.questionId} from 'checkbox' to 'radio'`);
+        }
+        // ==========================================================
+
         return {
           id: config.questionId,
           title:
             language === "hu"
               ? config.titleHu || config.title
               : config.titleDe || config.title,
-          type: config.type,
+          type: correctedType, // Itt már a javított típust használjuk
           required: config.required,
           placeholder: config.placeholder ?? undefined,
           cellReference: config.cellReference ?? undefined,
