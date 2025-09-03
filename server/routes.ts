@@ -3,11 +3,12 @@ import { createServer, type Server } from "http";
 import multer from "multer";
 import express from "express";
 import path from "path";
-import * as fs from "fs"; // A csillag (*) fontos az fs modulnál
+import * as fs from "fs";
 
+// --- JAVÍTOTT IMPORTOK ---
 import { storage } from "./storage.js";
 import { testConnection } from "./db.js";
-import { insertProtocolSchema } from "../shared/schema.js";
+import { insertProtocolSchema } from "../shared/schema.js"; 
 import { excelService } from "./services/excel-service.js";
 import { pdfService } from "./services/pdf-service.js";
 import { emailService } from "./services/email-service.js";
@@ -15,20 +16,26 @@ import { excelParserService } from "./services/excel-parser.js";
 import { errorRoutes } from "./routes/error-routes.js";
 import { supabaseStorage } from "./services/supabase-storage.js";
 
-const uploadDir = process.env.NODE_ENV === "production" ? "/tmp" : path.join(process.cwd(), "uploads");
+// JAVÍTVA: Környezetfüggő feltöltési mappa, ami a Vercelen/Renderen és localhoston is működik
+const uploadDir = process.env.NODE_ENV === 'production'
+  ? '/tmp'
+  : path.join(process.cwd(), 'uploads');
 
-if (process.env.NODE_ENV !== "production" && !fs.existsSync(uploadDir)) {
+if (process.env.NODE_ENV !== 'production' && !fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
 const upload = multer({
   dest: uploadDir,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
   fileFilter: (req, file, cb) => {
-    if (file.mimetype === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" || file.mimetype === "application/vnd.ms-excel") {
+    if (file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+        file.mimetype === 'application/vnd.ms-excel') {
       cb(null, true);
     } else {
-      cb(new Error("Only Excel files are allowed"));
+      cb(new Error('Only Excel files are allowed'));
     }
   },
 });
@@ -36,11 +43,12 @@ const upload = multer({
 export async function registerRoutes(app: Express): Promise<Server> {
   await testConnection();
 
-  // Statikus fájlok kiszolgálása
-  app.use(express.static(path.join(process.cwd(), "dist")));
-  app.use("/api/errors", errorRoutes);
-
-  // Protokollok CRUD
+  // JAVÍTVA: Az Express szolgálja ki a 'dist' mappát, hogy a logó és a frontend működjön
+  app.use(express.static(path.join(process.cwd(), 'dist')));
+  
+  app.use('/api/errors', errorRoutes);
+  
+  // Create protocol
   app.post("/api/protocols", async (req, res) => {
     try {
       const protocolData = insertProtocolSchema.parse(req.body);
@@ -52,7 +60,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Sablonok és kérdések kezelése
+  // Get active questions for questionnaire
   app.get("/api/questions/:language", async (req, res) => {
     try {
       const { language } = req.params;
@@ -60,33 +68,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid language specified" });
       }
 
-      console.log(`🔍 Looking for active template – language=${language}`);
       const questionsTemplate = await storage.getActiveTemplate("unified", "multilingual");
 
       if (!questionsTemplate || !questionsTemplate.filePath) {
-        console.warn("No active 'unified/multilingual' template found in the database.");
+        console.warn("No active 'unified/multilingual' template found.");
         return res.status(404).json({ message: "No active questions template found" });
       }
       
-      console.log(`📋 Found active template: ${questionsTemplate.name}, file: ${questionsTemplate.fileName}`);
-
-      // Az adatbázisból a `filePath` valójában a storagePath-ot tartalmazza
-      // Ezt az értéket adjuk át közvetlenül a letöltő szolgáltatásnak.
-      const storagePath = questionsTemplate.filePath;
-
+      // JAVÍTVA: A sablon letöltésének és feldolgozásának logikája
+      const storagePath = questionsTemplate.filePath; // Ez a belső Supabase útvonal
       const tempPath = path.join("/tmp", `template-${Date.now()}-${questionsTemplate.fileName}`);
 
-      console.log(`📥 Attempting to download from storage path: ${storagePath} to ${tempPath}`);
       await supabaseStorage.downloadFile(storagePath, tempPath);
-      console.log(`✅ File successfully downloaded to ${tempPath}`);
+      console.log(`✅ Template downloaded to ${tempPath}`);
 
-      console.log(`🔍 Parsing questions from: ${tempPath}`);
       const questions = await excelParserService.parseQuestionsFromExcel(tempPath);
-      console.log(`✅ Successfully parsed ${questions.length} questions.`);
+      console.log(`✅ Parsed ${questions.length} questions.`);
 
       if (fs.existsSync(tempPath)) {
         fs.unlinkSync(tempPath);
-        console.log(`🗑️ Deleted temporary file: ${tempPath}`);
       }
 
       const formattedQuestions = questions.map((config) => {
@@ -133,7 +133,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin: Sablon feltöltése
-  app.post("/api/admin/templates/upload", upload.single("file"), async (req, res) => {
+  app.post("/api/admin/templates/upload", upload.single("file"), async (req: any, res: any) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
@@ -144,8 +144,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
         return res.status(400).json({ message: "Missing required fields" });
       }
-
-      // A filePath most már a belső elérési utat tárolja, nem a publikus URL-t
+      
       const storagePath = `templates/${Date.now()}-${req.file.originalname}`;
       await supabaseStorage.uploadFile(req.file.path, storagePath);
 
@@ -154,7 +153,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type,
         language,
         fileName: req.file.originalname,
-        filePath: storagePath, // Itt a belső útvonalat mentjük
+        filePath: storagePath, // A belső útvonalat mentjük
         isActive: false,
       });
 
@@ -178,9 +177,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // A többi végpont (email, letöltés, képfeltöltés, stb.) itt következhet...
-  // ... (A teljesség kedvéért a többi végpontot is idemásolhatod a meglévő fájlodból)
-
   const httpServer = createServer(app);
   return httpServer;
 }
