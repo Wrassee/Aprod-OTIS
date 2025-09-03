@@ -35,8 +35,10 @@ const IsolatedQuestionComponent = memo(({
 
   const renderInput = useCallback(() => {
     switch (question.type) {
-      // JAVÍTÁS ITT: A 'yes_no_na' típust 'radio'-ra cseréltem,
-      // hogy megfeleljen a szerver által küldött adatnak.
+      // VÉGLEGES JAVÍTÁS ITT:
+      // Kezeli a 'yes_no_na' típust...
+      case 'yes_no_na':
+      // ...és a 'radio' típust is ugyanazzal a logikával.
       case 'radio':
         const radioOptions = [
           { value: 'yes', label: t.yes, id: `${question.id}-yes` },
@@ -69,14 +71,11 @@ const IsolatedQuestionComponent = memo(({
             questionId={question.id}
             type="number"
             initialValue={value?.toString() || ''}
-            // DISABLED onValueChange to prevent UI flicker
-            // onValueChange={(newValue) => onChange(parseFloat(newValue) || 0)}
             placeholder={question.placeholder || '0'}
             className="w-full"
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
-                // Find next focusable element
                 const focusableElements = document.querySelectorAll(
                   'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])'
                 );
@@ -103,8 +102,6 @@ const IsolatedQuestionComponent = memo(({
         );
         
       case 'calculated':
-        // For calculated questions, we need access to all input values
-        // This will be handled in the questionnaire component
         return (
           <div className="p-4 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-600">
@@ -120,14 +117,11 @@ const IsolatedQuestionComponent = memo(({
             questionId={question.id}
             type="text"
             initialValue={value?.toString() || ''}
-            // DISABLED onValueChange to prevent UI flicker
-            // onValueChange={(newValue) => onChange(newValue)}
             placeholder={question.placeholder || t.enterText || 'Szöveg megadása'}
             className="w-full"
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
-                // Find next focusable element
                 const focusableElements = document.querySelectorAll(
                   'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])'
                 );
@@ -159,7 +153,6 @@ const IsolatedQuestionComponent = memo(({
             {renderInput()}
           </div>
           
-          {/* Image upload section */}
           {onImageUpload && (
             <div className="border-t pt-4">
               <div className="flex items-center justify-between mb-3">
