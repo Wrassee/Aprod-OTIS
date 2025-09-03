@@ -440,7 +440,8 @@ const Questionnaire = memo(function Questionnaire({
           ) : (
             // ======================= KÖZPONTI JAVÍTÁS ITT =======================
             // A 'true_false' típust 'radio'-ra cseréljük, ahogy a backend küldi.
-            (currentQuestions as Question[]).length > 0 && (currentQuestions as Question[]).every((q: Question) => q.type === 'radio') ? (
+            (currentQuestions as Question[]).length > 0 && 
+            (currentGroup?.name === 'Modernizációban érintett') ? (
               <TrueFalseGroup
                 questions={currentQuestions as Question[]}
                 values={answers}
