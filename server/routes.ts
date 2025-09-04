@@ -65,6 +65,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ======= ÚJ: Excel letöltési végpont =======
+  app.post("/api/protocols/download-excel", async (req, res) => {
+    try {
+      console.log("Excel download request received");
+      const { formData, language } = req.body;
+      
+      // Validate request data
+      if (!formData) {
+        return res.status(400).json({ message: "Form data is required" });
+      }
+      
+      // Import the XML Excel service
+      const { simpleXmlExcelService } = await import('./services/simple-xml-excel.js');
+      
+      console.log("Generating Excel with XML service...");
+      const excelBuffer = await simpleXmlExcelService.generateExcelFromTemplate(formData, language || 'hu');
+
+      // Validate generated buffer
+      if (!excelBuffer || excelBuffer.length < 1000) {
+        throw new Error('Generated Excel buffer is invalid or too small');
+      }
+
+      // Create filename based on lift ID (question 7) or use default
+      const liftId = formData.answers && formData.answers['7'] ? 
+                     String(formData.answers['7']).replace(/[^a-zA-Z0-9]/g, '_') : 
+                     'Unknown';
+      const filename = `OTIS_Protocol_${liftId}_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+      console.log(`Excel generated successfully: ${filename} (${excelBuffer.length} bytes)`);
+
+      // Set proper headers for Excel download
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Length', excelBuffer.length.toString());
+      
+      // Send the Excel file
+      res.send(excelBuffer);
+
+    } catch (error) {
+      console.error("Error generating Excel download:", error);
+      res.status(500).json({ 
+        message: "Failed to generate Excel file",
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  });
+  // =========================================
+
   // Kérdések lekérése
   app.get("/api/questions/:language", async (req, res) => {
     try {
