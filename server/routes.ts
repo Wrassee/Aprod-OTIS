@@ -223,15 +223,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const storagePath = `templates/${Date.now()}-${req.file.originalname}`;
       await supabaseStorage.uploadFile(req.file.path, storagePath);
-
+      
+      // ======================= JAVÍTÁS ITT =======================
+      // A camelCase neveket snake_case nevekre cseréltük, hogy megfeleljenek az adatbázis sémájának.
       await storage.createTemplate({
         name,
         type,
         language,
-        fileName: req.file.originalname,
-        filePath: storagePath,
-        isActive: false,
+        file_name: req.file.originalname, // Javítva
+        file_path: storagePath,           // Javítva
+        is_active: false,                 // Javítva
       });
+      // ==========================================================
 
       if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
 
