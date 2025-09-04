@@ -14,6 +14,8 @@ import { emailService } from "./services/email-service.js";
 import { excelParserService } from "./services/excel-parser.js";
 import { errorRoutes } from "./routes/error-routes.js";
 import { supabaseStorage } from "./services/supabase-storage.js";
+// HOZZÁADVA: A hiányzó import a niedervolt service-hez
+import { niedervoltService } from "./services/niedervolt-service.js";
 
 // Feltöltési mappa
 const uploadDir = process.env.NODE_ENV === 'production'
@@ -59,35 +61,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const protocolData = insertProtocolSchema.parse(req.body);
       const protocol = await storage.createProtocol(protocolData);
       res.json(protocol);
-    } catch (error) { // JAVÍTVA
+    } catch (error) {
       console.error("Error creating protocol:", error);
       res.status(400).json({ message: "Invalid protocol data" });
     }
   });
 
-  // ======= ÚJ: Excel letöltési végpont =======
+  // Excel letöltési végpont
   app.post("/api/protocols/download-excel", async (req, res) => {
     try {
       console.log("Excel download request received");
       const { formData, language } = req.body;
       
-      // Validate request data
       if (!formData) {
         return res.status(400).json({ message: "Form data is required" });
       }
       
-      // Import the XML Excel service
       const { simpleXmlExcelService } = await import('./services/simple-xml-excel.js');
       
       console.log("Generating Excel with XML service...");
       const excelBuffer = await simpleXmlExcelService.generateExcelFromTemplate(formData, language || 'hu');
 
-      // Validate generated buffer
       if (!excelBuffer || excelBuffer.length < 1000) {
         throw new Error('Generated Excel buffer is invalid or too small');
       }
 
-      // Create filename based on lift ID (question 7) or use default
       const liftId = formData.answers && formData.answers['7'] ? 
                        String(formData.answers['7']).replace(/[^a-zA-Z0-9]/g, '_') : 
                        'Unknown';
@@ -95,15 +93,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Excel generated successfully: ${filename} (${excelBuffer.length} bytes)`);
 
-      // Set proper headers for Excel download
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
       res.setHeader('Content-Length', excelBuffer.length.toString());
       
-      // Send the Excel file
       res.send(excelBuffer);
 
-    } catch (error) { // JAVÍTVA
+    } catch (error) {
       console.error("Error generating Excel download:", error);
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
       res.status(500).json({ 
@@ -112,7 +108,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-  // =========================================
 
   // Kérdések lekérése
   app.get("/api/questions/:language", async (req, res) => {
@@ -180,9 +175,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       res.json(formattedQuestions);
-    } catch (error) { // JAVÍTVA
+    } catch (error) {
       console.error("❌ Error fetching questions:", error);
       res.status(500).json({ message: "Failed to fetch questions" });
+    }
+  });
+
+  // HOZZÁADVA: A hiányzó végpont a Niedervolt eszközök lekéréséhez
+  app.get("/api/niedervolt/devices", async (req, res) => {
+    try {
+      const devices = await niedervoltService.getNiedervoltDevices();
+      const dropdownOptions = niedervoltService.getDropdownOptions();
+      
+      res.json({
+        devices,
+        dropdownOptions
+      });
+    } catch (error) {
+      console.error("Error fetching niedervolt devices:", error);
+      res.status(500).json({ message: "Failed to fetch niedervolt devices" });
     }
   });
 
@@ -191,7 +202,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const templates = await storage.getAllTemplates();
       res.json(templates);
-    } catch (error) { // JAVÍTVA
+    } catch (error) {
       console.error("Error fetching templates:", error);
       res.status(500).json({ message: "Failed to fetch templates" });
     }
@@ -225,7 +236,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
 
       res.json({ success: true, path: storagePath });
-    } catch (error) { // JAVÍTVA
+    } catch (error) {
       console.error("Error uploading template:", error);
       res.status(500).json({ message: "Failed to upload template" });
     }
@@ -236,7 +247,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       await storage.setActiveTemplate(req.params.id);
       res.json({ success: true });
-    } catch (error) { // JAVÍTVA
+    } catch (error) {
       console.error("Error activating template:", error);
       res.status(500).json({ message: "Failed to activate template" });
     }
@@ -251,7 +262,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       await storage.deleteTemplate(req.params.id);
       res.json({ success: true });
-    } catch (error) { // JAVÍTVA
+    } catch (error) {
       console.error("Error deleting template:", error);
       res.status(500).json({ message: "Failed to delete template" });
     }
