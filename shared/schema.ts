@@ -11,22 +11,22 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 /* -------------------------------------------------------------------------
- *  Protocols
+ * Protocols
  * ----------------------------------------------------------------------- */
 export const protocols = pgTable("protocols", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  receptionDate: text("reception_date").notNull(),
+  reception_date: text("reception_date").notNull(),
   language: text("language").notNull(),
   answers: jsonb("answers")
     .notNull()
     .default({} as Record<string, unknown>),
   errors: jsonb("errors").notNull().default([] as unknown[]),
   signature: text("signature"),
-  signatureName: text("signature_name"),
+  signature_name: text("signature_name"),
   completed: boolean("completed").notNull().default(false),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  created_at: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const insertProtocolSchema = createInsertSchema(protocols);
@@ -34,7 +34,7 @@ export type Protocol = typeof protocols.$inferSelect;
 export type InsertProtocol = typeof protocols.$inferInsert;
 
 /* -------------------------------------------------------------------------
- *  Zod schemas / TypeScript types used throughout the project
+ * Zod schemas / TypeScript types used throughout the project
  * ----------------------------------------------------------------------- */
 // Error severity enum
 export const ErrorSeverityEnum = z.enum(["critical", "medium", "low"]);
@@ -51,7 +51,7 @@ export const ProtocolErrorSchema = z.object({
 export type ProtocolError = z.infer<typeof ProtocolErrorSchema>;
 
 /* -------------------------------------------------------------------------
- *  Templates
+ * Templates
  * ----------------------------------------------------------------------- */
 export const templates = pgTable("templates", {
   id: text("id")
@@ -59,13 +59,13 @@ export const templates = pgTable("templates", {
     .$defaultFn(() => crypto.randomUUID()),
   name: text("name").notNull(),
   type: text("type").notNull(),
-  fileName: text("file_name").notNull(),
-  filePath: text("file_path").notNull(),
+  file_name: text("file_name").notNull(),
+  file_path: text("file_path").notNull(),
   language: text("language")
     .notNull()
     .default("multilingual"),
-  uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
-  isActive: boolean("is_active").notNull().default(false),
+  uploaded_at: timestamp("uploaded_at").defaultNow().notNull(),
+  is_active: boolean("is_active").notNull().default(false),
 });
 
 export const insertTemplateSchema = createInsertSchema(templates);
@@ -73,7 +73,7 @@ export type Template = typeof templates.$inferSelect;
 export type InsertTemplate = typeof templates.$inferInsert;
 
 /* -------------------------------------------------------------------------
- *  Question configurations – single source of truth for questions
+ * Question configurations – single source of truth for questions
  * ----------------------------------------------------------------------- */
 // Optional enum for the `type` column (adjust to your domain)
 export const QuestionTypeEnum = z.enum([
@@ -89,28 +89,28 @@ export const questionConfigs = pgTable("question_configs", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  templateId: text("template_id")
+  template_id: text("template_id")
     .notNull()
     .references(() => templates.id),
-  questionId: text("question_id").notNull(),
+  question_id: text("question_id").notNull(),
   title: text("title").notNull(),
-  titleHu: text("title_hu"),
-  titleDe: text("title_de"),
-  type: text("type").notNull(), // can be validated against QuestionTypeEnum in the Zod layer
+  title_hu: text("title_hu"),
+  title_de: text("title_de"),
+  type: text("type").notNull(),
   required: boolean("required").notNull().default(true),
   placeholder: text("placeholder"),
-  cellReference: text("cell_reference"),
-  sheetName: text("sheet_name").default("Sheet1"),
-  multiCell: boolean("multi_cell").notNull().default(false),
-  groupName: text("group_name"),
-  groupNameDe: text("group_name_de"),
-  groupOrder: integer("group_order").default(0),
+  cell_reference: text("cell_reference"),
+  sheet_name: text("sheet_name").default("Sheet1"),
+  multi_cell: boolean("multi_cell").notNull().default(false),
+  group_name: text("group_name"),
+  group_name_de: text("group_name_de"),
+  group_order: integer("group_order").default(0),
   unit: text("unit"),
-  minValue: integer("min_value"),
-  maxValue: integer("max_value"),
-  calculationFormula: text("calculation_formula"),
-  calculationInputs: jsonb("calculation_inputs"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  min_value: integer("min_value"),
+  max_value: integer("max_value"),
+  calculation_formula: text("calculation_formula"),
+  calculation_inputs: jsonb("calculation_inputs"),
+  created_at: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const insertQuestionConfigSchema = createInsertSchema(
@@ -123,7 +123,7 @@ export type InsertQuestionConfig = typeof questionConfigs.$inferInsert;
 export type Question = QuestionConfig;
 
 /* -------------------------------------------------------------------------
- *  Relations – enables eager loading with Drizzle
+ * Relations – enables eager loading with Drizzle
  * ----------------------------------------------------------------------- */
 export const templatesRelations = relations(templates, ({ many }) => ({
   questionConfigs: many(questionConfigs),
@@ -133,7 +133,7 @@ export const questionConfigsRelations = relations(
   questionConfigs,
   ({ one }) => ({
     template: one(templates, {
-      fields: [questionConfigs.templateId],
+      fields: [questionConfigs.template_id],
       references: [templates.id],
     }),
   }),
