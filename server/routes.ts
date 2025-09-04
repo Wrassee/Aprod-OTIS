@@ -232,8 +232,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         is_active: false,
       });
       
-      // ======================= HOZZÁADOTT RÉSZ =======================
-      // Ha ez egy kérdés sablon, dolgozzuk is fel azonnal
       if (type === 'questions' || type === 'unified') {
         try {
           console.log(`✅ Template created, now parsing questions from: ${req.file.path}`);
@@ -241,6 +239,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           console.log(`✅ Parsed ${questions.length} questions from template.`);
           
+          // ======================= JAVÍTÁS ITT =======================
+          // Segédfüggvény a számok biztonságos feldolgozásához, ami a NaN hibát okozó üres értékeket null-ra cseréli.
+          const parseOptionalInt = (value: any): number | null => {
+            if (value === null || value === undefined || value === '') return null;
+            const num = parseInt(String(value), 10);
+            return isNaN(num) ? null : num;
+          };
+
           for (const q of questions) {
             await storage.createQuestionConfig({
               template_id: newTemplate.id,
@@ -256,21 +262,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
               multi_cell: q.multiCell,
               group_name: q.groupName,
               group_name_de: q.groupNameDe,
-              group_order: q.groupOrder,
+              group_order: parseOptionalInt(q.groupOrder) ?? 0, // Itt használjuk a segédfüggvényt
               unit: q.unit,
-              min_value: q.minValue,
-              max_value: q.maxValue,
+              min_value: parseOptionalInt(q.minValue), // és itt
+              max_value: parseOptionalInt(q.maxValue), // és itt is
               calculation_formula: q.calculationFormula,
               calculation_inputs: q.calculationInputs,
             });
           }
           console.log(`✅ Successfully saved ${questions.length} question configs to the database.`);
+          // ==========================================================
 
         } catch (parseError) {
           console.error("Error parsing questions from uploaded template:", parseError);
         }
       }
-      // ===================================================================
 
       if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
 
@@ -296,7 +302,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/admin/templates/:id", async (req, res) => {
     try {
       const template = await storage.getTemplate(req.params.id);
-      if (template?.file_path) { // Javítva: filePath -> file_path
+      if (template?.file_path) {
         await supabaseStorage.deleteFile(template.file_path);
       }
       await storage.deleteTemplate(req.params.id);
