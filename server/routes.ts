@@ -118,13 +118,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const questionsTemplate = await storage.getActiveTemplate("unified", "multilingual");
 
-      // JAVÍTVA: filePath -> file_path
+      // JAVÍTVA: A hivatkozások a helyes 'snake_case' formátumra cserélve.
       if (!questionsTemplate || !questionsTemplate.file_path) {
         console.warn("No active 'unified/multilingual' template found.");
         return res.status(404).json({ message: "No active questions template found" });
       }
 
-      // JAVÍTVA: filePath -> file_path és fileName -> file_name
       const storagePath = questionsTemplate.file_path;
       const tempPath = path.join("/tmp", `template-${Date.now()}-${questionsTemplate.file_name}`);
 
@@ -301,6 +300,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/admin/templates/:id", async (req, res) => {
     try {
       const template = await storage.getTemplate(req.params.id);
+      
       // JAVÍTVA: filePath -> file_path
       if (template?.file_path) {
         await supabaseStorage.deleteFile(template.file_path);
