@@ -118,11 +118,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const questionsTemplate = await storage.getActiveTemplate("unified", "multilingual");
 
+      // JAVÍTVA: filePath -> file_path
       if (!questionsTemplate || !questionsTemplate.file_path) {
         console.warn("No active 'unified/multilingual' template found.");
         return res.status(404).json({ message: "No active questions template found" });
       }
 
+      // JAVÍTVA: filePath -> file_path és fileName -> file_name
       const storagePath = questionsTemplate.file_path;
       const tempPath = path.join("/tmp", `template-${Date.now()}-${questionsTemplate.file_name}`);
 
@@ -239,8 +241,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           console.log(`✅ Parsed ${questions.length} questions from template.`);
           
-          // ======================= JAVÍTÁS ITT =======================
-          // Segédfüggvény a számok biztonságos feldolgozásához, ami a NaN hibát okozó üres értékeket null-ra cseréli.
           const parseOptionalInt = (value: any): number | null => {
             if (value === null || value === undefined || value === '') return null;
             const num = parseInt(String(value), 10);
@@ -262,16 +262,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
               multi_cell: q.multiCell,
               group_name: q.groupName,
               group_name_de: q.groupNameDe,
-              group_order: parseOptionalInt(q.groupOrder) ?? 0, // Itt használjuk a segédfüggvényt
+              group_order: parseOptionalInt(q.groupOrder) ?? 0,
               unit: q.unit,
-              min_value: parseOptionalInt(q.minValue), // és itt
-              max_value: parseOptionalInt(q.maxValue), // és itt is
+              min_value: parseOptionalInt(q.minValue),
+              max_value: parseOptionalInt(q.maxValue),
               calculation_formula: q.calculationFormula,
               calculation_inputs: q.calculationInputs,
             });
           }
           console.log(`✅ Successfully saved ${questions.length} question configs to the database.`);
-          // ==========================================================
 
         } catch (parseError) {
           console.error("Error parsing questions from uploaded template:", parseError);
@@ -302,6 +301,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/admin/templates/:id", async (req, res) => {
     try {
       const template = await storage.getTemplate(req.params.id);
+      // JAVÍTVA: filePath -> file_path
       if (template?.file_path) {
         await supabaseStorage.deleteFile(template.file_path);
       }

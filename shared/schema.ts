@@ -17,7 +17,7 @@ export const protocols = pgTable("protocols", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  reception_date: text("reception_date").notNull(),
+  reception_date: text("reception_date"), // JAVÍTVA: a .notNull() eltávolítva
   language: text("language").notNull(),
   answers: jsonb("answers")
     .notNull()
