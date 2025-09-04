@@ -59,7 +59,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const protocolData = insertProtocolSchema.parse(req.body);
       const protocol = await storage.createProtocol(protocolData);
       res.json(protocol);
-    } catch (error) {
+    } catch (error) { // JAVÍTVA
       console.error("Error creating protocol:", error);
       res.status(400).json({ message: "Invalid protocol data" });
     }
@@ -89,8 +89,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create filename based on lift ID (question 7) or use default
       const liftId = formData.answers && formData.answers['7'] ? 
-                     String(formData.answers['7']).replace(/[^a-zA-Z0-9]/g, '_') : 
-                     'Unknown';
+                       String(formData.answers['7']).replace(/[^a-zA-Z0-9]/g, '_') : 
+                       'Unknown';
       const filename = `OTIS_Protocol_${liftId}_${new Date().toISOString().split('T')[0]}.xlsx`;
 
       console.log(`Excel generated successfully: ${filename} (${excelBuffer.length} bytes)`);
@@ -103,11 +103,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send the Excel file
       res.send(excelBuffer);
 
-    } catch (error) {
+    } catch (error) { // JAVÍTVA
       console.error("Error generating Excel download:", error);
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
       res.status(500).json({ 
         message: "Failed to generate Excel file",
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error: process.env.NODE_ENV === 'development' ? errorMessage : undefined
       });
     }
   });
@@ -151,15 +152,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           groupName = language === "de" ? "Messdaten" : "Mérési adatok";
         }
 
-        // ======================= JAVÍTÁS ITT =======================
-        // Elcsípjük és kijavítjuk az excel parser által rosszul felismert típust.
-        // Ha a típus 'checkbox', de a placeholder 'Válasszon', akkor az valójában 'radio' kellett volna legyen.
         let correctedType = config.type;
         if (config.type === 'checkbox' && config.placeholder === 'Válasszon') {
             correctedType = 'radio';
             console.log(`🔧 Correcting type for question ID: ${config.questionId} from 'checkbox' to 'radio'`);
         }
-        // ==========================================================
 
         return {
           id: config.questionId,
@@ -167,7 +164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             language === "hu"
               ? config.titleHu || config.title
               : config.titleDe || config.title,
-          type: correctedType, // Itt már a javított típust használjuk
+          type: correctedType,
           required: config.required,
           placeholder: config.placeholder ?? undefined,
           cellReference: config.cellReference ?? undefined,
@@ -183,7 +180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       res.json(formattedQuestions);
-    } catch (error) {
+    } catch (error) { // JAVÍTVA
       console.error("❌ Error fetching questions:", error);
       res.status(500).json({ message: "Failed to fetch questions" });
     }
@@ -194,7 +191,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const templates = await storage.getAllTemplates();
       res.json(templates);
-    } catch (error) {
+    } catch (error) { // JAVÍTVA
       console.error("Error fetching templates:", error);
       res.status(500).json({ message: "Failed to fetch templates" });
     }
@@ -228,7 +225,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
 
       res.json({ success: true, path: storagePath });
-    } catch (error) {
+    } catch (error) { // JAVÍTVA
       console.error("Error uploading template:", error);
       res.status(500).json({ message: "Failed to upload template" });
     }
@@ -239,7 +236,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       await storage.setActiveTemplate(req.params.id);
       res.json({ success: true });
-    } catch (error) {
+    } catch (error) { // JAVÍTVA
       console.error("Error activating template:", error);
       res.status(500).json({ message: "Failed to activate template" });
     }
@@ -254,7 +251,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       await storage.deleteTemplate(req.params.id);
       res.json({ success: true });
-    } catch (error) {
+    } catch (error) { // JAVÍTVA
       console.error("Error deleting template:", error);
       res.status(500).json({ message: "Failed to delete template" });
     }
