@@ -16,7 +16,7 @@ import {
   questionConfigs,
 } from "./db.js"; 
 
-import { db } from "./db.js";                       // Drizzle connection
+import { db } from "./db.js";                           // Drizzle connection
 import { eq, and, desc } from "drizzle-orm";     // Drizzle helpers
 
 // ------------------------------------------------------------
@@ -76,7 +76,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllProtocols() {
-    return await (db as any).select().from(protocols).orderBy(desc(protocols.createdAt));
+    return await (db as any).select().from(protocols).orderBy(desc(protocols.created_at));
   }
 
   /* ---------- Templates ---------- */
@@ -100,7 +100,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllTemplates() {
-    return await (db as any).select().from(templates).orderBy(desc(templates.uploadedAt));
+    return await (db as any).select().from(templates).orderBy(desc(templates.uploaded_at));
   }
 
   async getActiveTemplate(type: string, language: string) {
@@ -110,7 +110,7 @@ export class DatabaseStorage implements IStorage {
     let [tpl] = await (db as any)
       .select()
       .from(templates)
-      .where(and(eq(templates.type, type), eq(templates.language, language), eq(templates.isActive, true)));
+      .where(and(eq(templates.type, type), eq(templates.language, language), eq(templates.is_active, true)));
 
     // 2️⃣ Fallback to multilingual
     if (!tpl) {
@@ -118,7 +118,7 @@ export class DatabaseStorage implements IStorage {
       [tpl] = await (db as any)
         .select()
         .from(templates)
-        .where(and(eq(templates.type, type), eq(templates.language, "multilingual"), eq(templates.isActive, true)));
+        .where(and(eq(templates.type, type), eq(templates.language, "multilingual"), eq(templates.is_active, true)));
     }
 
     console.log(`📋 Result: ${tpl ? `${tpl.name} (${tpl.language})` : "none"}`);
@@ -133,10 +133,10 @@ export class DatabaseStorage implements IStorage {
     await (db as any).transaction(async (tx: any) => {
       await tx
         .update(templates)
-        .set({ isActive: false })
+        .set({ is_active: false })
         .where(and(eq(templates.type, target.type), eq(templates.language, target.language)));
 
-      await tx.update(templates).set({ isActive: true }).where(eq(templates.id, id));
+      await tx.update(templates).set({ is_active: true }).where(eq(templates.id, id));
     });
 
     console.log(`✅ Activated template ${target.name}`);
@@ -176,14 +176,14 @@ export class DatabaseStorage implements IStorage {
     return await (db as any)
       .select()
       .from(questionConfigs)
-      .where(eq(questionConfigs.templateId, templateId))
-      .orderBy(questionConfigs.createdAt);
+      .where(eq(questionConfigs.template_id, templateId))
+      .orderBy(questionConfigs.created_at);
   }
 
   async deleteQuestionConfigsByTemplate(templateId: string) {
     const result = await (db as any)
       .delete(questionConfigs)
-      .where(eq(questionConfigs.templateId, templateId))
+      .where(eq(questionConfigs.template_id, templateId))
       .returning();
     return result.length > 0;
   }

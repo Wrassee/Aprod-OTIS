@@ -1,7 +1,7 @@
 import { Question } from "../../shared/schema.js";
 
 /* -----------------------------------------------------------------
-   Result object returned for each calculated question
+    Result object returned for each calculated question
 ----------------------------------------------------------------- */
 export interface MeasurementCalculationResult {
   /** Question UUID */
@@ -17,7 +17,7 @@ export interface MeasurementCalculationResult {
 }
 
 /* -----------------------------------------------------------------
-   Core calculator – pure, testable, no side‑effects
+    Core calculator – pure, testable, no side‑effects
 ----------------------------------------------------------------- */
 export class MeasurementCalculator {
   /**
@@ -49,10 +49,10 @@ export class MeasurementCalculator {
    * Calculate a **single** calculated question.
    *
    * The function is deliberately defensive:
-   *   – missing formula / inputs → error
-   *   – missing measurement values → error
-   *   – illegal characters in the formula → error
-   *   – NaN / out‑of‑range → error
+   * – missing formula / inputs → error
+   * – missing measurement values → error
+   * – illegal characters in the formula → error
+   * – NaN / out‑of‑range → error
    *
    * @returns CalculationResult for the supplied question
    */
@@ -63,7 +63,7 @@ export class MeasurementCalculator {
     // ---------------------------------------------------------------
     // 1️⃣  Guard‑clauses: we need a formula and a list of input IDs
     // ---------------------------------------------------------------
-    if (!question.calculationFormula || !question.calculationInputs) {
+    if (!question.calculation_formula || !question.calculation_inputs) {
       return {
         questionId: question.id,
         value: null,
@@ -76,11 +76,11 @@ export class MeasurementCalculator {
     // ---------------------------------------------------------------
     // 2️⃣  Prepare the expression – replace each input id with its value
     // ---------------------------------------------------------------
-    const inputIds = typeof question.calculationInputs === 'string' 
-      ? question.calculationInputs.split(",").map((s: string) => s.trim()).filter(Boolean)
+    const inputIds = typeof question.calculation_inputs === 'string' 
+      ? question.calculation_inputs.split(",").map((s: string) => s.trim()).filter(Boolean)
       : [];
 
-    let formula = question.calculationFormula;
+    let formula = question.calculation_formula;
     let allInputsAvailable = true;
 
     for (const id of inputIds) {
@@ -147,8 +147,8 @@ export class MeasurementCalculator {
     // ---------------------------------------------------------------
     const withinLimits = this.checkLimits(
       rounded,
-      question.minValue ?? undefined,
-      question.maxValue ?? undefined,
+      question.min_value ?? undefined,
+      question.max_value ?? undefined,
     );
 
     return {
@@ -160,8 +160,8 @@ export class MeasurementCalculator {
         ? undefined
         : this.getLimitError(
             rounded,
-            question.minValue ?? undefined,
-            question.maxValue ?? undefined,
+            question.min_value ?? undefined,
+            question.max_value ?? undefined,
             question.unit ?? undefined,
           ),
     };
@@ -234,8 +234,8 @@ export class MeasurementCalculator {
 
         const title =
           language === "de"
-            ? q.titleDe ?? q.title
-            : q.titleHu ?? q.title;
+            ? q.title_de ?? q.title
+            : q.title_hu ?? q.title;
 
         errors.push({
           id: `measurement-calc-${calc.questionId}-${Date.now()}`,
