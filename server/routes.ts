@@ -118,9 +118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const questionsTemplate = await storage.getActiveTemplate("unified", "multilingual");
 
-      // JAVÍTVA: A hivatkozások a helyes 'snake_case' formátumra cserélve.
       if (!questionsTemplate || !questionsTemplate.file_path) {
-        console.warn("No active 'unified/multilingual' template found.");
         return res.status(404).json({ message: "No active questions template found" });
       }
 
@@ -299,13 +297,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin: Törlés
   app.delete("/api/admin/templates/:id", async (req, res) => {
     try {
-      const template = await storage.getTemplate(req.params.id);
-      
-      // JAVÍTVA: filePath -> file_path
+      const templateId = req.params.id;
+      const template = await storage.getTemplate(templateId);
+
+      // ======================= JAVÍTÁS ITT =======================
+      // Először töröljük a kapcsolódó kérdéseket, hogy elkerüljük az adatbázis hibát.
+      await storage.deleteQuestionConfigsByTemplate(templateId);
+      console.log(`✅ Deleted question configs for template: ${templateId}`);
+
       if (template?.file_path) {
         await supabaseStorage.deleteFile(template.file_path);
       }
-      await storage.deleteTemplate(req.params.id);
+      
+      // Csak ezután töröljük magát a sablont.
+      await storage.deleteTemplate(templateId);
+      console.log(`✅ Deleted template record: ${templateId}`);
+      
       res.json({ success: true });
     } catch (error) {
       console.error("Error deleting template:", error);

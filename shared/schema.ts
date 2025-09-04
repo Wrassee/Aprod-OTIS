@@ -6,6 +6,7 @@ import {
   boolean,
   jsonb,
   integer,
+  uuid, // FONTOS: uuid importálása
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -14,10 +15,10 @@ import { z } from "zod";
  * Protocols
  * ----------------------------------------------------------------------- */
 export const protocols = pgTable("protocols", {
-  id: text("id")
+  id: uuid("id") // JAVÍTVA: text -> uuid
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  reception_date: text("reception_date"), // JAVÍTVA: a .notNull() eltávolítva
+  reception_date: text("reception_date"),
   language: text("language").notNull(),
   answers: jsonb("answers")
     .notNull()
@@ -36,11 +37,9 @@ export type InsertProtocol = typeof protocols.$inferInsert;
 /* -------------------------------------------------------------------------
  * Zod schemas / TypeScript types used throughout the project
  * ----------------------------------------------------------------------- */
-// Error severity enum
 export const ErrorSeverityEnum = z.enum(["critical", "medium", "low"]);
 export type ErrorSeverity = z.infer<typeof ErrorSeverityEnum>;
 
-// ProtocolError – stored inside the `errors` JSON column
 export const ProtocolErrorSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -54,7 +53,7 @@ export type ProtocolError = z.infer<typeof ProtocolErrorSchema>;
  * Templates
  * ----------------------------------------------------------------------- */
 export const templates = pgTable("templates", {
-  id: text("id")
+  id: uuid("id") // JAVÍTVA: text -> uuid
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
   name: text("name").notNull(),
@@ -75,23 +74,16 @@ export type InsertTemplate = typeof templates.$inferInsert;
 /* -------------------------------------------------------------------------
  * Question configurations – single source of truth for questions
  * ----------------------------------------------------------------------- */
-// Optional enum for the `type` column (adjust to your domain)
-export const QuestionTypeEnum = z.enum([
-  "text",
-  "number",
-  "date",
-  "select",
-  "checkbox",
-]);
+export const QuestionTypeEnum = z.enum(["text", "number", "date", "select", "checkbox"]);
 export type QuestionType = "number" | "date" | "select" | "text" | "checkbox" | "radio" | "measurement" | "calculated" | "true_false" | "yes_no_na";
 
 export const questionConfigs = pgTable("question_configs", {
-  id: text("id")
+  id: uuid("id") // JAVÍTVA: text -> uuid
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  template_id: text("template_id")
+  template_id: uuid("template_id") // JAVÍTVA: text -> uuid
     .notNull()
-    .references(() => templates.id),
+    .references(() => templates.id, { onDelete: 'cascade' }),
   question_id: text("question_id").notNull(),
   title: text("title").notNull(),
   title_hu: text("title_hu"),
@@ -109,17 +101,14 @@ export const questionConfigs = pgTable("question_configs", {
   min_value: integer("min_value"),
   max_value: integer("max_value"),
   calculation_formula: text("calculation_formula"),
-  calculation_inputs: jsonb("calculation_inputs"),
+  calculation_inputs: jsonb("calculation_inputs"), // Ezt hagyjuk jsonb-n, a Drizzle helyesen fogja kezelni a migrációt
   created_at: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const insertQuestionConfigSchema = createInsertSchema(
-  questionConfigs,
-);
+export const insertQuestionConfigSchema = createInsertSchema(questionConfigs);
 export type QuestionConfig = typeof questionConfigs.$inferSelect;
 export type InsertQuestionConfig = typeof questionConfigs.$inferInsert;
 
-/* Export a generic “Question” type for code that expects this name */
 export type Question = QuestionConfig;
 
 /* -------------------------------------------------------------------------
