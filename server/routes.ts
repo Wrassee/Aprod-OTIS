@@ -14,7 +14,6 @@ import { emailService } from "./services/email-service.js";
 import { excelParserService } from "./services/excel-parser.js";
 import { errorRoutes } from "./routes/error-routes.js";
 import { supabaseStorage } from "./services/supabase-storage.js";
-// HOZZÁADVA: A hiányzó import a niedervolt service-hez
 import { niedervoltService } from "./services/niedervolt-service.js";
 
 // Feltöltési mappa
@@ -119,13 +118,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const questionsTemplate = await storage.getActiveTemplate("unified", "multilingual");
 
-      if (!questionsTemplate || !questionsTemplate.filePath) {
+      if (!questionsTemplate || !questionsTemplate.file_path) {
         console.warn("No active 'unified/multilingual' template found.");
         return res.status(404).json({ message: "No active questions template found" });
       }
 
-      const storagePath = questionsTemplate.filePath;
-      const tempPath = path.join("/tmp", `template-${Date.now()}-${questionsTemplate.fileName}`);
+      const storagePath = questionsTemplate.file_path;
+      const tempPath = path.join("/tmp", `template-${Date.now()}-${questionsTemplate.file_name}`);
 
       await supabaseStorage.downloadFile(storagePath, tempPath);
       console.log(`✅ Template downloaded to ${tempPath}`);
@@ -181,7 +180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // HOZZÁADVA: A hiányzó végpont a Niedervolt eszközök lekéréséhez
+  // Niedervolt eszközök lekérése
   app.get("/api/niedervolt/devices", async (req, res) => {
     try {
       const devices = await niedervoltService.getNiedervoltDevices();
@@ -224,21 +223,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const storagePath = `templates/${Date.now()}-${req.file.originalname}`;
       await supabaseStorage.uploadFile(req.file.path, storagePath);
       
-      // ======================= JAVÍTÁS ITT =======================
-      // A camelCase neveket snake_case nevekre cseréltük, hogy megfeleljenek az adatbázis sémájának.
-      await storage.createTemplate({
+      const newTemplate = await storage.createTemplate({
         name,
         type,
         language,
-        file_name: req.file.originalname, // Javítva
-        file_path: storagePath,           // Javítva
-        is_active: false,                 // Javítva
+        file_name: req.file.originalname,
+        file_path: storagePath,
+        is_active: false,
       });
-      // ==========================================================
+      
+      // ======================= HOZZÁADOTT RÉSZ =======================
+      // Ha ez egy kérdés sablon, dolgozzuk is fel azonnal
+      if (type === 'questions' || type === 'unified') {
+        try {
+          console.log(`✅ Template created, now parsing questions from: ${req.file.path}`);
+          const questions = await excelParserService.parseQuestionsFromExcel(req.file.path);
+          
+          console.log(`✅ Parsed ${questions.length} questions from template.`);
+          
+          for (const q of questions) {
+            await storage.createQuestionConfig({
+              template_id: newTemplate.id,
+              question_id: q.questionId,
+              title: q.title,
+              title_hu: q.titleHu,
+              title_de: q.titleDe,
+              type: q.type,
+              required: q.required,
+              placeholder: q.placeholder,
+              cell_reference: q.cellReference,
+              sheet_name: q.sheetName,
+              multi_cell: q.multiCell,
+              group_name: q.groupName,
+              group_name_de: q.groupNameDe,
+              group_order: q.groupOrder,
+              unit: q.unit,
+              min_value: q.minValue,
+              max_value: q.maxValue,
+              calculation_formula: q.calculationFormula,
+              calculation_inputs: q.calculationInputs,
+            });
+          }
+          console.log(`✅ Successfully saved ${questions.length} question configs to the database.`);
+
+        } catch (parseError) {
+          console.error("Error parsing questions from uploaded template:", parseError);
+        }
+      }
+      // ===================================================================
 
       if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
 
-      res.json({ success: true, path: storagePath });
+      res.json({ success: true, path: storagePath, template: newTemplate });
     } catch (error) {
       console.error("Error uploading template:", error);
       res.status(500).json({ message: "Failed to upload template" });
@@ -260,8 +296,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/admin/templates/:id", async (req, res) => {
     try {
       const template = await storage.getTemplate(req.params.id);
-      if (template?.filePath) {
-        await supabaseStorage.deleteFile(template.filePath);
+      if (template?.file_path) { // Javítva: filePath -> file_path
+        await supabaseStorage.deleteFile(template.file_path);
       }
       await storage.deleteTemplate(req.params.id);
       res.json({ success: true });
