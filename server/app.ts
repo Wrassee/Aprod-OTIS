@@ -2,7 +2,7 @@
 
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes.js";
-import { serveStatic } from "./static-server.js"; // Fontos: .js kiterjesztés a modern Node modulokhoz
+import { serveStatic } from "./static-server.js";
 
 const app = express();
 app.use(express.json());
@@ -44,9 +44,15 @@ app.use((req, res, next) => {
     await registerRoutes(app);
     console.log('API routes registered successfully');
     
-    // Statikus front-end fájlok kiszolgálása
-    serveStatic(app);
-    console.log('Static file serving initialized');
+    // --- JAVASOLT RÉSZ AZ EREDETI KÓDBÓL ---
+    // Statikus front-end fájlok kiszolgálása try...catch blokkban
+    try {
+      serveStatic(app);
+      console.log('Static file serving initialized');
+    } catch (staticError) {
+      console.log('Static files not available (development mode?):', (staticError as Error).message);
+    }
+    // --- JAVASOLT RÉSZ VÉGE ---
 
     // Hibakezelő (változatlan)
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
