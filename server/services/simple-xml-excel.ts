@@ -31,7 +31,6 @@ class SimpleXmlExcelService {
       if (questionsTemplate) {
         questionConfigs = await storage.getQuestionConfigsByTemplate(questionsTemplate.id);
         console.log('Loaded question configs for XML:', questionConfigs.length);
-        console.log('Question config IDs:', questionConfigs.map(q => q.questionId));
       }
 
       return await this.replaceInXmlArchive(templateBuffer, formData, questionConfigs, language);
@@ -74,67 +73,31 @@ class SimpleXmlExcelService {
         const cellPattern = new RegExp(`(<c r="${cell}"[^>]*>)([^<]*)(</c>)`, 'g');
         const emptyPattern = new RegExp(`<c r="${cell}"([^>]*?)/>`, 'g');
         
-        const cellExists = worksheetXml.includes(`r="${cell}"`);
-        if (cellExists) {
-          const cellMatch = worksheetXml.match(new RegExp(`<c r="${cell}"[^>]*>`));
-          console.log(`XML Debug: ${cell} pattern:`, cellMatch ? cellMatch[0] : 'NOT_FOUND');
-        }
-        
         if (cellPattern.test(worksheetXml)) {
           worksheetXml = worksheetXml.replace(cellPattern, `$1<is><t>${this.escapeXml(value)}</t></is>$3`);
           modifiedCount++;
-          console.log(`XML: Replaced ${cell} = "${value}" (formatting preserved)`);
         } 
         else if (worksheetXml.includes(`<c r="${cell}" s="`)) {
           const styleMatch = worksheetXml.match(new RegExp(`<c r="${cell}" s="([^"]+)"/>`));
           if (styleMatch) {
             const styleValue = styleMatch[1];
             const replacement = `<c r="${cell}" s="${styleValue}" t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`;
-            worksheetXml = worksheetXml.replace(
-              new RegExp(`<c r="${cell}" s="${styleValue}"/>`), 
-              replacement
-            );
+            worksheetXml = worksheetXml.replace(new RegExp(`<c r="${cell}" s="${styleValue}"/>`), replacement);
             modifiedCount++;
-            console.log(`XML: Added ${cell} = "${value}" (exact style preserved: s="${styleValue}")`);
-          } else {
-            console.log(`XML: Style match failed for ${cell}`);
           }
         }
         else if (emptyPattern.test(worksheetXml)) {
           const rowNum = cell.match(/\d+/)?.[0];
           const defaultStyle = this.inferCellStyle(cell, rowNum);
-          
-          worksheetXml = worksheetXml.replace(emptyPattern, 
-            `<c r="${cell}"$1${defaultStyle} t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`);
+          worksheetXml = worksheetXml.replace(emptyPattern, `<c r="${cell}"$1${defaultStyle} t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>`);
           modifiedCount++;
-          console.log(`XML: Added ${cell} = "${value}" (with inferred style)`);
-        }
-        else {
-          const rowNumber = cell.match(/\d+/)?.[0];
-          if (rowNumber) {
-            const rowPattern = new RegExp(`(<row r="${rowNumber}"[^>]*>)(.*?)(</row>)`, 'g');
-            if (rowPattern.test(worksheetXml)) {
-              const defaultStyle = this.inferCellStyle(cell, rowNumber);
-              worksheetXml = worksheetXml.replace(rowPattern, 
-                `$1$2<c r="${cell}"${defaultStyle} t="inlineStr"><is><t>${this.escapeXml(value)}</t></is></c>$3`);
-              modifiedCount++;
-              console.log(`XML: Inserted ${cell} = "${value}" (with inferred style)`);
-            }
-          }
         }
       });
       
       console.log(`XML: Modified ${modifiedCount} cells`);
-      
       zip.file(sheetFile, worksheetXml);
       
-      const result = await zip.generateAsync({ 
-        type: 'nodebuffer',
-        compression: 'DEFLATE',
-        compressionOptions: { level: 6 },
-        streamFiles: false,
-        platform: 'UNIX'
-      });
+      const result = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
       
       console.log(`XML Excel generation successful with ${modifiedCount} modifications`);
       return result;
@@ -149,122 +112,59 @@ class SimpleXmlExcelService {
     const mappings: Array<{cell: string, value: string, label: string}> = [];
     
     Object.entries(formData.answers).forEach(([questionId, answer]) => {
-      const config = questionConfigs.find(q => q.questionId === questionId || q.questionId === String(questionId));
-      
-      console.log(`DEBUG: Processing question ${questionId}, config found:`, !!config, `answer:`, answer);
-      if (!config) {
-        console.log(`DEBUG: Available question IDs:`, questionConfigs.map(q => q.questionId));
-      }
+      const config = questionConfigs.find(q => q.questionId === questionId);
       
       if (config && config.cellReference && answer !== '' && answer !== null && answer !== undefined) {
         
-        // --- JAVÍTÁS 1: A FELTÉTEL KIBŐVÍTVE 'radio'-val ---
+        // --- HELYES LOGIKA: A rádiógombok (yes/no/na) kezelése ---
         if (config.type === 'yes_no_na' || config.type === 'radio') {
-          console.log(`Processing yes_no_na/radio question ${questionId}: ${answer}, cellRef: ${config.cellReference}, multiCell: ${config.multiCell}`);
-          
+          console.log(`Processing radio question ${questionId}: ${answer}`);
           const cellRefs = config.cellReference.split(',').map((cell: string) => cell.trim());
-          
-          if (cellRefs.length < 1) { // Lehet 1, 2 vagy 3 is, de legalább 1 kell
-            console.error(`Question ${questionId} must have at least 1 cell reference, got: ${cellRefs}`);
-            return;
-          }
-          
-          // Kezeli a 3-as (yes,no,na) és a 2-es (yes,no) felosztást is
           const [yesCells, noCells, naCells] = cellRefs;
-          
-          if (config.multiCell) {
-            const parseMultipleCells = (cellGroup: string): string[] => cellGroup ? cellGroup.split(';').map(cell => cell.trim()).filter(Boolean) : [];
-            
-            if (answer === 'yes') {
-              parseMultipleCells(yesCells).forEach(cell => mappings.push({ cell, value: 'x', label: `${config.title} - Igen (${cell})` }));
-            } else if (answer === 'no' && noCells) {
-              parseMultipleCells(noCells).forEach(cell => mappings.push({ cell, value: 'x', label: `${config.title} - Nem (${cell})` }));
-            } else if (answer === 'na' && naCells) {
-              parseMultipleCells(naCells).forEach(cell => mappings.push({ cell, value: 'x', label: `${config.title} - N/A (${cell})` }));
-            }
-          } else {
-            if (answer === 'yes') {
-              mappings.push({ cell: yesCells.split(';')[0], value: 'x', label: `${config.title} - Igen` });
-            } else if (answer === 'no' && noCells) {
-              mappings.push({ cell: noCells.split(';')[0], value: 'x', label: `${config.title} - Nem` });
-            } else if (answer === 'na' && naCells) {
-              mappings.push({ cell: naCells.split(';')[0], value: 'x', label: `${config.title} - N/A` });
-            }
-          }
+
+          const applyX = (cells: string) => {
+            if (!cells) return;
+            cells.split(';').map(c => c.trim()).filter(Boolean).forEach(cell => {
+              mappings.push({ cell, value: 'x', label: `${config.title} (${answer})` });
+            });
+          };
+
+          if (answer === 'yes') applyX(yesCells);
+          else if (answer === 'no') applyX(noCells);
+          else if (answer === 'na') applyX(naCells);
         } 
-        // --- JAVÍTÁS 2: A FELTÉTEL KIBŐVÍTVE 'checkbox'-szal ---
+        // --- HELYES LOGIKA: A checkboxok (true/false) kezelése ---
         else if (config.type === 'true_false' || config.type === 'checkbox') {
-          let cellValue = '-';
-          if (answer === 'true' || answer === true) {
-            cellValue = 'X';
-          }
-          console.log(`Processing true_false/checkbox question ${questionId}: ${answer} -> ${cellValue}, cellRef: ${config.cellReference}`);
+          const cellValue = (answer === 'true' || answer === true) ? 'X' : '-';
+          console.log(`Processing checkbox question ${questionId}: ${answer} -> ${cellValue}`);
           mappings.push({
             cell: config.cellReference,
             value: cellValue,
             label: config.title || `Question ${questionId}`
           });
         } 
-        else if (config.type === 'measurement') {
-          const numValue = parseFloat(String(answer));
-          if (!isNaN(numValue)) {
-            mappings.push({
-              cell: config.cellReference,
-              value: String(numValue),
-              label: config.title || `Question ${questionId}`
-            });
-          }
-        } else if (config.type === 'calculated') {
+        else { // Minden más típusú kérdés
           mappings.push({
             cell: config.cellReference,
-            value: String(answer),
-            label: config.title || `Question ${questionId}`
-          });
-        } else {
-          mappings.push({
-            cell: config.cellReference,
-            value: this.formatAnswer(answer, language),
+            value: String(answer), // Egyszerűsített formázás
             label: config.title || `Question ${questionId}`
           });
         }
       }
     });
     
-    if (formData.signatureName && !mappings.find(m => m.cell === 'F9')) {
-      mappings.push({
-        cell: 'F9',
-        value: formData.signatureName,
-        label: 'Signature name'
-      });
-    }
-
+    // Hibák hozzáadása az Excelhez
     if (formData.errors && formData.errors.length > 0) {
-      console.log(`Adding ${formData.errors.length} errors starting from row 737`);
-      
       formData.errors.forEach((error, index) => {
-        const rowNumber = 737 + index;
-        
-        mappings.push({ cell: `A${rowNumber}`, value: `${index + 1}`, label: `Error ${index + 1} number` });
-        mappings.push({ cell: `D${rowNumber}`, value: error.description || `Hiba ${index + 1}`, label: `Error ${index + 1} description` });
-        
-        const severityText = error.severity === 'critical' ? 'Kritikus' : error.severity === 'medium' ? 'Közepes' : 'Alacsony';
-        mappings.push({ cell: `K${rowNumber}`, value: severityText, label: `Error ${index + 1} severity` });
-        
-        console.log(`Error ${index + 1} mapped to row ${rowNumber}: A${rowNumber}=${index + 1}, D${rowNumber}=${error.description}, K${rowNumber}=${severityText}`);
+        const row = 737 + index;
+        mappings.push({ cell: `A${row}`, value: `${index + 1}`, label: `Error Number` });
+        mappings.push({ cell: `D${row}`, value: error.description, label: `Error Description` });
+        const severity = error.severity === 'critical' ? 'Kritikus' : error.severity === 'medium' ? 'Közepes' : 'Alacsony';
+        mappings.push({ cell: `K${row}`, value: severity, label: `Error Severity` });
       });
     }
     
     return mappings;
-  }
-
-  private formatAnswer(value: any, language: string): string {
-    if (typeof value === 'boolean') {
-      return language === 'hu' ? (value ? 'Igen' : 'Nem') : (value ? 'Yes' : 'No');
-    }
-    if (value === 'yes') { return language === 'hu' ? 'Igen' : 'Yes'; }
-    if (value === 'no') { return language === 'hu' ? 'Nem' : 'No'; }
-    if (value === 'na') { return language === 'hu' ? 'N/A' : 'N/A'; }
-    return String(value);
   }
 
   private inferCellStyle(cell: string, rowNumber: string | undefined): string {
