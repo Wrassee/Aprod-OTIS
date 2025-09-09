@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react';
-import { Question, AnswerValue, ProtocolError, QuestionType } from '@shared/schema';
+import { Question, AnswerValue, ProtocolError } from '@shared/schema';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
@@ -104,31 +104,27 @@ const Questionnaire = memo(function Questionnaire({
         } else {
           console.warn('No active template found, using fallback questions');
           // Fallback static questions only if no template exists
-          const fallbackQuestions: Question[] = [
+          const fallbackQuestions = [
             {
               id: 'q1',
-              questionId: 'q1',
               title: language === 'hu' ? 'Átvevő neve' : 'Name des Empfängers',
               type: 'text' as const,
               required: true,
             },
             {
               id: 'q2',
-              questionId: 'q2',
               title: language === 'hu' ? 'Lift telepítés kész?' : 'Aufzuginstallation abgeschlossen?',
-              type: 'checkbox' as const, // JAVÍTVA
+              type: 'yes_no_na' as const,
               required: true,
             },
             {
               id: 'q3',
-              questionId: 'q3',
               title: language === 'hu' ? 'Biztonsági rendszerek működnek?' : 'Sicherheitssysteme funktionsfähig?',
-              type: 'radio' as const, // JAVÍTVA
+              type: 'yes_no_na' as const,
               required: true,
             },
             {
               id: 'q4',
-              questionId: 'q4',
               title: language === 'hu' ? 'Teherbírás (kg)' : 'Tragfähigkeit (kg)',
               type: 'number' as const,
               required: true,
@@ -136,7 +132,6 @@ const Questionnaire = memo(function Questionnaire({
             },
             {
               id: 'q5',
-              questionId: 'q5',
               title: language === 'hu' ? 'További megjegyzések' : 'Zusätzliche Kommentare',
               type: 'text' as const,
               required: false,
@@ -155,7 +150,7 @@ const Questionnaire = memo(function Questionnaire({
 
     // Load questions only on mount
     loadQuestions();
-  }, [language]); // Depend on language
+  }, []); // Load questions only once on mount
 
   // Group questions by groupName and organize by groups
   const { questionGroups, totalPages, currentQuestions, progress, currentGroup } = useMemo(() => {
@@ -190,7 +185,8 @@ const Questionnaire = memo(function Questionnaire({
       }));
 
     // Calculate pagination based on groups (1 group per page)
-    const total = groupsArray.length;
+    // Total: actual questionnaire groups only (Niedervolt UI will be handled separately)
+    const total = groupsArray.length; // only questionnaire groups, no extra page
     const currentGroupData = groupsArray[currentPage] || { name: '', questions: [], questionCount: 0 };
     const prog = total > 0 ? ((currentPage + 1) / total) * 100 : 0;
     
@@ -255,15 +251,19 @@ const Questionnaire = memo(function Questionnaire({
     
     if (requiredQuestions.length === 0) return true;
     
+    // Check both answers prop and cached values
     const cachedRadioValues = getAllCachedValues();
     const cachedTrueFalseValues = getAllTrueFalseValues();
     const cachedInputValues = getAllStableInputValues();
     const cachedMeasurementValues = getAllMeasurementValues();
     
+    // ALSO check localStorage for any saved data
     const savedFormData = JSON.parse(localStorage.getItem('otis-protocol-form-data') || '{"answers":{}}');
     
+    // Include calculated values from MeasurementBlock components
     const calculatedValues = getAllCalculatedValues();
     
+    // Calculate values for calculated questions based on current measurements
     const calculatedQuestions = (currentQuestions as Question[]).filter((q: Question) => q.type === 'calculated');
     calculatedQuestions.forEach(question => {
       if (question.calculationFormula && question.calculationInputs) {
@@ -305,15 +305,24 @@ const Questionnaire = memo(function Questionnaire({
       ...calculatedValues,
     };
     
+    console.log('checkCanProceed: Combined answers:', combinedAnswers);
+    console.log('checkCanProceed: Cached input values:', cachedInputValues);
+    console.log('checkCanProceed: Cached measurement values:', cachedMeasurementValues);
+    console.log('checkCanProceed: Calculated values:', calculatedValues);
+    console.log('checkCanProceed: localStorage answers:', savedFormData.answers);
+    
     const result = requiredQuestions.every((q: Question) => {
       const answer = combinedAnswers[q.id];
       const hasAnswer = answer !== undefined && answer !== null && answer !== '';
+      console.log(`Question ${q.id} (${q.title}): ${hasAnswer ? 'OK' : 'MISSING'} (value: "${answer}")`);
       return hasAnswer;
     });
     
+    console.log('Can proceed check result:', result, 'Required questions:', requiredQuestions.length, 'Current page:', currentPage);
     return result;
   };
   
+  // Calculate canProceed directly without useEffect
   const canProceedState = useMemo(() => {
     return checkCanProceed();
   }, [currentQuestions, answers, cacheUpdateTrigger]);
@@ -326,12 +335,16 @@ const Questionnaire = memo(function Questionnaire({
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
+            {/* Logo, Home and Title */}
             <div className="flex items-center">
+              
+              {/* --- JAVÍTÁS ITT: Fix méret és stílus a biztos megjelenésért --- */}
               <img 
                 src="/otis-elevators-seeklogo_1753525178175.png" 
                 alt="OTIS Logo" 
-                className="h-12 w-12 mr-4"
+                style={{ height: '50px', width: 'auto', marginRight: '16px' }}
               />
+
               {onHome && (
                 <Button
                   variant="ghost"
@@ -346,6 +359,7 @@ const Questionnaire = memo(function Questionnaire({
               <span className="text-lg font-medium text-gray-800">{t.title}</span>
             </div>
             
+            {/* Date Picker, Start New and Admin */}
             <div className="flex items-center space-x-4">
               <Label className="text-sm font-medium text-gray-600">{t.receptionDate}</Label>
               <Input
@@ -388,6 +402,7 @@ const Questionnaire = memo(function Questionnaire({
             </div>
           </div>
           
+          {/* Progress Bar */}
           <div className="mt-4">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center space-x-3">
@@ -410,6 +425,7 @@ const Questionnaire = memo(function Questionnaire({
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-8" onSubmit={(e) => e.preventDefault()}>
+        {/* Group Header */}
         {questionGroups.length > 0 && currentGroup && (
           <QuestionGroupHeader
             groupName={currentGroup.name}
@@ -420,8 +436,11 @@ const Questionnaire = memo(function Questionnaire({
           />
         )}
 
+        {/* Question Content */}
         <div className="mb-8">
+          {/* Force 2-column layout for pages 1 and 2 (currentPage 0 and 1) */}
           {currentPage === 0 || currentPage === 1 ? (
+            /* Regular Question Grid (2x2 Layout) for pages 1 and 2 */
             <div className="grid grid-cols-2 gap-8">
               {(currentQuestions as Question[]).map((question: Question) => {
                 return (
@@ -438,10 +457,9 @@ const Questionnaire = memo(function Questionnaire({
               })}
             </div>
           ) : (
-            // ======================= KÖZPONTI JAVÍTÁS ITT =======================
-            // A 'true_false' típust 'radio'-ra cseréljük, ahogy a backend küldi.
-            (currentQuestions as Question[]).length > 0 && 
-            (currentGroup?.name === 'Modernizációban érintett') ? (
+            /* For other pages, use the original logic */
+            /* Check if current group has only true_false questions */
+            (currentQuestions as Question[]).length > 0 && (currentQuestions as Question[]).every((q: Question) => q.type === 'true_false') ? (
               <TrueFalseGroup
                 questions={currentQuestions as Question[]}
                 values={answers}
@@ -449,12 +467,14 @@ const Questionnaire = memo(function Questionnaire({
                 groupName={currentGroup?.name || 'Kérdések'}
               />
             ) : (
+              /* Check if current group has measurement or calculated questions */
               (currentQuestions as Question[]).some((q: Question) => q.type === 'measurement' || q.type === 'calculated') ? (
                 <MeasurementBlock
                   questions={(currentQuestions as Question[]).filter((q: Question) => q.type === 'measurement' || q.type === 'calculated')}
                   values={answers}
                   onChange={(questionId, value) => {
                     onAnswerChange(questionId, value);
+                    // If this is a measurement question, also update measurementValues
                     if (typeof value === 'number') {
                       setMeasurementValues(prev => ({ ...prev, [questionId]: value }));
                     }
@@ -462,6 +482,7 @@ const Questionnaire = memo(function Questionnaire({
                   onAddError={handleAddError}
                 />
               ) : (
+                /* Regular Question Grid (2x2 Layout) for other question types */
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   {(currentQuestions as Question[]).map((question: Question) => {
                     return (
@@ -512,10 +533,12 @@ const Questionnaire = memo(function Questionnaire({
               onClick={async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                // e.stopImmediatePropagation(); // Not available on button click events
                 
                 console.log('Save button clicked on page:', currentPage);
                 setSaveStatus('saving');
                 try {
+                  // Sync all cached values to parent
                   const cachedRadioValues = getAllCachedValues();
                   const cachedTrueFalseValues = getAllTrueFalseValues();
                   const cachedInputValues = getAllStableInputValues();
@@ -523,7 +546,14 @@ const Questionnaire = memo(function Questionnaire({
                   const cachedCalculatedValues = getAllCalculatedValues();
                   
                   console.log('Save: Syncing cached values on page', currentPage);
+                  console.log('Save: Radio values:', cachedRadioValues);
+                  console.log('Save: True/False values:', cachedTrueFalseValues);
+                  console.log('Save: Input values:', cachedInputValues);
+                  console.log('Save: Measurement values:', cachedMeasurementValues);
+                  console.log('Save: Calculated values:', cachedCalculatedValues);
                   
+                  // DON'T call onAnswerChange - it causes re-mounting!
+                  // Instead save directly to localStorage
                   const currentFormData = JSON.parse(localStorage.getItem('otis-protocol-form-data') || '{"answers":{}}');
                   const updatedFormData = {
                     ...currentFormData,
@@ -542,6 +572,7 @@ const Questionnaire = memo(function Questionnaire({
                   setSaveStatus('saved');
                   setLastSaved(new Date());
                   
+                  // Auto-clear saved status after 3 seconds
                   setTimeout(() => setSaveStatus('idle'), 3000);
                   
                 } catch (error) {
@@ -594,6 +625,11 @@ const Questionnaire = memo(function Questionnaire({
                   const cachedCalculatedValues = getAllCalculatedValues();
                   
                   console.log('Complete button: Syncing cached values...');
+                  console.log('Radio values:', cachedRadioValues);
+                  console.log('True/False values:', cachedTrueFalseValues);
+                  console.log('Input values:', cachedInputValues);
+                  console.log('Measurement values:', cachedMeasurementValues);
+                  console.log('Calculated values:', cachedCalculatedValues);
                   
                   Object.entries(cachedRadioValues).forEach(([questionId, value]) => {
                     onAnswerChange(questionId, value as string);
@@ -670,3 +706,6 @@ const Questionnaire = memo(function Questionnaire({
 });
 
 export default Questionnaire;
+
+// Debug - log current language context
+console.log('Current Questionnaire component - Language context:', window.localStorage.getItem('otis-protocol-language'));
