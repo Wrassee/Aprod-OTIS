@@ -11,15 +11,12 @@ class SimpleXmlExcelService {
       const templateBuffer = await templateLoader.loadTemplateBuffer('protocol', language);
       console.log(`Using XML approach with loaded template (${templateBuffer.length} bytes)`);
 
-      let questionsTemplate = await storage.getActiveTemplate('unified', 'multilingual');
-      if (!questionsTemplate) {
-        questionsTemplate = await storage.getActiveTemplate('questions', language);
-      }
+      let questionsTemplate = await storage.getActiveTemplate('unified', 'multilingual') ?? await storage.getActiveTemplate('questions', language);
       
       let questionConfigs: any[] = [];
       if (questionsTemplate) {
         questionConfigs = await storage.getQuestionConfigsByTemplate(questionsTemplate.id);
-        console.log(`Loaded ${questionConfigs.length} question configs for template.`);
+        console.log(`Loaded ${questionConfigs.length} question configs.`);
       } else {
         console.warn('No active question template found!');
       }
@@ -30,7 +27,8 @@ class SimpleXmlExcelService {
       throw error;
     }
   }
-
+  
+  // --- JAVÍTÁS: VISSZAÁLLÍTVA AZ EREDETI, BIZTONSÁGOS XML-KEZELŐ FÜGGVÉNY ---
   private async replaceInXmlArchive(
     templateBuffer: Buffer, 
     formData: FormData, 
@@ -41,11 +39,9 @@ class SimpleXmlExcelService {
       const zip = await JSZip.loadAsync(templateBuffer);
       const cellMappings = this.createCellMappings(formData, questionConfigs, language);
       console.log(`Created ${cellMappings.length} XML cell mappings.`);
-
+      
       const sheetFile = Object.keys(zip.files).find(name => name.startsWith('xl/worksheets/') && name.endsWith('.xml'));
-      if (!sheetFile) {
-        throw new Error('No worksheet files found in Excel template');
-      }
+      if (!sheetFile) throw new Error('No worksheet files found in Excel template');
 
       let worksheetXml = await zip.file(sheetFile)!.async('text');
       let modifiedCount = 0;
@@ -53,27 +49,25 @@ class SimpleXmlExcelService {
       cellMappings.forEach(mapping => {
         const { cell, value } = mapping;
         const escapedValue = this.escapeXml(value);
-        const cellPattern = new RegExp(`(<c r="${cell}"[^>]*>)(.*?)(</c>)`);
-        const emptyCellPatternWithStyle = new RegExp(`<c r="${cell}"( s="[^"]+")/>`);
+        
+        const cellPattern = new RegExp(`(<c r="${cell}"[^>]*>)([^<]*)(</c>)`);
 
-        let replaced = false;
-
-        // Eset 1: Létező cella tartalommal
+        // Eredeti, biztonságos logika visszaállítva
         if (cellPattern.test(worksheetXml)) {
           worksheetXml = worksheetXml.replace(cellPattern, `$1<is><t>${escapedValue}</t></is>$3`);
-          replaced = true;
-        }
-        // Eset 2: Üres, de stílussal rendelkező cella (<c r="A1" s="1"/>)
-        else if (emptyCellPatternWithStyle.test(worksheetXml)) {
-          worksheetXml = worksheetXml.replace(emptyCellPatternWithStyle, `<c r="${cell}"$1 t="inlineStr"><is><t>${escapedValue}</t></is></c>`);
-          replaced = true;
-        }
-
-        if (replaced) {
-          console.log(`XML: Updated cell ${cell} with value "${value}"`);
           modifiedCount++;
+          console.log(`XML: Replaced content in cell ${cell}`);
+        } else if (worksheetXml.includes(`<c r="${cell}" s="`)) {
+          const styleMatch = worksheetXml.match(new RegExp(`<c r="${cell}" s="([^"]+)"/>`));
+          if (styleMatch) {
+            const styleValue = styleMatch[1];
+            const replacement = `<c r="${cell}" s="${styleValue}" t="inlineStr"><is><t>${escapedValue}</t></is></c>`;
+            worksheetXml = worksheetXml.replace(new RegExp(`<c r="${cell}" s="${styleValue}"/>`), replacement);
+            modifiedCount++;
+            console.log(`XML: Set value for empty styled cell ${cell}`);
+          }
         } else {
-          console.warn(`XML: Could not find a pattern to replace for cell ${cell}.`);
+            console.warn(`XML: Could not find a pattern to replace for cell ${cell}.`);
         }
       });
 
@@ -82,7 +76,7 @@ class SimpleXmlExcelService {
 
       return await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
     } catch (error) {
-      console.error('Error in XML string replacement:', error);
+      console.error('Error during XML replacement:', error);
       throw error;
     }
   }
@@ -91,27 +85,24 @@ class SimpleXmlExcelService {
     const mappings: Array<{cell: string, value: string, label: string}> = [];
     
     Object.entries(formData.answers).forEach(([questionId, answer]) => {
-      
-      // --- JAVÍTÁS: A questionId összehasonlítása stringként, hogy a "1" és 1 egyezzen. ---
       const config = questionConfigs.find(q => String(q.questionId) === questionId);
 
       if (!config) {
-        console.log(`DEBUG: No config found for questionId: "${questionId}"`);
-        return; // continue to next iteration
+        return;
       }
       
       if (config.cellReference && answer !== null && answer !== undefined && answer !== '') {
         
-        // HELYES LOGIKA: A rádiógombok (yes/no/na) kezelése
+        // --- HELYES LOGIKA: A rádiógombok (yes/no/na) kezelése ---
         if (config.type === 'yes_no_na' || config.type === 'radio') {
-          console.log(`Processing radio question "${questionId}" (type: ${config.type}) with answer: "${answer}"`);
+          console.log(`Processing radio question "${questionId}" with answer: "${answer}"`);
           const cellRefs = config.cellReference.split(',').map((c: string) => c.trim());
           const [yesCells, noCells, naCells] = cellRefs;
 
           const applyX = (cells: string) => {
             if (!cells) return;
             cells.split(';').map(c => c.trim()).filter(Boolean).forEach(cell => {
-              mappings.push({ cell, value: 'x', label: `${config.title} (${answer})` });
+              mappings.push({ cell, value: 'x', label: `Question ${questionId}` });
             });
           };
 
@@ -119,23 +110,15 @@ class SimpleXmlExcelService {
           else if (answer === 'no') applyX(noCells);
           else if (answer === 'na') applyX(naCells);
         } 
-        // HELYES LOGIKA: A checkboxok (true/false) kezelése
+        // --- HELYES LOGIKA: A checkboxok (true/false) kezelése ---
         else if (config.type === 'true_false' || config.type === 'checkbox') {
           const cellValue = (answer === 'true' || answer === true) ? 'X' : '-';
-          console.log(`Processing checkbox question "${questionId}" (type: ${config.type}): ${answer} -> ${cellValue}`);
-          mappings.push({
-            cell: config.cellReference,
-            value: cellValue,
-            label: config.title || `Question ${questionId}`
-          });
+          console.log(`Processing checkbox question "${questionId}" -> ${cellValue}`);
+          mappings.push({ cell: config.cellReference, value: cellValue, label: `Question ${questionId}` });
         } 
-        // Minden más típusú kérdés (szöveg, szám, stb.)
+        // Minden más típusú kérdés
         else {
-          mappings.push({
-            cell: config.cellReference,
-            value: String(answer),
-            label: config.title || `Question ${questionId}`
-          });
+          mappings.push({ cell: config.cellReference, value: String(answer), label: `Question ${questionId}` });
         }
       }
     });
@@ -155,15 +138,8 @@ class SimpleXmlExcelService {
   }
 
   private escapeXml(text: string): string {
-    if (typeof text !== 'string') {
-        text = String(text);
-    }
-    return text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&apos;');
+    if (typeof text !== 'string') text = String(text);
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
   }
 }
 
