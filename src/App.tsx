@@ -169,7 +169,8 @@ function App() {
       
       // Include niedervolt measurements
       const protocolData = {
-        receptionDate,
+        receptionDate,                    // Frontend számára
+        reception_date: receptionDate,    // ⭐ JAVÍTÁS: Backend schema számára
         language,
         answers: combinedAnswers,
         errors: formData.errors || [],
@@ -184,6 +185,7 @@ function App() {
         hasSignature: Boolean(protocolData.signature),
         hasSignatureName: Boolean(protocolData.signatureName),
         receptionDate: protocolData.receptionDate,
+        reception_date: protocolData.reception_date,  // ⭐ JAVÍTÁS: Debug log
         language: protocolData.language
       });
       
