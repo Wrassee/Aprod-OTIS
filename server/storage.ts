@@ -174,29 +174,27 @@ export class DatabaseStorage implements IStorage {
 
   // --- JAVÍTOTT RÉSZ KEZDETE ---
 
-  // JAVÍTOTT DEBUG VERZIÓ a TypeScript hibák elkerülésére
+  // VÉGLEGES, JAVÍTOTT FÜGGVÉNY a snake_case -> camelCase konverzióhoz
   async getQuestionConfigsByTemplate(templateId: string) {
-    const configs = await (db as any)
-      .select()
-      .from(questionConfigs)
-      .where(eq(questionConfigs.template_id, templateId))
-      .orderBy(questionConfigs.created_at);
-    
-    // 🐛 DEBUG: Nézzük meg milyen property neveket ad vissza az adatbázis
-    console.log('🔍 Raw question configs from DB:');
-    console.log('Count:', configs.length);
-    if (configs.length > 0) {
-      console.log('First config properties:', Object.keys(configs[0]));
-      console.log('First config sample:', configs[0]);
-      // JAVÍTVA (c: any)-re a TS7006 hiba miatt
-      console.log('question_id values:', configs.map((c: any) => c.question_id || c.questionId || 'MISSING'));
-      console.log('cell_reference values:', configs.map((c: any) => c.cell_reference || c.cellReference || 'MISSING'));
-    }
-    
+    const rawConfigs = await (db as any)
+        .select()
+        .from(questionConfigs)
+        .where(eq(questionConfigs.template_id, templateId))
+        .orderBy(questionConfigs.created_at);
+
+    // 🛠️ Snake_case -> camelCase konverzió
+    const configs = rawConfigs.map((config: any) => ({
+        ...config, // Először másoljuk az összes eredeti property-t
+        // Majd felülírjuk/létrehozzuk a camelCase verziókat
+        questionId: config.question_id || config.questionId,
+        cellReference: config.cell_reference || config.cellReference,
+        multiCell: config.multi_cell || config.multiCell || false,
+    }));
+
+    console.log(`✅ ${configs.length} question configs converted to camelCase.`);
     return configs;
   }
 
-  // A VÉLETLENÜL TÖRÖLT FÜGGVÉNY VISSZAILLESZTVE
   async deleteQuestionConfigsByTemplate(templateId: string) {
     const result = await (db as any)
       .delete(questionConfigs)
