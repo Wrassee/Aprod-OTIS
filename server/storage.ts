@@ -14,10 +14,10 @@ import {
   protocols,
   templates,
   questionConfigs,
-} from "./db.js"; 
+} from "./db.js";
 
-import { db } from "./db.js";                           // Drizzle connection
-import { eq, and, desc } from "drizzle-orm";     // Drizzle helpers
+import { db } from "./db.js";                // Drizzle connection
+import { eq, and, desc } from "drizzle-orm"; // Drizzle helpers
 
 // ------------------------------------------------------------
 // 2️⃣ IStorage interface – unchanged
@@ -172,26 +172,40 @@ export class DatabaseStorage implements IStorage {
     return result.length > 0;
   }
 
-  // Ideiglenes, debug kód a storage.ts-be
-async getQuestionConfigsByTemplate(templateId: string) {
-  const configs = await (db as any)
-    .select()
-    .from(questionConfigs)
-    .where(eq(questionConfigs.template_id, templateId))
-    .orderBy(questionConfigs.created_at);
+  // --- JAVÍTOTT RÉSZ KEZDETE ---
 
-  // 🐛 DEBUG: Nézzük meg milyen property neveket ad vissza az adatbázis
-  console.log('🔍 Raw question configs from DB:');
-  console.log('Count:', configs.length);
-  if (configs.length > 0) {
-    console.log('First config properties:', Object.keys(configs[0]));
-    console.log('First config sample:', configs[0]);
-    console.log('question_id values:', configs.map(c => c.question_id || c.questionId || 'MISSING'));
-    console.log('cell_reference values:', configs.map(c => c.cell_reference || c.cellReference || 'MISSING'));
+  // JAVÍTOTT DEBUG VERZIÓ a TypeScript hibák elkerülésére
+  async getQuestionConfigsByTemplate(templateId: string) {
+    const configs = await (db as any)
+      .select()
+      .from(questionConfigs)
+      .where(eq(questionConfigs.template_id, templateId))
+      .orderBy(questionConfigs.created_at);
+    
+    // 🐛 DEBUG: Nézzük meg milyen property neveket ad vissza az adatbázis
+    console.log('🔍 Raw question configs from DB:');
+    console.log('Count:', configs.length);
+    if (configs.length > 0) {
+      console.log('First config properties:', Object.keys(configs[0]));
+      console.log('First config sample:', configs[0]);
+      // JAVÍTVA (c: any)-re a TS7006 hiba miatt
+      console.log('question_id values:', configs.map((c: any) => c.question_id || c.questionId || 'MISSING'));
+      console.log('cell_reference values:', configs.map((c: any) => c.cell_reference || c.cellReference || 'MISSING'));
+    }
+    
+    return configs;
   }
 
-  return configs;
-}
+  // A VÉLETLENÜL TÖRÖLT FÜGGVÉNY VISSZAILLESZTVE
+  async deleteQuestionConfigsByTemplate(templateId: string) {
+    const result = await (db as any)
+      .delete(questionConfigs)
+      .where(eq(questionConfigs.template_id, templateId))
+      .returning();
+    return result.length > 0;
+  }
+
+  // --- JAVÍTOTT RÉSZ VÉGE ---
 
   /* ---------- Supplementary method ---------- */
   async getQuestions(lang: string) {
