@@ -158,74 +158,53 @@ class SimpleXmlExcelService {
       
       if (config && config.cellReference && answer !== '' && answer !== null && answer !== undefined) {
         
-        if (config.type === 'yes_no_na') {
-          console.log(`Processing yes_no_na question ${questionId}: ${answer}, cellRef: ${config.cellReference}, multiCell: ${config.multiCell}`);
+        // --- JAVÍTÁS 1: A FELTÉTEL KIBŐVÍTVE 'radio'-val ---
+        if (config.type === 'yes_no_na' || config.type === 'radio') {
+          console.log(`Processing yes_no_na/radio question ${questionId}: ${answer}, cellRef: ${config.cellReference}, multiCell: ${config.multiCell}`);
           
           const cellRefs = config.cellReference.split(',').map((cell: string) => cell.trim());
           
-          if (cellRefs.length !== 3) {
-            console.error(`Yes_no_na question ${questionId} must have exactly 3 cell references (A,B,C), got: ${cellRefs}`);
-            mappings.push({
-              cell: config.cellReference,
-              value: this.formatAnswer(answer, language),
-              label: config.title || `Question ${questionId}`
-            });
+          if (cellRefs.length < 1) { // Lehet 1, 2 vagy 3 is, de legalább 1 kell
+            console.error(`Question ${questionId} must have at least 1 cell reference, got: ${cellRefs}`);
             return;
           }
           
+          // Kezeli a 3-as (yes,no,na) és a 2-es (yes,no) felosztást is
           const [yesCells, noCells, naCells] = cellRefs;
           
           if (config.multiCell) {
-            console.log(`Multi-cell mode ENABLED for question ${questionId}`);
-            
-            const parseMultipleCells = (cellGroup: string): string[] => {
-              return cellGroup.split(';').map(cell => cell.trim()).filter(cell => cell.length > 0);
-            };
-            
-            const yesCellList = parseMultipleCells(yesCells);
-            const noCellList = parseMultipleCells(noCells);
-            const naCellList = parseMultipleCells(naCells);
-            
-            console.log(`Multi-cell mapping: YES=[${yesCellList.join(', ')}], NO=[${noCellList.join(', ')}], NA=[${naCellList.join(', ')}]`);
+            const parseMultipleCells = (cellGroup: string): string[] => cellGroup ? cellGroup.split(';').map(cell => cell.trim()).filter(Boolean) : [];
             
             if (answer === 'yes') {
-              yesCellList.forEach(cell => {
-                mappings.push({ cell, value: 'x', label: `${config.title} - Igen (${cell})` });
-              });
-            } else if (answer === 'no') {
-              noCellList.forEach(cell => {
-                mappings.push({ cell, value: 'x', label: `${config.title} - Nem (${cell})` });
-              });
-            } else if (answer === 'na') {
-              naCellList.forEach(cell => {
-                mappings.push({ cell, value: 'x', label: `${config.title} - Nem alkalmazható (${cell})` });
-              });
+              parseMultipleCells(yesCells).forEach(cell => mappings.push({ cell, value: 'x', label: `${config.title} - Igen (${cell})` }));
+            } else if (answer === 'no' && noCells) {
+              parseMultipleCells(noCells).forEach(cell => mappings.push({ cell, value: 'x', label: `${config.title} - Nem (${cell})` }));
+            } else if (answer === 'na' && naCells) {
+              parseMultipleCells(naCells).forEach(cell => mappings.push({ cell, value: 'x', label: `${config.title} - N/A (${cell})` }));
             }
           } else {
-            console.log(`Single-cell mode for question ${questionId}`);
             if (answer === 'yes') {
-              mappings.push({ cell: yesCells, value: 'x', label: `${config.title} - Igen` });
-            } else if (answer === 'no') {
-              mappings.push({ cell: noCells, value: 'x', label: `${config.title} - Nem` });
-            } else if (answer === 'na') {
-              mappings.push({ cell: naCells, value: 'x', label: `${config.title} - Nem alkalmazható` });
+              mappings.push({ cell: yesCells.split(';')[0], value: 'x', label: `${config.title} - Igen` });
+            } else if (answer === 'no' && noCells) {
+              mappings.push({ cell: noCells.split(';')[0], value: 'x', label: `${config.title} - Nem` });
+            } else if (answer === 'na' && naCells) {
+              mappings.push({ cell: naCells.split(';')[0], value: 'x', label: `${config.title} - N/A` });
             }
           }
         } 
-        // --- JAVÍTÁS: A HIÁNYZÓ BLOKK VISSZAILLESZTVE ---
-        else if (config.type === 'true_false') {
-          let cellValue = '-'; // Alapértelmezett érték
+        // --- JAVÍTÁS 2: A FELTÉTEL KIBŐVÍTVE 'checkbox'-szal ---
+        else if (config.type === 'true_false' || config.type === 'checkbox') {
+          let cellValue = '-';
           if (answer === 'true' || answer === true) {
             cellValue = 'X';
           }
-          console.log(`Processing true_false question ${questionId}: ${answer} -> ${cellValue}, cellRef: ${config.cellReference}`);
+          console.log(`Processing true_false/checkbox question ${questionId}: ${answer} -> ${cellValue}, cellRef: ${config.cellReference}`);
           mappings.push({
             cell: config.cellReference,
             value: cellValue,
             label: config.title || `Question ${questionId}`
           });
         } 
-        // --- JAVÍTÁS VÉGE ---
         else if (config.type === 'measurement') {
           const numValue = parseFloat(String(answer));
           if (!isNaN(numValue)) {
@@ -265,25 +244,11 @@ class SimpleXmlExcelService {
       formData.errors.forEach((error, index) => {
         const rowNumber = 737 + index;
         
-        mappings.push({
-          cell: `A${rowNumber}`,
-          value: `${index + 1}`,
-          label: `Error ${index + 1} number`
-        });
+        mappings.push({ cell: `A${rowNumber}`, value: `${index + 1}`, label: `Error ${index + 1} number` });
+        mappings.push({ cell: `D${rowNumber}`, value: error.description || `Hiba ${index + 1}`, label: `Error ${index + 1} description` });
         
-        mappings.push({
-          cell: `D${rowNumber}`,
-          value: error.description || `Hiba ${index + 1}`,
-          label: `Error ${index + 1} description`
-        });
-        
-        const severityText = error.severity === 'critical' ? 'Kritikus' : 
-                             error.severity === 'medium' ? 'Közepes' : 'Alacsony';
-        mappings.push({
-          cell: `K${rowNumber}`,
-          value: severityText,
-          label: `Error ${index + 1} severity`
-        });
+        const severityText = error.severity === 'critical' ? 'Kritikus' : error.severity === 'medium' ? 'Közepes' : 'Alacsony';
+        mappings.push({ cell: `K${rowNumber}`, value: severityText, label: `Error ${index + 1} severity` });
         
         console.log(`Error ${index + 1} mapped to row ${rowNumber}: A${rowNumber}=${index + 1}, D${rowNumber}=${error.description}, K${rowNumber}=${severityText}`);
       });
@@ -296,35 +261,18 @@ class SimpleXmlExcelService {
     if (typeof value === 'boolean') {
       return language === 'hu' ? (value ? 'Igen' : 'Nem') : (value ? 'Yes' : 'No');
     }
-    
-    if (value === 'yes') {
-      return language === 'hu' ? 'Igen' : 'Yes';
-    }
-    
-    if (value === 'no') {
-      return language === 'hu' ? 'Nem' : 'No';
-    }
-    
-    if (value === 'na') {
-      return language === 'hu' ? 'N/A' : 'N/A';
-    }
-    
+    if (value === 'yes') { return language === 'hu' ? 'Igen' : 'Yes'; }
+    if (value === 'no') { return language === 'hu' ? 'Nem' : 'No'; }
+    if (value === 'na') { return language === 'hu' ? 'N/A' : 'N/A'; }
     return String(value);
   }
 
   private inferCellStyle(cell: string, rowNumber: string | undefined): string {
     const cellStyleMap: Record<string, string> = {
-      'F9': ' s="576"',
-      'Q9': ' s="577"',
-      'G13': ' s="578"',
-      'Q13': ' s="579"',
-      'G14': ' s="580"',
-      'N14': ' s="581"',
-      'O16': ' s="582"',
-      'Q25': ' s="583"',
+      'F9': ' s="576"', 'Q9': ' s="577"', 'G13': ' s="578"', 'Q13': ' s="579"',
+      'G14': ' s="580"', 'N14': ' s="581"', 'O16': ' s="582"', 'Q25': ' s="583"',
       'A68': ' s="584"'
     };
-    
     return cellStyleMap[cell] || ' s="576"';
   }
 
