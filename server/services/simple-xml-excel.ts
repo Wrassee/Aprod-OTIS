@@ -26,7 +26,6 @@ class SimpleXmlExcelService {
     }
   }
   
-  // Eredeti, biztonságos XML-kezelő
   private async replaceInXmlArchive(
     templateBuffer: Buffer, 
     formData: FormData, 
@@ -87,12 +86,12 @@ class SimpleXmlExcelService {
         return; 
       }
       
-      // --- ÚJ, EGYÉRTELMŰ LOG ÜZENET ---
-      console.log(`--- VÉGLEGES TESZT --- Feldolgozás: ID="${questionId}", Típus="${config.type}", Válasz="${answer}"`);
+      console.log(`Processing: ID="${questionId}", Type="${config.type}", Answer="${answer}"`);
       
-      // HELYES LOGIKA: A rádiógombok (yes/no/na) kezelése
-      if (config.type === 'radio' || config.type === 'yes_no_na') {
-        console.log(`>>> Belépés a RÁDIÓGOMB (yes/no/na) logikába.`);
+      // --- HELYES LOGIKA (az ADATOKHOZ IGAZÍTVA) ---
+      // A rádiógombok (yes/no/na) VALÓJÁBAN 'checkbox' típussal érkeznek a log alapján.
+      if (config.type === 'checkbox') {
+        console.log(`>>> Handling as RADIO BUTTON (type was 'checkbox')`);
         const cellRefs = config.cellReference.split(',').map((c: string) => c.trim());
         const [yesCells, noCells, naCells] = cellRefs;
 
@@ -107,15 +106,15 @@ class SimpleXmlExcelService {
         else if (answer === 'no') applyX(noCells);
         else if (answer === 'na') applyX(naCells);
       } 
-      // HELYES LOGIKA: A checkboxok (true/false) kezelése
-      else if (config.type === 'checkbox' || config.type === 'true_false') {
-        console.log(`>>> Belépés a CHECKBOX (true/false) logikába.`);
+      // A checkboxok (true/false) VALÓJÁBAN 'radio' típussal érkeznek a log alapján.
+      else if (config.type === 'radio') {
+        console.log(`>>> Handling as CHECKBOX (type was 'radio')`);
         const cellValue = (answer === 'true' || answer === true) ? 'X' : '-';
         mappings.push({ cell: config.cellReference, value: cellValue, label: `Question ${questionId}` });
       } 
       // Minden más típusú kérdés
       else {
-        console.log(`>>> Belépés az ÁLTALÁNOS (szöveg/szám) logikába.`);
+        console.log(`>>> Handling as standard type: ${config.type}`);
         mappings.push({ cell: config.cellReference, value: String(answer), label: `Question ${questionId}` });
       }
     });
