@@ -9,11 +9,9 @@ class SimpleXmlExcelService {
     try {
       console.log('XML: Loading protocol template...');
       const templateBuffer = await templateLoader.loadTemplateBuffer('protocol', language);
-      console.log(`Using XML approach with loaded template (${templateBuffer.length} bytes)`);
-
-      let questionsTemplate = await storage.getActiveTemplate('unified', 'multilingual') ?? await storage.getActiveTemplate('questions', language);
       
       let questionConfigs: any[] = [];
+      const questionsTemplate = await storage.getActiveTemplate('unified', 'multilingual') ?? await storage.getActiveTemplate('questions', language);
       if (questionsTemplate) {
         questionConfigs = await storage.getQuestionConfigsByTemplate(questionsTemplate.id);
         console.log(`Loaded ${questionConfigs.length} question configs.`);
@@ -28,7 +26,7 @@ class SimpleXmlExcelService {
     }
   }
   
-  // --- JAVÍTÁS: VISSZAÁLLÍTVA AZ EREDETI, BIZTONSÁGOS XML-KEZELŐ FÜGGVÉNY ---
+  // Eredeti, biztonságos XML-kezelő
   private async replaceInXmlArchive(
     templateBuffer: Buffer, 
     formData: FormData, 
@@ -49,10 +47,8 @@ class SimpleXmlExcelService {
       cellMappings.forEach(mapping => {
         const { cell, value } = mapping;
         const escapedValue = this.escapeXml(value);
-        
         const cellPattern = new RegExp(`(<c r="${cell}"[^>]*>)([^<]*)(</c>)`);
 
-        // Eredeti, biztonságos logika visszaállítva
         if (cellPattern.test(worksheetXml)) {
           worksheetXml = worksheetXml.replace(cellPattern, `$1<is><t>${escapedValue}</t></is>$3`);
           modifiedCount++;
@@ -87,39 +83,40 @@ class SimpleXmlExcelService {
     Object.entries(formData.answers).forEach(([questionId, answer]) => {
       const config = questionConfigs.find(q => String(q.questionId) === questionId);
 
-      if (!config) {
-        return;
+      if (!config || config.cellReference === null || answer === null || answer === '' || answer === undefined) {
+        return; 
       }
       
-      if (config.cellReference && answer !== null && answer !== undefined && answer !== '') {
-        
-        // --- HELYES LOGIKA: A rádiógombok (yes/no/na) kezelése ---
-        if (config.type === 'yes_no_na' || config.type === 'radio') {
-          console.log(`Processing radio question "${questionId}" with answer: "${answer}"`);
-          const cellRefs = config.cellReference.split(',').map((c: string) => c.trim());
-          const [yesCells, noCells, naCells] = cellRefs;
+      // --- ÚJ, EGYÉRTELMŰ LOG ÜZENET ---
+      console.log(`--- VÉGLEGES TESZT --- Feldolgozás: ID="${questionId}", Típus="${config.type}", Válasz="${answer}"`);
+      
+      // HELYES LOGIKA: A rádiógombok (yes/no/na) kezelése
+      if (config.type === 'radio' || config.type === 'yes_no_na') {
+        console.log(`>>> Belépés a RÁDIÓGOMB (yes/no/na) logikába.`);
+        const cellRefs = config.cellReference.split(',').map((c: string) => c.trim());
+        const [yesCells, noCells, naCells] = cellRefs;
 
-          const applyX = (cells: string) => {
-            if (!cells) return;
-            cells.split(';').map(c => c.trim()).filter(Boolean).forEach(cell => {
-              mappings.push({ cell, value: 'x', label: `Question ${questionId}` });
-            });
-          };
+        const applyX = (cells: string) => {
+          if (!cells) return;
+          cells.split(';').map(c => c.trim()).filter(Boolean).forEach(cell => {
+            mappings.push({ cell, value: 'x', label: `Question ${questionId}` });
+          });
+        };
 
-          if (answer === 'yes') applyX(yesCells);
-          else if (answer === 'no') applyX(noCells);
-          else if (answer === 'na') applyX(naCells);
-        } 
-        // --- HELYES LOGIKA: A checkboxok (true/false) kezelése ---
-        else if (config.type === 'true_false' || config.type === 'checkbox') {
-          const cellValue = (answer === 'true' || answer === true) ? 'X' : '-';
-          console.log(`Processing checkbox question "${questionId}" -> ${cellValue}`);
-          mappings.push({ cell: config.cellReference, value: cellValue, label: `Question ${questionId}` });
-        } 
-        // Minden más típusú kérdés
-        else {
-          mappings.push({ cell: config.cellReference, value: String(answer), label: `Question ${questionId}` });
-        }
+        if (answer === 'yes') applyX(yesCells);
+        else if (answer === 'no') applyX(noCells);
+        else if (answer === 'na') applyX(naCells);
+      } 
+      // HELYES LOGIKA: A checkboxok (true/false) kezelése
+      else if (config.type === 'checkbox' || config.type === 'true_false') {
+        console.log(`>>> Belépés a CHECKBOX (true/false) logikába.`);
+        const cellValue = (answer === 'true' || answer === true) ? 'X' : '-';
+        mappings.push({ cell: config.cellReference, value: cellValue, label: `Question ${questionId}` });
+      } 
+      // Minden más típusú kérdés
+      else {
+        console.log(`>>> Belépés az ÁLTALÁNOS (szöveg/szám) logikába.`);
+        mappings.push({ cell: config.cellReference, value: String(answer), label: `Question ${questionId}` });
       }
     });
     
