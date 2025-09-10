@@ -1,4 +1,4 @@
-# OTIS APRO - Acceptance Protocol Application v0.1.2
+# OTIS APRO - Acceptance Protocol Application v0.1.3
 
 [![Version](https://img.shields.io/badge/version-0.1.0-green.svg)](./VERSION)
 [![Status](https://img.shields.io/badge/status-Production%20Ready-brightgreen.svg)]()
