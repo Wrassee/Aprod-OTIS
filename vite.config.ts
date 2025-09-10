@@ -1,39 +1,30 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
 export default defineConfig({
-  base: '',
-  publicDir: 'public',
-  plugins: [
-    react(),
-    runtimeErrorOverlay(),
-    ...(process.env.NODE_ENV !== "production" &&
-    process.env.REPL_ID !== undefined
-      ? [
-          await import("@replit/vite-plugin-cartographer").then((m) =>
-            m.cartographer(),
-          ),
-        ]
-      : []),
-  ],
+  plugins: [react()],
+
   resolve: {
     alias: {
-      "@": path.resolve(import.meta.dirname, "client", "src"),
-      "@shared": path.resolve(import.meta.dirname, "shared"),
-      "@assets": path.resolve(import.meta.dirname, "attached_assets"),
+      // Ezek a te beállításaid, valószínűleg jók, ha a mappaszerkezeted megfelelő.
+      "@": path.resolve(__dirname, "./src"),
+      "@shared": path.resolve(__dirname, "./shared"),
     },
   },
-  root: path.resolve(import.meta.dirname, "client"),
-  build: {
-    outDir: path.resolve(import.meta.dirname, "dist/public"),
-    emptyOutDir: true,
-  },
+
+  // ✨ EZ A HIÁNYZÓ RÉSZ ✨
+  // A server blokk felel a helyi fejlesztői szerver működéséért.
   server: {
-    fs: {
-      strict: true,
-      deny: ["**/.*"],
-    },
-  },
+    proxy: {
+      // Minden olyan kérés, ami a '/api' útvonallal kezdődik...
+      '/api': {
+        // ...továbbítódik erre a célcímre.
+        target: 'https://aprod-otis-5gsy.onrender.com/', // ❗️ CSERÉLD KI A RENDEREN FUTÓ ALKALMAZÁSOD URL-JÉRE!
+        
+        // Ez a beállítás szükséges ahhoz, hogy a cél szerver elfogadja a kérést.
+        changeOrigin: true,
+      }
+    }
+  }
 });

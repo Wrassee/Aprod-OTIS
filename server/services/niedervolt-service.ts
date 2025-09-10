@@ -1,4 +1,4 @@
-import { storage } from "../storage";
+import { storage } from "../storage.js";
 import * as XLSX from 'xlsx';
 
 // Hardcoded fallback devices
@@ -48,15 +48,6 @@ export class NiedervoltService {
    * Get niedervolt devices from Excel template with hardcoded fallback
    */
   async getNiedervoltDevices(): Promise<NiedervoltDevice[]> {
-    // Always use hardcoded devices for now - template override disabled
-    // This preserves the original Niedervolt UI design when templates are active
-    console.log('📋 Using hardcoded niedervolt devices (template override disabled)');
-    return this.getHardcodedDevices();
-    
-    // NOTE: Template-based devices disabled to preserve UI consistency
-    // Previous logic tried to load from Excel but caused UI changes
-    // Uncomment below to re-enable template loading:
-    /*
     try {
       // Try to get devices from active template
       const devices = await this.getDevicesFromTemplate();
@@ -71,7 +62,6 @@ export class NiedervoltService {
     // Fallback to hardcoded devices
     console.log('📋 Using hardcoded niedervolt devices fallback');
     return this.getHardcodedDevices();
-    */
   }
 
   /**
@@ -79,7 +69,7 @@ export class NiedervoltService {
    */
   private async getDevicesFromTemplate(): Promise<NiedervoltDevice[] | null> {
     const activeTemplate = await storage.getActiveTemplate('unified', 'multilingual') || 
-                          await storage.getActiveTemplate('questions', 'multilingual');
+                           await storage.getActiveTemplate('questions', 'multilingual');
     if (!activeTemplate) {
       return null;
     }

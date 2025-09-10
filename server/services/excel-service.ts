@@ -1,9 +1,9 @@
 import * as XLSX from 'xlsx';
-import type { FormData } from '../../shared/types';
-import { storage } from '../storage';
-import { excelParserService } from './excel-parser';
-import { simpleXmlExcelService } from './simple-xml-excel';
-import { templateLoader } from './template-loader';
+import type { FormData } from '../../shared/types.js';
+import { storage } from '../storage.js';
+import { excelParserService } from './excel-parser.js';
+import { simpleXmlExcelService } from './simple-xml-excel.js';
+import { templateLoader } from './template-loader.js';
 import fs from 'fs';
 
 class ExcelService {
@@ -162,7 +162,7 @@ class ExcelService {
           
           // Add answers with proper question titles
           Object.entries(formData.answers).forEach(([questionId, answer]) => {
-            const config = questionConfigs.find(q => q.questionId === questionId);
+            const config = questionConfigs.find((q: any) => q.questionId === questionId);
             const questionText = config ? 
               (language === 'hu' && config.titleHu ? config.titleHu :
                language === 'de' && config.titleDe ? config.titleDe :

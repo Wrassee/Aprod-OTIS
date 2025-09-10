@@ -1,6 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
-import { serveStatic, log } from "./static-server";
+import { registerRoutes } from "./routes.js";
+import { serveStatic, log } from "./static-server.js";
 
 const app = express();
 
@@ -66,13 +66,13 @@ app.use((req, res, next) => {
 
     // ALWAYS serve the app on the port specified in the environment variable PORT
     // Other ports are firewalled. Default to 5000 if not specified.
-    const port = parseInt(process.env.PORT || '5000', 10);
+    const PORT = Number(process.env.PORT) || 5000;
     server.listen({
-      port,
+      PORT,
       host: "0.0.0.0",
       reusePort: true,
     }, () => {
-      log(`serving on port ${port}`, 'express');
+      log(`serving on port ${PORT}`, 'express');
     });
   } catch (error) {
     console.error('Failed to start server:', error);

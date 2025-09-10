@@ -1,93 +1,133 @@
-import Database from 'better-sqlite3';
-import { drizzle } from 'drizzle-orm/better-sqlite3';
+// server/db.ts
+// ------------------------------------------------------------
+// 1️⃣ Imports
+// ------------------------------------------------------------
+import { drizzle as drizzleSqlite } from "drizzle-orm/better-sqlite3";
+import { drizzle as drizzleNeon } from "drizzle-orm/neon-serverless";
+import { Pool, neonConfig } from "@neondatabase/serverless";
+import Database from "better-sqlite3";
+import ws from "ws";
+import type { InferSelectModel, InferInsertModel } from "drizzle-orm";
+
 import * as schema from "../shared/schema.js";
-import path from 'path';
 
-// Create SQLite database file
-const dbPath = path.join(process.cwd(), 'data', 'otis_aprod.db');
+import path from "node:path";
+import fs from "node:fs";
 
-// Ensure data directory exists
-import fs from 'fs';
-const dataDir = path.dirname(dbPath);
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
-}
+// ------------------------------------------------------------
+// 2️⃣ Re-export schema tables and types
+// ------------------------------------------------------------
 
-// Create database connection
-const sqlite = new Database(dbPath);
-sqlite.pragma('journal_mode = WAL');
+// Táblák exportálása
+export const { protocols, templates, questionConfigs } = schema;
 
-export const db = drizzle(sqlite, { schema });
+// Típusok exportálása - ezeket hiányolta a storage.ts
+export type Protocol = InferSelectModel<typeof protocols>;
+export type InsertProtocol = InferInsertModel<typeof protocols>;
+export type Template = InferSelectModel<typeof templates>;
+export type InsertTemplate = InferInsertModel<typeof templates>;
+export type QuestionConfig = InferSelectModel<typeof questionConfigs>;
+export type InsertQuestionConfig = InferInsertModel<typeof questionConfigs>;
 
-console.log('Database: SQLite initialized at', dbPath);
+// ------------------------------------------------------------
+// 3️⃣ DB típusdefiníciók és inicializálás
+// ------------------------------------------------------------
 
-// Test database connection and create tables
-export async function testConnection() {
-  try {
-    // Create tables if they don't exist
-    console.log('Creating database tables if they do not exist...');
-    
-    // Create protocols table
-    sqlite.exec(`
-      CREATE TABLE IF NOT EXISTS protocols (
-        id TEXT PRIMARY KEY,
-        reception_date TEXT NOT NULL,
-        language TEXT NOT NULL,
-        answers TEXT NOT NULL DEFAULT '{}',
-        errors TEXT NOT NULL DEFAULT '[]',
-        signature TEXT,
-        signature_name TEXT,
-        completed INTEGER NOT NULL DEFAULT 0,
-        created_at INTEGER NOT NULL
-      )
-    `);
-    
-    // Create templates table
-    sqlite.exec(`
-      CREATE TABLE IF NOT EXISTS templates (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        type TEXT NOT NULL,
-        file_name TEXT NOT NULL,
-        file_path TEXT NOT NULL,
-        language TEXT NOT NULL DEFAULT 'multilingual',
-        uploaded_at INTEGER NOT NULL,
-        is_active INTEGER NOT NULL DEFAULT 0
-      )
-    `);
-    
-    // Create question_configs table
-    sqlite.exec(`
-      CREATE TABLE IF NOT EXISTS question_configs (
-        id TEXT PRIMARY KEY,
-        template_id TEXT NOT NULL REFERENCES templates(id),
-        question_id TEXT NOT NULL,
-        title TEXT NOT NULL,
-        title_hu TEXT,
-        title_de TEXT,
-        type TEXT NOT NULL,
-        required INTEGER NOT NULL DEFAULT 1,
-        placeholder TEXT,
-        cell_reference TEXT,
-        sheet_name TEXT DEFAULT 'Sheet1',
-        multi_cell INTEGER NOT NULL DEFAULT 0,
-        group_name TEXT,
-        group_name_de TEXT,
-        group_order INTEGER DEFAULT 0,
-        unit TEXT,
-        min_value INTEGER,
-        max_value INTEGER,
-        calculation_formula TEXT,
-        calculation_inputs TEXT,
-        created_at INTEGER NOT NULL
-      )
-    `);
-    
-    console.log('Database tables created successfully');
-    console.log('Database connection successful');
-    return true;
-  } catch (err) {
-    console.error('Database initialization failed:', err);
-    return false;
+type SqliteDb = ReturnType<typeof drizzleSqlite>;
+type NeonDb = ReturnType<typeof drizzleNeon>;
+type DbType = SqliteDb | NeonDb;
+
+let db: DbType;
+let testConnectionFn: () => Promise<boolean>;
+
+// ------------------------------------------------------------
+// 4️⃣ Production – Neon PostgreSQL (Render / Vercel / Railway)
+// ------------------------------------------------------------
+if (process.env.NODE_ENV === "production") {
+  console.log("🔧 Initializing Neon (PostgreSQL) connection – production mode");
+
+  if (!process.env.DATABASE_URL) {
+    throw new Error(
+      "DATABASE_URL environment variable is required in production."
+    );
   }
+
+  // Neon‑driver WebSocket‑megoldás (Supabase‑barát)
+  neonConfig.webSocketConstructor = ws;
+
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+  // Drizzle‑Postgres‑adapter
+  db = drizzleNeon(pool, { schema });
+
+  // egyszerű "SELECT 1" health‑check
+  testConnectionFn = async () => {
+    try {
+      await pool.query("SELECT 1");
+      console.log("✅ Neon connection OK");
+      return true;
+    } catch (err) {
+      console.error("❌ Neon connection failed:", err);
+      return false;
+    }
+  };
 }
+
+// ------------------------------------------------------------
+// 5️⃣ Development – SQLite (local)
+// ------------------------------------------------------------
+else {
+  console.log("🔧 Initializing SQLite – development mode");
+
+  // adatbázis‑fájl helye: <projectRoot>/data/otis_aprod.db
+  const dbPath = path.join(process.cwd(), "data", "otis_aprod.db");
+  const dataDir = path.dirname(dbPath);
+
+  // biztosítjuk, hogy a `data` mappa létezik
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+
+  const sqlite = new Database(dbPath);
+  // write‑ahead‑logging – a SQLite‑t gyorsabbá és biztonságosabbá teszi
+  sqlite.pragma("journal_mode = WAL");
+
+  // Drizzle‑SQLite‑adapter
+  db = drizzleSqlite(sqlite, { schema });
+
+  // egyszerű "SELECT 1" health‑check
+  testConnectionFn = async () => {
+    try {
+      sqlite.prepare("SELECT 1").get();
+      console.log("✅ SQLite connection OK");
+      return true;
+    } catch (err) {
+      console.error("❌ SQLite connection failed:", err);
+      return false;
+    }
+  };
+}
+
+// ------------------------------------------------------------
+// 6️⃣ Database utilities
+// ------------------------------------------------------------
+
+/**
+ * Type guard to check if db is PostgreSQL
+ */
+export function isPostgresDb(database: DbType): database is NeonDb {
+  return process.env.NODE_ENV === "production";
+}
+
+/**
+ * Type guard to check if db is SQLite
+ */
+export function isSqliteDb(database: DbType): database is SqliteDb {
+  return process.env.NODE_ENV !== "production";
+}
+
+// ------------------------------------------------------------
+// 7️⃣ Exportálás
+// ------------------------------------------------------------
+export { db };
+export const testConnection = testConnectionFn;

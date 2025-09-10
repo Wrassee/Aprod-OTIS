@@ -1,5 +1,5 @@
-# OTIS APROD Version 0.4.1 - Release Notes
-**Release Date**: January 28, 2025  
+# OTIS APROD Version 0.4.2 - Release Notes
+**Release Date**: Juli 28, 2025  
 **Status**: PRODUCTION READY ✅
 
 ## Major Achievement: Excel Generation Fixed!

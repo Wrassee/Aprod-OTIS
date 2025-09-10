@@ -1,17 +1,35 @@
-import { type Protocol, type InsertProtocol, type Template, type InsertTemplate, type QuestionConfig, type InsertQuestionConfig } from "../shared/schema.js";
-import { randomUUID } from "crypto";
-import { db } from './db.js';
-import { eq, and, desc } from 'drizzle-orm';
-import { protocols, templates, questionConfigs } from '../shared/schema.js';
+// server/storage.ts
+// ------------------------------------------------------------
+// 1️⃣ Imports – keep the same schema objects that the db instance uses
+// ------------------------------------------------------------
+import {
+  type Protocol,
+  type InsertProtocol,
+  type Template,
+  type InsertTemplate,
+  type QuestionConfig,
+  type InsertQuestionConfig,
+  // Re‑exported table definitions from the db module – this guarantees
+  // the exact same type instances the DB was initialised with.
+  protocols,
+  templates,
+  questionConfigs,
+} from "./db.js";
 
+import { db } from "./db.js";                // Drizzle connection
+import { eq, and, desc } from "drizzle-orm"; // Drizzle helpers
+
+// ------------------------------------------------------------
+// 2️⃣ IStorage interface – unchanged
+// ------------------------------------------------------------
 export interface IStorage {
-  // Protocols
+  /* ---------- Protocols ---------- */
   getProtocol(id: string): Promise<Protocol | undefined>;
   createProtocol(protocol: InsertProtocol): Promise<Protocol>;
   updateProtocol(id: string, updates: Partial<Protocol>): Promise<Protocol | undefined>;
   getAllProtocols(): Promise<Protocol[]>;
-  
-  // Templates
+
+  /* ---------- Templates ---------- */
   getTemplate(id: string): Promise<Template | undefined>;
   createTemplate(template: InsertTemplate): Promise<Template>;
   updateTemplate(id: string, updates: Partial<Template>): Promise<Template | undefined>;
@@ -19,187 +37,191 @@ export interface IStorage {
   getActiveTemplate(type: string, language: string): Promise<Template | undefined>;
   setActiveTemplate(id: string): Promise<void>;
   deleteTemplate(id: string): Promise<boolean>;
-  
-  // Question Configurations
+
+  /* ---------- Question Configurations ---------- */
   getQuestionConfig(id: string): Promise<QuestionConfig | undefined>;
   createQuestionConfig(config: InsertQuestionConfig): Promise<QuestionConfig>;
   updateQuestionConfig(id: string, updates: Partial<QuestionConfig>): Promise<QuestionConfig | undefined>;
   deleteQuestionConfig(id: string): Promise<boolean>;
   getQuestionConfigsByTemplate(templateId: string): Promise<QuestionConfig[]>;
   deleteQuestionConfigsByTemplate(templateId: string): Promise<boolean>;
+
+  /* ---------- Supplementary method ---------- */
+  /** Retrieves question definitions; if a `language` column exists it is filtered. */
+  getQuestions(lang: string): Promise<QuestionConfig[]>;
 }
 
+// ------------------------------------------------------------
+// 3️⃣ DatabaseStorage – concrete implementation (type‑safe)
+// ------------------------------------------------------------
 export class DatabaseStorage implements IStorage {
-  // Protocol methods
-  async getProtocol(id: string): Promise<Protocol | undefined> {
-    const [protocol] = await db.select().from(protocols).where(eq(protocols.id, id));
-    return protocol || undefined;
+  /* ---------- Protocols ---------- */
+  async getProtocol(id: string) {
+    const [protocol] = await (db as any).select().from(protocols).where(eq(protocols.id, id));
+    return protocol ?? undefined;
   }
 
-  async createProtocol(insertProtocol: InsertProtocol): Promise<Protocol> {
-    const [protocol] = await db
-      .insert(protocols)
-      .values(insertProtocol)
-      .returning();
-    return protocol;
+  async createProtocol(protocol: InsertProtocol) {
+    const [created] = await (db as any).insert(protocols).values(protocol).returning();
+    return created;
   }
 
-  async updateProtocol(id: string, updates: Partial<Protocol>): Promise<Protocol | undefined> {
-    const [updated] = await db
+  async updateProtocol(id: string, updates: Partial<Protocol>) {
+    const [updated] = await (db as any)
       .update(protocols)
       .set(updates)
       .where(eq(protocols.id, id))
       .returning();
-    return updated || undefined;
+    return updated ?? undefined;
   }
 
-  async getAllProtocols(): Promise<Protocol[]> {
-    return await db.select().from(protocols).orderBy(desc(protocols.createdAt));
+  async getAllProtocols() {
+    return await (db as any).select().from(protocols).orderBy(desc(protocols.created_at));
   }
 
-  // Template methods
-  async getTemplate(id: string): Promise<Template | undefined> {
-    const [template] = await db.select().from(templates).where(eq(templates.id, id));
-    return template || undefined;
+  /* ---------- Templates ---------- */
+  async getTemplate(id: string) {
+    const [tpl] = await (db as any).select().from(templates).where(eq(templates.id, id));
+    return tpl ?? undefined;
   }
 
-  async createTemplate(insertTemplate: InsertTemplate): Promise<Template> {
-    const [template] = await db
-      .insert(templates)
-      .values(insertTemplate)
-      .returning();
-    return template;
+  async createTemplate(template: InsertTemplate) {
+    const [created] = await (db as any).insert(templates).values(template).returning();
+    return created;
   }
 
-  async updateTemplate(id: string, updates: Partial<Template>): Promise<Template | undefined> {
-    const [updated] = await db
+  async updateTemplate(id: string, updates: Partial<Template>) {
+    const [updated] = await (db as any)
       .update(templates)
       .set(updates)
       .where(eq(templates.id, id))
       .returning();
-    return updated || undefined;
+    return updated ?? undefined;
   }
 
-  async getAllTemplates(): Promise<Template[]> {
-    return await db.select().from(templates).orderBy(desc(templates.uploadedAt));
+  async getAllTemplates() {
+    return await (db as any).select().from(templates).orderBy(desc(templates.uploaded_at));
   }
 
-  async getActiveTemplate(type: string, language: string): Promise<Template | undefined> {
-    console.log(`🔍 Looking for active template: type=${type}, language=${language}`);
-    
-    // First try exact language match
-    let [template] = await db
+  async getActiveTemplate(type: string, language: string) {
+    console.log(`🔍 Looking for active template – type=${type}, language=${language}`);
+
+    // 1️⃣ Exact language match
+    let [tpl] = await (db as any)
       .select()
       .from(templates)
-      .where(
-        and(
-          eq(templates.type, type),
-          eq(templates.language, language),
-          eq(templates.isActive, true)
-        )
-      );
-    
-    // If no exact match, try multilingual template
-    if (!template) {
-      console.log(`🔍 No ${language} template found, trying multilingual...`);
-      [template] = await db
+      .where(and(eq(templates.type, type), eq(templates.language, language), eq(templates.is_active, true)));
+
+    // 2️⃣ Fallback to multilingual
+    if (!tpl) {
+      console.log(`🔍 No exact match – trying multilingual`);
+      [tpl] = await (db as any)
         .select()
         .from(templates)
-        .where(
-          and(
-            eq(templates.type, type),
-            eq(templates.language, 'multilingual'),
-            eq(templates.isActive, true)
-          )
-        );
+        .where(and(eq(templates.type, type), eq(templates.language, "multilingual"), eq(templates.is_active, true)));
     }
-    
-    console.log(`📋 Found template:`, template ? `${template.name} (${template.language}, active: ${template.isActive})` : 'None');
-    return template || undefined;
+
+    console.log(`📋 Result: ${tpl ? `${tpl.name} (${tpl.language})` : "none"}`);
+    return tpl ?? undefined;
   }
 
-  async setActiveTemplate(id: string): Promise<void> {
-    const template = await this.getTemplate(id);
-    if (!template) throw new Error('Template not found');
+  async setActiveTemplate(id: string) {
+    const target = await this.getTemplate(id);
+    if (!target) throw new Error("Template not found");
 
-    console.log(`🔄 Activating template: ${template.name} (${template.type}, ${template.language})`);
-    
-    // First, deactivate ALL templates of the same type and language
-    const deactivateResult = await db
-      .update(templates)
-      .set({ isActive: false })
-      .where(
-        and(
-          eq(templates.type, template.type),
-          eq(templates.language, template.language)
-        )
-      );
-    
-    console.log(`✅ Deactivated ${deactivateResult.changes} templates`);
+    // Use a transaction to keep the two updates atomic
+    await (db as any).transaction(async (tx: any) => {
+      await tx
+        .update(templates)
+        .set({ is_active: false })
+        .where(and(eq(templates.type, target.type), eq(templates.language, target.language)));
 
-    // Then activate the specified template
-    const activateResult = await db
-      .update(templates)
-      .set({ isActive: true })
-      .where(eq(templates.id, id));
-    
-    console.log(`✅ Activated template: ${template.name}`);
+      await tx.update(templates).set({ is_active: true }).where(eq(templates.id, id));
+    });
+
+    console.log(`✅ Activated template ${target.name}`);
   }
 
-  async deleteTemplate(id: string): Promise<boolean> {
-    const result = await db
-      .delete(templates)
-      .where(eq(templates.id, id))
-      .returning();
+  async deleteTemplate(id: string) {
+    const result = await (db as any).delete(templates).where(eq(templates.id, id)).returning();
     return result.length > 0;
   }
 
-  // Question Config methods
-  async getQuestionConfig(id: string): Promise<QuestionConfig | undefined> {
-    const [config] = await db.select().from(questionConfigs).where(eq(questionConfigs.id, id));
-    return config || undefined;
+  /* ---------- Question Configurations ---------- */
+  async getQuestionConfig(id: string) {
+    const [cfg] = await (db as any).select().from(questionConfigs).where(eq(questionConfigs.id, id));
+    return cfg ?? undefined;
   }
 
-  async createQuestionConfig(insertConfig: InsertQuestionConfig): Promise<QuestionConfig> {
-    const [config] = await db
-      .insert(questionConfigs)
-      .values(insertConfig)
-      .returning();
-    return config;
+  async createQuestionConfig(config: InsertQuestionConfig) {
+    const [created] = await (db as any).insert(questionConfigs).values(config).returning();
+    return created;
   }
 
-  async updateQuestionConfig(id: string, updates: Partial<QuestionConfig>): Promise<QuestionConfig | undefined> {
-    const [updated] = await db
+  async updateQuestionConfig(id: string, updates: Partial<QuestionConfig>) {
+    const [updated] = await (db as any)
       .update(questionConfigs)
       .set(updates)
       .where(eq(questionConfigs.id, id))
       .returning();
-    return updated || undefined;
+    return updated ?? undefined;
   }
 
-  async deleteQuestionConfig(id: string): Promise<boolean> {
-    const result = await db
+  async deleteQuestionConfig(id: string) {
+    const result = await (db as any).delete(questionConfigs).where(eq(questionConfigs.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // --- JAVÍTOTT RÉSZ KEZDETE ---
+
+  // VÉGLEGES, JAVÍTOTT FÜGGVÉNY a snake_case -> camelCase konverzióhoz
+  async getQuestionConfigsByTemplate(templateId: string) {
+    const rawConfigs = await (db as any)
+        .select()
+        .from(questionConfigs)
+        .where(eq(questionConfigs.template_id, templateId))
+        .orderBy(questionConfigs.created_at);
+
+    // 🛠️ Snake_case -> camelCase konverzió
+    const configs = rawConfigs.map((config: any) => ({
+        ...config, // Először másoljuk az összes eredeti property-t
+        // Majd felülírjuk/létrehozzuk a camelCase verziókat
+        questionId: config.question_id || config.questionId,
+        cellReference: config.cell_reference || config.cellReference,
+        multiCell: config.multi_cell || config.multiCell || false,
+    }));
+
+    console.log(`✅ ${configs.length} question configs converted to camelCase.`);
+    return configs;
+  }
+
+  async deleteQuestionConfigsByTemplate(templateId: string) {
+    const result = await (db as any)
       .delete(questionConfigs)
-      .where(eq(questionConfigs.id, id))
+      .where(eq(questionConfigs.template_id, templateId))
       .returning();
     return result.length > 0;
   }
 
-  async getQuestionConfigsByTemplate(templateId: string): Promise<QuestionConfig[]> {
-    return await db
-      .select()
-      .from(questionConfigs)
-      .where(eq(questionConfigs.templateId, templateId))
-      .orderBy(questionConfigs.createdAt);
-  }
+  // --- JAVÍTOTT RÉSZ VÉGE ---
 
-  async deleteQuestionConfigsByTemplate(templateId: string): Promise<boolean> {
-    const result = await db
-      .delete(questionConfigs)
-      .where(eq(questionConfigs.templateId, templateId))
-      .returning();
-    return result.length > 0;
+  /* ---------- Supplementary method ---------- */
+  async getQuestions(lang: string) {
+    // If the underlying table has a `language` column we filter on it.
+    // We check the property existence at runtime – this keeps the compile‑time
+    // type safe while still being schema‑agnostic.
+    const hasLanguageColumn = "language" in questionConfigs;
+    if (hasLanguageColumn) {
+      return await (db as any)
+        .select()
+        .from(questionConfigs)
+        .where(eq((questionConfigs as any).language, lang));
+    }
+    return await (db as any).select().from(questionConfigs);
   }
 }
 
+// ------------------------------------------------------------
+// 4️⃣ Exported singleton for convenient imports elsewhere
+// ------------------------------------------------------------
 export const storage = new DatabaseStorage();

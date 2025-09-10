@@ -34,8 +34,18 @@ const IsolatedQuestionComponent = memo(({
   }, [onImageUpload]);
 
   const renderInput = useCallback(() => {
+    // A diagnosztikai logot a biztonság kedvéért bent hagyom, de kikommentezem.
+    /*
+    console.log(`🕵️‍♂️ DEBUG ISOLATED QUESTION | ID: ${question.id} | Title: ${question.title}`, {
+        type_received: `"${question.type}"`,
+        type_length: question.type.length,
+        full_question_object: question
+    });
+    */
+
     switch (question.type) {
       case 'yes_no_na':
+      case 'radio':
         const radioOptions = [
           { value: 'yes', label: t.yes, id: `${question.id}-yes` },
           { value: 'no', label: t.no, id: `${question.id}-no` },
@@ -47,8 +57,31 @@ const IsolatedQuestionComponent = memo(({
             questionId={question.id}
             initialValue={value?.toString() || ''}
             options={radioOptions}
+            onChange={onChange}
           />
         );
+        
+      // ================== HOZZÁADOTT RÉSZ ==================
+      // Ez az ág hiányzott a 'checkbox' típus kezeléséhez.
+      case 'checkbox':
+        return (
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id={question.id}
+              checked={!!value} // Az értéket logikai értékké alakítja
+              onChange={(e) => onChange(e.target.checked)}
+              className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+            />
+            <label
+              htmlFor={question.id}
+              className="text-sm font-medium text-gray-700 select-none cursor-pointer"
+            >
+              {question.placeholder || t.confirm || 'Megerősítés'}
+            </label>
+          </div>
+        );
+      // ======================================================
         
       case 'true_false':
         return (
@@ -66,14 +99,11 @@ const IsolatedQuestionComponent = memo(({
             questionId={question.id}
             type="number"
             initialValue={value?.toString() || ''}
-            // DISABLED onValueChange to prevent UI flicker
-            // onValueChange={(newValue) => onChange(parseFloat(newValue) || 0)}
             placeholder={question.placeholder || '0'}
             className="w-full"
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
-                // Find next focusable element
                 const focusableElements = document.querySelectorAll(
                   'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])'
                 );
@@ -100,8 +130,6 @@ const IsolatedQuestionComponent = memo(({
         );
         
       case 'calculated':
-        // For calculated questions, we need access to all input values
-        // This will be handled in the questionnaire component
         return (
           <div className="p-4 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-600">
@@ -117,14 +145,11 @@ const IsolatedQuestionComponent = memo(({
             questionId={question.id}
             type="text"
             initialValue={value?.toString() || ''}
-            // DISABLED onValueChange to prevent UI flicker
-            // onValueChange={(newValue) => onChange(newValue)}
             placeholder={question.placeholder || t.enterText || 'Szöveg megadása'}
             className="w-full"
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
-                // Find next focusable element
                 const focusableElements = document.querySelectorAll(
                   'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])'
                 );
@@ -156,7 +181,6 @@ const IsolatedQuestionComponent = memo(({
             {renderInput()}
           </div>
           
-          {/* Image upload section */}
           {onImageUpload && (
             <div className="border-t pt-4">
               <div className="flex items-center justify-between mb-3">

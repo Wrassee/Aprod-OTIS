@@ -1,23 +1,37 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-// Removed Wouter routing to prevent re-mounting issues with focus stability
-import { queryClient } from "./lib/queryClient";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
+
+/* -------------------- 3rd‑party -------------------- */
+import { queryClient } from "./lib/queryClient.js";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "./components/ui/toaster";
-import { TooltipProvider } from "./components/ui/tooltip";
-import { LanguageProvider } from "./components/language-provider";
-// Temporarily disabled PWA components for stability
-// import { PWAInstallBanner, OfflineIndicator } from "./components/pwa-install-banner";
-import { StartScreen } from "./pages/start-screen";
-import Questionnaire from "./pages/questionnaire";
-import { NiedervoltTable } from "./pages/niedervolt-table";
-import { Signature } from "./pages/signature";
-import { Completion } from "./pages/completion";
-import { Admin } from "./pages/admin";
-import { ProtocolPreview } from "./pages/protocol-preview";
-import { SmartHelpWizard } from "./components/smart-help-wizard";
-import { FormData, MeasurementRow } from "./lib/types";
+import { Toaster } from "./components/ui/toaster.js";
+import { TooltipProvider } from "./components/ui/tooltip.js";
+import { LanguageProvider } from "./components/language-provider.js";
+
+/* --------------------  PWA  (jelenleg letiltva) -------------------- */
+// import { PWAInstallBanner, OfflineIndicator } from "./components/pwa‑install‑banner";
+
+/* --------------------  Oldalak / Komponensek -------------------- */
+import { StartScreen } from "./pages/start-screen.js";
+import Questionnaire from "./pages/questionnaire.js";
+import { NiedervoltTable } from "./pages/niedervolt-table.js";
+import { Signature } from "./pages/signature.js";
+import { Completion } from "./pages/completion.js";
+import { Admin } from "./pages/admin.js";
+import { ProtocolPreview } from "./pages/protocol-preview.js";
+import { SmartHelpWizard } from "./components/smart-help-wizard.js";
+import { FormData, MeasurementRow } from "./lib/types.js";
+
+/* --------------------  Shared schema -------------------- */
 import { AnswerValue, ProtocolError } from "../shared/schema.js";
-import NotFound from "./pages/not-found";
+
+/* --------------------  404  -------------------- */
+import NotFound from "./pages/not-found.js";
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState<'start' | 'questionnaire' | 'niedervolt' | 'signature' | 'completion' | 'admin' | 'protocol-preview'>('start');
@@ -155,7 +169,8 @@ function App() {
       
       // Include niedervolt measurements
       const protocolData = {
-        receptionDate,
+        receptionDate,                    // Frontend számára
+        reception_date: receptionDate,    // ⭐ JAVÍTÁS: Backend schema számára
         language,
         answers: combinedAnswers,
         errors: formData.errors || [],
@@ -170,6 +185,7 @@ function App() {
         hasSignature: Boolean(protocolData.signature),
         hasSignatureName: Boolean(protocolData.signatureName),
         receptionDate: protocolData.receptionDate,
+        reception_date: protocolData.reception_date,  // ⭐ JAVÍTÁS: Debug log
         language: protocolData.language
       });
       

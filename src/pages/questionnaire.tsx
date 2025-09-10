@@ -337,11 +337,14 @@ const Questionnaire = memo(function Questionnaire({
           <div className="flex items-center justify-between">
             {/* Logo, Home and Title */}
             <div className="flex items-center">
+              
+              {/* --- JAVÍTÁS ITT: Fix méret és stílus a biztos megjelenésért --- */}
               <img 
                 src="/otis-elevators-seeklogo_1753525178175.png" 
                 alt="OTIS Logo" 
-                className="h-12 w-12 mr-4"
+                style={{ height: '50px', width: 'auto', marginRight: '16px' }}
               />
+
               {onHome && (
                 <Button
                   variant="ghost"

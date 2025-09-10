@@ -95,7 +95,7 @@ app.get('/api/protocols', (req, res) => {
     serveStatic(app);
     console.log('Static serving configured');
     
-    const PORT = process.env.PORT || 5000;
+    const PORT = Number(process.env.PORT) || 5000;
     
     if (process.env.NODE_ENV !== "test") {
       const server = app.listen(PORT, "0.0.0.0", () => {

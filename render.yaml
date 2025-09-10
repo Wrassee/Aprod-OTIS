@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: aprod-otis
+    env: node
+    plan: free
+    branch: vegleges-javitas # VAGY main, amelyiket használni akarod
+    buildCommand: "npm run build"
+    startCommand: "npm start"
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - fromGroup: aprod-otis-secrets # Ezt a nevet a következő lépésben hozzuk létre

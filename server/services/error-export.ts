@@ -290,7 +290,8 @@ export class ErrorExportService {
       // Fallback: Use jsPDF for reliable PDF generation
       console.log('🎯 PDF Generation: Falling back to jsPDF method');
       
-      const { jsPDF: PDF } = await import('jspdf');
+      // === EZ AZ EGY SOR VÁLTOZOTT ===
+      const { default: PDF } = await import('jspdf');
       
       const doc = new PDF();
       
